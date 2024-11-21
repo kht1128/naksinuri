@@ -1,0 +1,2811 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="Naksi">
+
+	<typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias alias="naksinuriVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriVO"/>	
+	<typeAlias alias="NaksinuriSanupVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO"/>	
+	<typeAlias alias="naksinurifileVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriFileVO"/>
+	<typeAlias alias="eventVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO"/>
+	<typeAlias alias="naksinurizisikVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriZisikinVO"/>
+	<typeAlias alias="fishesVO" type="egovframework.naksinuri_original.let.naksinuri.service.FishesVO"/>
+	
+	<!-- // SMS 문자발송 관련 // -->
+	<insert id="insert_sms_queue" >
+		INSERT INTO NAKSINURI_SMS_QUEUE (
+			REG_DATE, UPD_DATE, MSG_TYPE, R_PHONE, S_PHONE, IP, SUBMSG, MSG, APIKEY, IMG_CNT, IMG_PATH, RSTKEY, M_POINT, C_POINT
+		) VALUES(
+			NOW(),NOW(),#msg_type#,#r_phone#,#s_phone#,#ip#,#submsg#,#msg#,#apikey#,#img_cnt#,#img_path#,#rstkey#,#m_point#,#c_point#
+		)    
+	</insert>
+	<select id="get_ready_sms_data" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		<![CDATA[
+		SELECT * FROM NAKSINURI_SMS_QUEUE WHERE IS_INCRON = '0' AND STAT = '0'
+		]]>
+	</select>
+	<select id="get_check_sms_data" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		<![CDATA[
+		SELECT * FROM NAKSINURI_SMS_QUEUE WHERE IS_INCRON = '0' AND STAT = '1' AND RST = '0'
+		]]>
+	</select>
+	<select id="get_sms_log_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsLogsmsVO">
+		<![CDATA[
+		SELECT * FROM $tablename$ WHERE TR_ETC2 = #rstkey#
+		]]>
+	</select>
+	<select id="get_mms_log_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsLogmmsVO">
+		<![CDATA[
+		SELECT * FROM $tablename$ WHERE ETC2 = #rstkey#
+		]]>
+	</select>
+	<update id="update_refresh_sms_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		UPDATE NAKSINURI_SMS_QUEUE
+		SET IS_INCRON = '0',UPD_DATE = NOW()
+		WHERE MID = #mid#
+	</update>
+	<update id="update_info_sms_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		UPDATE NAKSINURI_SMS_QUEUE
+		SET RST = #rst#,RST_CODE = #rst_code#,UPD_DATE = #upd_date#
+		WHERE MID = #mid#	
+	</update>
+	<update id="update_ready_sms_data" parameterClass="java.util.List">
+		UPDATE NAKSINURI_SMS_QUEUE
+		SET IS_INCRON = '1'
+		WHERE  	
+		<iterate prepend="" open="(" conjunction="OR" close=")" >
+			MID = #[]#
+		</iterate>	
+	</update>
+	<update id="success_sms_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		UPDATE NAKSINURI_SMS_QUEUE
+		SET IS_INCRON = '0',STAT = '1',UPD_DATE = NOW(),SEND_DATE = NOW()
+		WHERE MID = #mid#
+	</update>
+	<update id="faile_sms_data" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		UPDATE NAKSINURI_SMS_QUEUE
+		SET IS_INCRON = '0',STAT = '2',UPD_DATE = NOW()
+		WHERE MID = #mid#
+	</update>
+	<insert id="insert_sms" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+		INSERT INTO SC_TRAN (
+			TR_SENDDATE, TR_SENDSTAT, TR_MSGTYPE, TR_PHONE, TR_CALLBACK, TR_MSG ,TR_ETC1, TR_ETC2
+		) VALUES(
+			NOW(),'0','0',#r_phone#,#s_phone#,#msg#,#ip#,#rstkey#
+		)    
+	</insert>
+	<insert id="insert_mms" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSmsVO">
+	   INSERT INTO MMS_MSG (
+	   		SUBJECT, PHONE, CALLBACK, STATUS, REQDATE, MSG, FILE_CNT, FILE_PATH1, TYPE, ETC1, ETC2
+	   	) VALUE(
+	   		#submsg#,#r_phone#,#s_phone#,'0',NOW(),#msg#,#img_cnt#,#img_path#,'0',#ip#,#rstkey#
+	   	)   
+	</insert>
+	
+	<select id="selectContact_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		SELECT 
+		  A.* 
+		FROM
+		  (SELECT 
+		    @RNUM := @RNUM + 1 AS RN,
+		    (SELECT 
+		      COUNT(*) 
+		    FROM
+		      NAKSINURI_SMS_CONTACTS
+		      <dynamic prepend="WHERE">
+			    	<isNotNull prepend="AND" property="searchText">		    	
+						( NAME LIKE "%$searchText$%" OR HP LIKE "%$searchText$%" ) 
+					</isNotNull>	
+					<isNotNull prepend="AND" property="groupname">
+						GROUPNAME = "$groupname$"					
+					</isNotNull>
+				</dynamic>
+			  	) AS TOT_CNT,
+		    N.* 
+		  FROM
+		    NAKSINURI_SMS_CONTACTS AS N 
+		 	
+		 	, (SELECT @RNUM := 0) R
+		 	<dynamic prepend="WHERE">
+			    	<isNotNull prepend="AND" property="searchText">		    	
+						( NAME LIKE "%$searchText$%" OR HP LIKE "%$searchText$%" ) 
+					</isNotNull>	
+					<isNotNull prepend="AND" property="groupname">
+						GROUPNAME = "$groupname$"					
+					</isNotNull>
+				</dynamic>
+				ORDER BY NAME
+			) A
+			
+			<isEqual compareValue="0" property="isAll">
+		 	WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		 	</isEqual>
+			
+	</select>
+	
+	
+	
+	<select id="selectContact_Single" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		
+		SELECT * FROM NAKSINURI_SMS_CONTACTS
+		<isNotEmpty property="idx">		    	
+				WHERE	IDX = #idx#
+		</isNotEmpty>
+		<isNotEmpty property="hp">		    	
+				WHERE	HP = #hp#
+		</isNotEmpty>
+		
+	</select>
+	
+	<insert id="insertContact_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" >
+		<![CDATA[
+		INSERT INTO NAKSINURI_SMS_CONTACTS (
+			NAME, HP, RESERVATION, DATETIME, GROUPNAME		
+	   	) VALUE(
+	   		#name#, #hp#, #reservation#, #datetime#, #groupname#
+	   	) 
+		]]>
+	</insert>
+	
+	<update id="updateContact_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		UPDATE NAKSINURI_SMS_CONTACTS
+		SET 
+		<isNotEmpty property="name">
+		NAME = #name#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="hp">
+		HP = #hp#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="groupname">
+		GROUPNAME = #groupname#,
+		</isNotEmpty>
+		
+		DATETIME = NOW()
+		
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="idx">
+			 IDX = #idx#
+			</isNotEmpty>
+			
+			<isNotEmpty prepend="AND" property="searchText">
+			 GROUPNAME = #searchText#
+			</isNotEmpty>
+		</dynamic>
+	</update>
+	
+	<delete id="deleteContact_S">
+		<isNotEmpty property="idx">	
+		DELETE 
+		FROM NAKSINURI_SMS_CONTACTS
+		WHERE IDX = #idx#
+		</isNotEmpty>
+		
+	</delete>	
+	
+	
+	<select id="selectGroup_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		
+		SELECT 
+		  A.*, (SELECT COUNT(*) FROM NAKSINURI_SMS_CONTACTS  WHERE A.groupname = groupname) AS groupusers 
+		FROM
+		  (SELECT 
+		    @RNUM := @RNUM + 1 AS RN,
+		    (SELECT 
+		      COUNT(*) 
+		    FROM
+		      NAKSINURI_SMS_GROUP
+		      <isNotEmpty property="searchText">		    	
+				WHERE	( name LIKE "%$searchText$%" OR hp LIKE "%$searchText$%" ) 
+			</isNotEmpty>
+			  	) AS TOT_CNT,
+		    N.* 
+		  FROM
+		    NAKSINURI_SMS_GROUP AS N
+		 	, (SELECT @RNUM := 0) R
+		 	<isNotEmpty property="searchText">		    	
+				WHERE	( name LIKE "%$searchText$%" OR hp LIKE "%$searchText$%" ) 
+			</isNotEmpty>
+			ORDER BY GROUPNAME
+			) A
+			
+			<isEqual compareValue="0" property="isAll">
+		 	WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#	
+		 	</isEqual>	
+		 	
+		 	
+	</select>
+	
+	<select id="selectGroup_Single" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		
+		SELECT * FROM NAKSINURI_SMS_GROUP
+		<isNotEmpty property="idx">		    	
+				WHERE	IDX = #idx#
+		</isNotEmpty>		
+		<isNotEmpty property="groupname">		    	
+				WHERE	GROUPNAME = #groupname#
+		</isNotEmpty>
+		
+	</select>
+	
+	<insert id="insertGroup_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" >
+		<![CDATA[
+		INSERT INTO NAKSINURI_SMS_GROUP (
+			GROUPNAME		
+	   	) VALUE(
+	   		#groupname#
+	   	) 
+		]]>
+	</insert>
+	
+	<update id="updateGroup_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		UPDATE NAKSINURI_SMS_GROUP
+		SET GROUPNAME = #groupname#
+		WHERE IDX = #idx#
+	</update>
+	
+	<delete id="deleteGroup_S">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURI_SMS_GROUP
+		WHERE IDX = #idx#
+		]]>
+	</delete>
+	
+	<select id="selectMent_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		<![CDATA[
+		SELECT * FROM NAKSINURI_SMS_MENT
+		]]>
+	</select>
+	
+	<insert id="insertMent_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO" >
+		<![CDATA[
+		INSERT INTO NAKSINURI_SMS_MENT (
+			TITLE, MENTTEXT		
+	   	) VALUE(
+	   		#title#, #menttext#
+	   	) 
+		]]>
+	</insert>
+	
+	<update id="updateMent_S" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SmsMngrVO">
+		UPDATE NAKSINURI_SMS_MENT
+		SET MENTTEXT = #menttext#,TITLE = #title#
+		WHERE IDX = #idx#
+	</update>
+	
+	<delete id="deleteMent_S">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURI_SMS_MENT
+		WHERE IDX = #idx#
+		]]>
+	</delete>
+	<!-- // -->
+	
+	
+	
+	<!-- // 유입 경로 필터 조회 // -->
+	<select id="get_funnels" resultClass="egovframework.naksinuri_original.let.naksinuri.service.FunnelsVO">
+		<![CDATA[
+		SELECT  * FROM NAKSINURI_STATISTICS_FUNNELS 
+		]]>
+	</select>
+	
+
+	<!-- // 첨부파일 다운로드 횟수 업데이트 -->
+	<update id="filedownload_hit_up">
+		UPDATE LETTNFILEDETAIL
+		SET FILE_HIT = FILE_HIT + 1 
+		WHERE ATCH_FILE_ID = #atchFileId#
+		AND FILE_SN = #fileSn#
+	</update>
+
+
+
+	<!-- // 바로가기 링크 관련 // -->
+	<typeAlias alias="shortcutlinkVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriShortcutLinkVO"/>
+	<select id="get_shortcut_link" resultClass="shortcutlinkVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURI_SHORTCUT_LINK
+		WHERE UNIQ_KEY = #uniq_key# 
+		]]>
+	</select>
+	
+	
+
+	<select id="NaksinuriDAO.selectInfo_admin" resultClass="naksinuriVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURI
+		WHERE nak_id = #nak_id# 
+		]]>
+	</select>
+	<select id="NaksinuriDAO.selectInfoPreview_admin" resultClass="naksinuriVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURI_PREVIEW
+		WHERE co_nm = #co_nm# and ceo_nm = #ceo_nm#
+		order by nak_id desc limit 1;
+		]]>
+	</select>
+	<select id="board_findCorp" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIBOARD
+		WHERE BO_SN = #bo_sn#
+		]]>
+	</select>
+		
+	<select id="date_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT BO_SUBJECT,BO_START_DT,date_add(BO_END_DT,interval +1 day) as BO_END_DT
+		FROM	NAKSINURIBOARD
+		WHERE BO_TYPE = 'congress' AND BO_TRASH = '0'
+		]]>
+	</select>
+	
+	<select id="date_list_condition" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+			SELECT BO_SUBJECT,BO_START_DT,BO_END_DT,BO_NAME,BO_SN  
+			FROM NAKSINURIBOARD 
+			WHERE BO_TYPE = 'congress' 
+			AND BO_TRASH = '0'
+			AND ( 
+				STR_TO_DATE(BO_START_DT, '%Y-%m') = STR_TO_DATE(#search_str#, '%Y-%m') 
+				OR STR_TO_DATE(BO_END_DT, '%Y-%m') = STR_TO_DATE(#search_str#, '%Y-%m') 
+			)
+		]]>
+	</select>
+	
+
+	
+	<select id="ba_file" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  BO_SN, BO_ATCH_FILE, FILE_SN,FILE_EXTSN, STRE_FILE_NM, ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIBOARD A ,LETTNFILEDETAIL B
+		WHERE BO_SN = #bo_sn#
+		AND A.BO_ATCH_FILE = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+
+	
+	<select id="bmimg" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  BO_SN, BO_MAIN_IMG, FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIBOARD A, LETTNFILEDETAIL B
+		WHERE BO_SN = #bo_sn#
+		AND A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+
+	
+	<select id="bsimg" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  BO_SN, BO_SUB_IMG,FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIBOARD A, LETTNFILEDETAIL B 
+		WHERE BO_SN = #bo_sn#
+		AND A.BO_SUB_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	<select id="movfile" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  BO_SN, BO_MOV_FILE,STRE_FILE_NM,FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIBOARD A, LETTNFILEDETAIL B 
+		WHERE BO_SN = #bo_sn#
+		AND A.BO_MOV_FILE = B.ATCH_FILE_ID
+		]]>
+	</select>
+
+	
+	<select id="pdfimgfile" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  BO_SN, BO_PDF_IMG_FILE,STRE_FILE_NM,FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIBOARD A, LETTNFILEDETAIL B 
+		WHERE BO_SN = #bo_sn#
+		AND A.BO_PDF_IMG_FILE = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	
+	<select id="select_next" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIBOARD
+		WHERE BO_TYPE = #bo_type#
+		AND BO_SN  > #bo_sn# AND BO_TRASH = '0'
+		ORDER BY BO_SN ASC  limit 1
+		
+		
+		]]>
+	</select>
+	<select id="select_prev" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIBOARD
+		WHERE BO_TYPE = #bo_type#
+		AND BO_SN < #bo_sn# AND BO_TRASH = '0'
+		ORDER BY BO_SN DESC  limit 1
+		
+		
+		]]>
+	</select>
+	
+	<select id="fishjob_next" resultClass="naksinuriVO">
+		<![CDATA[
+		SELECT  *
+		FROM  NAKSINURI
+		WHERE NAK_ID > #nak_id# AND CO_TRASH = '0'
+		ORDER BY NAK_ID ASC limit 1
+		]]>
+	</select>
+	
+	<select id="fishjob_prev" resultClass="naksinuriVO">
+		<![CDATA[
+		SELECT  *
+		FROM  NAKSINURI
+		WHERE NAK_ID < #nak_id# AND CO_TRASH = '0'
+		ORDER BY NAK_ID DESC  limit 1
+		]]>
+	</select>
+	
+	<select id="trashBoard_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = #bo_type# and BO_TRASH = '1'
+
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+			  </isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = #bo_type# and BO_TRASH = '1'
+			 
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			 	<isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+				</isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+		       </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	
+	<update id="gotrash_mainimg">
+	
+		<![CDATA[
+		UPDATE NAKSINURIUSERMAINIMG 
+		SET IMG_TRASH = '1'
+		WHERE IMG_NO = #img_no#;
+		]]>
+	</update>
+	<update id="gotrash_boardlist">
+	
+		<![CDATA[
+		UPDATE NAKSINURIBOARD 
+		SET BO_TRASH = '1'
+		WHERE BO_SN = #bo_sn#;
+		]]>
+	</update>
+	
+	<update id="gotrash_fishinglist">
+	
+		<![CDATA[
+		UPDATE NAKSINURI 
+		SET CO_TRASH = '1'
+		WHERE NAK_ID = #nak_id#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_indlist">
+	
+		<![CDATA[
+		UPDATE NAKSINURISANUP 
+		SET SAN_TRASH = '1'
+		WHERE SAN_SN = #san_sn#;
+		]]>
+	</update>
+	
+	
+	
+	<update id="gotrash_zisik">
+	
+		<![CDATA[
+		UPDATE NAKSINURIZISIKINQUESTION 
+		SET NURI_Q_TRASH = '1'
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+		]]>
+	</update>
+	
+	<update id="gotrash_zazu">
+	
+		<![CDATA[
+		UPDATE NAKSINURIZAZUQUEST 
+		SET ZAZU_TRASH = '1'
+		WHERE ZAZU_NUM = #zazu_num#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_qna">
+	
+		<![CDATA[
+		UPDATE NAKSINURIQNA 
+		SET QNA_TRASH = '1'
+		WHERE QNA_NO = #qna_no#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_newslist">
+	
+		<![CDATA[
+		UPDATE NAKSINURINEWSAPI 
+		SET ISDEL = '1'
+		WHERE MID = #mid#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_event">
+	
+		<![CDATA[
+		UPDATE NAKSINURIEVN
+		SET EVN_TRASH = '1'
+		WHERE EVN_NO = #evn_no#;
+		]]>
+	</update>
+	
+	<update id="gotrash_event_gongmo">
+	
+		<![CDATA[
+		UPDATE NAKSINURIGONGMO
+		SET EVN_TRASH = '1'
+		WHERE EVN_NO = #evn_no#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_plocation">
+	
+		<![CDATA[
+		UPDATE NAKSINURIPROHIBINGAONE
+		SET X_TRASH = '1'
+		WHERE X_SN = #x_sn#;
+		]]>
+	</update>
+	
+	
+	<update id="gotrash_voc">
+	
+		<![CDATA[
+		UPDATE NAKSINURIVOICEOFCUSTOMER
+		SET VOC_TRASH = '1'
+		WHERE VOC_NO = #voc_no#;
+		]]>
+	</update>
+	
+	<update id="gotrash_report">
+	
+		<![CDATA[
+		UPDATE NAKSINURI_FISHJOBREPORT
+		SET REPORT_TRASH = '1'
+		WHERE REPORT_SN = #report_sn#;
+		]]>
+	</update>
+	
+	<update id="gotrash_survey">
+	
+		<![CDATA[
+		UPDATE NAKSINURI_SURVEY_MAIN
+		SET BO_TRASH = '1'
+		WHERE SV_ID = #sv_id#;
+		]]>
+	</update>
+	
+	<update id="restore_survey">
+	
+		<![CDATA[
+		UPDATE NAKSINURI_SURVEY_MAIN
+		SET BO_TRASH = '0'
+		WHERE SV_ID = #sv_id#;
+		]]>
+	</update>
+	
+	<update id="restore_anglinglist">
+	
+		<![CDATA[
+		UPDATE NAKSINURIFTVAPI
+		SET ISDEL = '0'
+		WHERE MID = #mid#;
+		]]>
+	</update>
+	
+	<delete id="delete_survey">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURI_SURVEY_MAIN
+		WHERE SV_ID = #sv_id#;
+		]]>
+	</delete>
+	
+	<delete id="delete_survey_quest">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURI_SURVEY_QUESTION
+		WHERE SV_ID = #sv_id# AND SQ_ID = #sq_id#;
+		]]>
+	</delete>
+	
+	<delete id="delete_survey_questitem">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURI_SURVEY_QUESTION_ITEM
+		WHERE SQI_ID = #sqi_id#;
+		]]>
+	</delete>
+	
+	<update id="restore_boardlist">
+	
+		<![CDATA[
+		UPDATE NAKSINURIBOARD 
+		SET BO_TRASH = '0'
+		WHERE BO_SN = #bo_sn#;
+		]]>
+	</update>
+	
+	<update id="restore_fishjob">
+	
+		<![CDATA[
+		UPDATE NAKSINURI 
+		SET CO_TRASH = '0'
+		WHERE NAK_ID = #nak_id#;
+		]]>
+	</update>
+	
+	<update id="restore_ind">
+	
+		<![CDATA[
+		UPDATE NAKSINURISANUP 
+		SET SAN_TRASH = '0'
+		WHERE SAN_SN = #san_sn#;
+		]]>
+	</update>
+	
+	<update id="restore_zisik">
+	
+		<![CDATA[
+		UPDATE NAKSINURIZISIKINQUESTION 
+		SET NURI_Q_TRASH = '0'
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+		]]>
+	</update>
+	
+	<update id="restore_zazu">
+	
+		<![CDATA[
+		UPDATE NAKSINURIZAZUQUEST 
+		SET ZAZU_TRASH = '0'
+		WHERE ZAZU_NUM = #zazu_num#;
+		]]>
+	</update>
+	
+	<update id="restore_event">
+	
+		<![CDATA[
+		UPDATE NAKSINURIEVN
+		SET EVN_TRASH = '0'
+		WHERE EVN_NO = #evn_no#;
+		]]>
+	</update>
+	
+	<update id="restore_event_gongmo">
+	
+		<![CDATA[
+		UPDATE NAKSINURIGONGMO
+		SET EVN_TRASH = '0'
+		WHERE EVN_NO = #evn_no#;
+		]]>
+	</update>
+	
+	<update id="restore_plocation">
+	
+		<![CDATA[
+		UPDATE NAKSINURIPROHIBINGAONE
+		SET X_TRASH = '0'
+		WHERE X_SN = #x_sn#;
+		]]>
+	</update>
+	
+	<update id="restore_voc">
+	
+		<![CDATA[
+		UPDATE NAKSINURIVOICEOFCUSTOMER
+		SET VOC_TRASH = '0'
+		WHERE VOC_NO = #voc_no#;
+		]]>
+	</update>
+	<update id="voc_answer_write">
+		<![CDATA[
+		UPDATE NAKSINURIVOICEOFCUSTOMER
+		   SET VOC_ANSWER_CONTENT = #voc_answer_content#,
+		   	   VOC_ISSECRET = #voc_issecret#,
+		   	   VOC_ISANSWER = #voc_isanswer#
+		 WHERE VOC_NO = #voc_no#;
+		]]>
+	</update>
+	
+	<update id="restore_qna">
+	
+		<![CDATA[
+		UPDATE NAKSINURIQNA
+		SET QNA_TRASH = '0'
+		WHERE QNA_NO = #qna_no#;
+		]]>
+	</update>
+	
+	<update id="restore_report">
+		<![CDATA[
+		UPDATE NAKSINURI_FISHJOBREPORT
+		SET REPORT_TRASH = '0'
+		WHERE REPORT_SN = #report_sn#;
+		]]>
+	</update>
+	
+	<select id="select_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = #bo_type# AND BO_TRASH = '0'
+
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+			  </isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON 
+				
+				<!-- //공지사항,낚시정책안내 첨부파일 표기 위한 처리 2018.07.19 -->
+				<isEqual property="bo_type" compareValue="notice">
+				N.BO_ATCH_FILE = L.ATCH_FILE_ID
+				</isEqual>
+				<isNotEqual property="bo_type" compareValue="notice">
+					<isEqual property="bo_type" compareValue="policy">
+					N.BO_ATCH_FILE = L.ATCH_FILE_ID
+					</isEqual>
+					<isNotEqual property="bo_type" compareValue="policy">
+					N.BO_MAIN_IMG = L.ATCH_FILE_ID  
+					</isNotEqual> 
+				</isNotEqual>
+				<!-- //// -->
+
+				
+				, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = #bo_type# AND BO_TRASH = '0'
+			 
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			 	<isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+				</isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<!-- //게시물 승인 제도를 위한 처리 - 2019.07.31 -->
+	<select id="select_list_admin" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = #bo_type# AND ( BO_TRASH = '0'
+			  		<isEqual compareValue="travel" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		<isEqual compareValue="usage" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		<isEqual compareValue="column" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		)
+
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+			  </isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON 
+				
+				<!-- //공지사항,낚시정책안내 첨부파일 표기 위한 처리 2018.07.19 -->
+				<isEqual property="bo_type" compareValue="notice">
+				N.BO_ATCH_FILE = L.ATCH_FILE_ID
+				</isEqual>
+				<isNotEqual property="bo_type" compareValue="notice">
+					<isEqual property="bo_type" compareValue="policy">
+					N.BO_ATCH_FILE = L.ATCH_FILE_ID
+					</isEqual>
+					<isNotEqual property="bo_type" compareValue="policy">
+					N.BO_MAIN_IMG = L.ATCH_FILE_ID  
+					</isNotEqual> 
+				</isNotEqual>
+				<!-- //// -->
+
+				
+				, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = #bo_type# AND ( BO_TRASH = '0'
+			  		<isEqual compareValue="travel" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		<isEqual compareValue="usage" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		<isEqual compareValue="column" property="bo_type">	
+			  		 	OR BO_TRASH = '3'
+			  		</isEqual>
+			  		)
+			 
+			  <isNotEmpty property="bo_sido">
+				 AND BO_SIDO = #bo_sido#
+			  </isNotEmpty>
+			 	<isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+				</isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	
+	<select id="survey_select_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '0'
+			  <isNotEmpty property="searchText">			  		
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>	
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	
+				FROM	NAKSINURI_SURVEY_MAIN N ,(SELECT @RNUM := 0) R
+				WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '0'
+
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>	
+		  </isNotEmpty>
+		  		GROUP BY sv_id
+		  
+				ORDER BY sv_id DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<select id="survey_trash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '1'
+			  <isNotEmpty property="searchText">			  		
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>
+			   </isNotEmpty>
+			  ) AS TOT_CNT, N.*	
+				FROM	NAKSINURI_SURVEY_MAIN N ,(SELECT @RNUM := 0) R
+				WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '1'
+
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>	
+		  </isNotEmpty>
+		  		GROUP BY sv_id
+		  
+				ORDER BY sv_id DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<select id="survey_select_list_user" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>	
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURI_SURVEY_MAIN N , (SELECT @RNUM := 0) R
+				WHERE date_add(SV_END_DT,interval +1 day) <![CDATA[ >=  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH ='0'
+
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>	
+		  </isNotEmpty>
+		  		GROUP BY sv_id
+		  
+				ORDER BY sv_id DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	<select id="end_survey_select_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '0'
+			  <isNotEmpty property="searchText">
+			   	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>				
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.* FROM NAKSINURI_SURVEY_MAIN N , (SELECT @RNUM := 0) R
+				WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '0'
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>
+			
+		  </isNotEmpty>
+		  		GROUP BY sv_id
+		  
+				ORDER BY sv_id DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<select id="endsurvey_trash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '1'
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>
+			 </isNotEmpty>
+			  ) AS TOT_CNT, N.* FROM NAKSINURI_SURVEY_MAIN N , (SELECT @RNUM := 0) R
+				WHERE  date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH = '1'
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND REG_MB_ID LIKE "%$searchText$%"
+			  	</isEqual>
+			
+		  </isNotEmpty>
+		  		GROUP BY sv_id
+		  
+				ORDER BY sv_id DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+<!-- 아이파와 설문지 번호로 했는지 안했는지 체크하기 -->
+	<select id="check_survey_by_ip" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT count(asi_id) as used FROM NAKSINURI_SURVEY_ANSWER_INFO 
+		WHERE sv_id = #sv_id# 
+		AND sva_ip = #sva_ip#
+		<isNotEmpty property="ASI_CRS_SN">
+		AND ASI_CRS_SN = #ASI_CRS_SN#
+		</isNotEmpty>
+		<isNotEmpty property="ASI_HMBR_SN">
+		AND ASI_HMBR_SN = #ASI_HMBR_SN#
+		</isNotEmpty>
+	</select>
+
+	
+	<select id="end_survey_select_list_user" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI_SURVEY_MAIN
+			  WHERE date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	
+				FROM	NAKSINURI_SURVEY_MAIN N, (SELECT @RNUM := 0) R
+				WHERE date_add(SV_END_DT,interval +1 day) <![CDATA[ <  ]]>  SYSDATE() AND SV_STRT_DT IS NOT NULL AND BO_TRASH ='0'
+			  <isNotEmpty property="searchText">			  
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND SV_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY SV_ID
+		  
+				ORDER BY SV_ID DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	
+	<select id="noticemark_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT *from NAKSINURIBOARD A  LEFT JOIN 
+		LETTNFILEDETAIL F ON A.BO_ATCH_FILE = F.ATCH_FILE_ID
+		WHERE  BO_TYPE = #bo_type#
+		AND BO_NOTICE_Y = 1
+		AND BO_TRASH = 0
+		 <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		GROUP BY A.BO_SN
+		ORDER BY BO_SN DESC;
+	</select>
+	
+	<select id="trashNotice_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT *from NAKSINURIBOARD A  LEFT JOIN 
+		LETTNFILEDETAIL F ON A.BO_ATCH_FILE = F.ATCH_FILE_ID
+		WHERE  BO_TYPE = #bo_type#
+		AND BO_NOTICE_Y = 1
+		AND BO_TRASH = 1
+		GROUP BY A.BO_SN
+		ORDER BY BO_SN DESC;
+	</select>
+	<select id="recent_list4" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT * FROM NAKSINURIBOARD A 
+		LEFT JOIN LETTINFILEDETAIL F ON A.BO_MAIN_IMG = F.ATCH_FILE_ID
+		WHERE BO_TYPE = #bo_type#
+		AND BO_NOTICE_Y = 0 AND BO_TRASH='0'
+		GROUP BY A.BO_SN
+		ORDER BY BO_SN_DESC;
+	
+	</select>
+	
+	<delete id="delete_list">
+		<![CDATA[
+		    
+		DELETE u,up
+		FROM NAKSINURI AS u 
+		LEFT JOIN LETTNFILEDETAIL AS up ON u.ATCH_FILE_ID = up.ATCH_FILE_ID or u.CO_MIMGSRC = up.ATCH_FILE_ID
+	  	WHERE u.nak_id = #nak_id#
+
+		]]>
+	</delete>
+	<delete id="delete_boardlist">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURIBOARD  
+		
+	  	WHERE BO_SN = #bo_sn#
+
+		]]>
+	</delete>
+	
+	<delete id="delete_reportlist">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURI_FISHJOBREPORT  
+		
+	  	WHERE REPORT_SN = #report_sn#
+
+		]]>
+	</delete>	
+	
+	<select id="NaksinuriDAO.listFile_admin_S" resultClass="naksinurifileVO">
+		<![CDATA[
+		SELECT 
+			a.NAK_ID, a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE
+		FROM 
+			NAKSINURI a , LETTNFILEDETAIL b
+		WHERE 
+			a.NAK_ID = #nak_id#
+		AND
+			a.ATCH_FILE_ID = (SELECT c.ATCH_FILE_ID FROM NAKSINURI c WHERE c.NAK_ID = a.NAK_ID)
+		AND 
+			a.ATCH_FILE_ID = b.ATCH_FILE_ID
+		group by a.nak_id;
+		]]>	
+	</select>
+	
+	<select id="admin_searchFile1" resultClass="naksinurifileVO">
+		<![CDATA[
+			SELECT * FROM LETTNFILEDETAIL WHERE ATCH_FILE_ID = #atch_file_id#
+		]]>	
+	</select>
+	<select id="Preview_searchFile" resultClass="naksinurifileVO">
+		<![CDATA[
+			SELECT * FROM NAKSINURI_FILES_PREVIEW WHERE PTYPE='A' AND PID = #nak_id#
+		]]>	
+	</select>	
+	<select id="Preview_searchFile2" resultClass="naksinuriSanupVO">
+		<![CDATA[
+			SELECT * FROM NAKSINURI_FILES_PREVIEW WHERE PTYPE='B' AND PID = #san_sn#
+		]]>	
+	</select>	
+	<select id="adminPreview_searchFile1" resultClass="naksinurifileVO">
+		<![CDATA[
+			SELECT * FROM LETTNFILEDETAIL WHERE ATCH_FILE_ID = #atch_file_id#
+		]]>	
+	</select>		
+	<select id="NaksinuriDAO.listFile_admin_M" resultClass="naksinurifileVO">
+		<![CDATA[
+		SELECT 
+			a.NAK_ID, a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE
+		FROM 
+			NAKSINURI a , LETTNFILEDETAIL b
+		WHERE 
+			a.NAK_ID = #nak_id#
+		AND
+			a.CO_MIMGSRC = (SELECT c.CO_MIMGSRC FROM NAKSINURI c WHERE c.NAK_ID = a.NAK_ID)
+		AND 
+			a.CO_MIMGSRC = b.ATCH_FILE_ID group by nak_id
+		
+		]]>	
+	</select>
+	<select id="NaksinuriDAO.listFile_adminPreview_M" resultClass="naksinurifileVO">
+		<![CDATA[
+		SELECT 
+			a.NAK_ID, a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE
+		FROM 
+			NAKSINURI_PREVIEW a , LETTNFILEDETAIL b
+		WHERE 
+			a.NAK_ID = #nak_id#
+		AND
+			a.CO_MIMGSRC = (SELECT c.CO_MIMGSRC FROM NAKSINURI_PREVIEW c WHERE c.NAK_ID = a.NAK_ID)
+		AND 
+			a.CO_MIMGSRC = b.ATCH_FILE_ID group by nak_id
+		
+		]]>	
+	</select>
+	<select id="NaksinuriDAO.listFile_admin_M2" resultClass="naksinurifileVO">
+	
+		SELECT a.NAK_ID, a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE FROM NAKSINURI AS a LEFT JOIN LETTNFILEDETAIL AS b ON a.CO_MIMGSRC= b.ATCH_FILE_ID WHERE a.nak_id=#nak_id# group by nak_id;
+		
+	
+	</select>
+	
+	<select id="NaksinuriDAO.selectInfo_S" resultClass="naksinuriVO">
+		SELECT		
+		  			*
+		FROM	
+				NAKSINURI 
+		WHERE 
+				CO_NM = #co_nm#
+		AND   
+				CEO_NM = #ceo_nm#;
+	</select>
+	<select id="NaksinuriDAO.selectInfoSanup_S" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO">
+		SELECT	a.*, b.* 
+		FROM 
+		NAKSINURISANUP a LEFT JOIN  LETTNFILEDETAIL b ON a.SAN_IMG = b.ATCH_FILE_ID
+		WHERE 
+			a.SAN_NAME = #san_name# AND a.SAN_BUISNESSMAN = #san_buisnessman#
+	</select>
+		
+	<select id="NaksinuriDAO.listFile_S" resultClass="naksinurifileVO">
+		<![CDATA[
+		SELECT 
+			a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE
+		FROM 
+			NAKSINURI a , LETTNFILEDETAIL b
+		WHERE 
+			a.CO_NM = #co_nm#
+		AND	  
+			a.CEO_NM = #ceo_nm#
+		AND
+			a.ATCH_FILE_ID = (SELECT c.ATCH_FILE_ID FROM NAKSINURI c WHERE c.CO_NM = a.CO_NM AND c.CEO_NM = a.CEO_NM)
+		AND 
+			a.ATCH_FILE_ID = b.ATCH_FILE_ID; 
+
+		
+		
+		]]>	
+	</select>
+	<select id="NaksinuriDAO.listFile_M" resultClass="naksinurifileVO">
+		<![CDATA[
+		SELECT 
+			a.CO_NM, a.CEO_NM, a.CO_MIMGSRC,
+			a.ATCH_FILE_ID,	b.FILE_SN, b.FILE_STRE_COURS, b.ORIGNL_FILE_NM,
+			b.FILE_EXTSN, b.FILE_SIZE
+		FROM 
+			NAKSINURI a , LETTNFILEDETAIL b
+		WHERE 
+			a.CO_NM = #co_nm#
+		AND	  
+			a.CEO_NM = #ceo_nm#
+		AND
+			a.CO_MIMGSRC = (SELECT c.CO_MIMGSRC FROM NAKSINURI c WHERE c.CO_NM = a.CO_NM AND c.CEO_NM = a.CEO_NM)
+		AND 
+			a.CO_MIMGSRC = b.ATCH_FILE_ID;
+		
+		]]>	
+	</select>
+	
+
+	
+	<insert id="NaksinuriDAO.insertNaksinuriInfo_S">
+	<![CDATA[
+	INSERT INTO NAKSINURI
+	(	
+			FISHING_TYPE,
+			CO_NM,
+			CO_SHIP_NUM1,
+			CO_SHIP_NUM2,
+			CO_INFO,
+			CEO_NM,
+			CO_PHONE,
+			CO_PHONE1,
+			CO_PHONE2,
+			CO_PHONE3,
+			CO_HPHONE,
+			CO_HPHONE1,
+			CO_HPHONE2,
+			CO_HPHONE3,
+			CO_2HPHONE,
+			CO_2HPHONE1,
+			CO_2HPHONE2,
+			CO_2HPHONE3,
+			BO_SIZE,
+			BO_SPD,
+			BO_PSG,
+			CO_WEB,
+			CO_ADDR,
+			CO_ADDR_1,
+			CO_ADDR_2,
+			CO_ADDR_3,
+			CO_FISH,
+			CO_SIDO,
+			CO_ADDR2,
+			CO_ADDR2_1,
+			CO_ADDR2_2,
+			CO_ADDR2_3,
+			CO_PSG,
+			CO_STM,
+			CO_ETM,
+			CO_PRC,
+			CO_PRCTP,
+			CO_FCT,
+			CO_INTRO,
+			CO_MIMGSRC,
+			ATCH_FILE_ID,
+			REG_DATE,
+			CO_CREDIT,
+			CO_STATUS,
+			ADRES_LA,
+			ADRES_LO) 
+	VALUES (
+			#fishing_type#,
+			#co_nm#,
+			#co_ship_num1#,
+			#co_ship_num2#,
+			#co_info#,
+			#ceo_nm#,
+			#co_phone#,
+			#co_phone1#,
+			#co_phone2#,
+			#co_phone3#,
+			#co_hphone#,
+			#co_hphone1#,
+			#co_hphone2#,
+			#co_hphone3#,
+			#co_2hphone#,
+			#co_2hphone1#,
+			#co_2hphone2#,
+			#co_2hphone3#,
+			#bo_size#,
+			#bo_spd#,
+			#bo_psg#,
+			#co_web#,
+			#co_addr#,
+			#co_addr_1#,
+			#co_addr_2#,
+			#co_addr_3#,
+			#co_fish#,
+			#co_sido#,
+			#co_addr2#,
+			#co_addr2_1#,
+			#co_addr2_2#,
+			#co_addr2_3#,
+			#co_psg#,
+			#co_stm#,
+			#co_etm#,
+			#co_prc#,
+			#co_prctp#,
+			#co_fct#,
+			#co_intro#,
+			#co_mimgsrc#,
+			#atch_file_id#,			
+			SYSDATE(),
+			#co_credit#,
+			#adres_la#,
+			#adres_lo#,
+			'w')
+		]]>
+	</insert>
+	<insert id="NaksinuriDAO.insertNaksinuriPreviewInfo_S" >
+	<![CDATA[
+	INSERT INTO NAKSINURI_PREVIEW
+	(	
+			FISHING_TYPE,
+			CO_NM,
+			CO_SHIP_NUM1,
+			CO_SHIP_NUM2,
+			CO_INFO,
+			CEO_NM,
+			CO_PHONE,
+			CO_PHONE1,
+			CO_PHONE2,
+			CO_PHONE3,
+			CO_HPHONE,
+			CO_HPHONE1,
+			CO_HPHONE2,
+			CO_HPHONE3,
+			CO_2HPHONE,
+			CO_2HPHONE1,
+			CO_2HPHONE2,
+			CO_2HPHONE3,
+			BO_SIZE,
+			BO_SPD,
+			BO_PSG,
+			CO_WEB,
+			CO_ADDR,
+			CO_ADDR_1,
+			CO_ADDR_2,
+			CO_ADDR_3,
+			CO_FISH,
+			CO_SIDO,
+			CO_ADDR2,
+			CO_ADDR2_1,
+			CO_ADDR2_2,
+			CO_ADDR2_3,
+			CO_PSG,
+			CO_STM,
+			CO_ETM,
+			CO_PRC,
+			CO_PRCTP,
+			CO_FCT,
+			CO_INTRO,
+			CO_MIMGSRC,
+			ATCH_FILE_ID,
+			REG_DATE,
+			CO_CREDIT,
+			CO_STATUS,
+			PREG_STAT,
+			PREG_SESS,
+			PREG_PID
+			) 
+	VALUES (
+			#fishing_type#,
+			#co_nm#,
+			#co_ship_num1#,
+			#co_ship_num2#,
+			#co_info#,
+			#ceo_nm#,
+			#co_phone#,
+			#co_phone1#,
+			#co_phone2#,
+			#co_phone3#,
+			#co_hphone#,
+			#co_hphone1#,
+			#co_hphone2#,
+			#co_hphone3#,
+			#co_2hphone#,
+			#co_2hphone1#,
+			#co_2hphone2#,
+			#co_2hphone3#,
+			#bo_size#,
+			#bo_spd#,
+			#bo_psg#,
+			#co_web#,
+			#co_addr#,
+			#co_addr_1#,
+			#co_addr_2#,
+			#co_addr_3#,
+			#co_fish#,
+			#co_sido#,
+			#co_addr2#,
+			#co_addr2_1#,
+			#co_addr2_2#,
+			#co_addr2_3#,
+			#co_psg#,
+			#co_stm#,
+			#co_etm#,
+			#co_prc#,
+			#co_prctp#,
+			#co_fct#,
+			#co_intro#,
+			#co_mimgsrc#,
+			#atch_file_id#,			
+			SYSDATE(),
+			#co_credit#,
+			'w',
+			#save_status#,
+			#client_ipaddr#,
+			#nak_id#			
+			)
+		]]>
+	</insert>
+	<insert id="NaksinuriDAO.insertNaksinuriPreviewInfo_SP" >
+	<![CDATA[
+	INSERT INTO NAKSINURI_PREVIEW
+	(	
+			FISHING_TYPE,
+			CO_NM,
+			CO_SHIP_NUM1,
+			CO_SHIP_NUM2,
+			CO_INFO,
+			CEO_NM,
+			CO_PHONE,
+			CO_PHONE1,
+			CO_PHONE2,
+			CO_PHONE3,
+			CO_HPHONE,
+			CO_HPHONE1,
+			CO_HPHONE2,
+			CO_HPHONE3,
+			CO_2HPHONE,
+			CO_2HPHONE1,
+			CO_2HPHONE2,
+			CO_2HPHONE3,
+			BO_SIZE,
+			BO_SPD,
+			BO_PSG,
+			CO_WEB,
+			CO_ADDR,
+			CO_ADDR_1,
+			CO_ADDR_2,
+			CO_ADDR_3,
+			CO_FISH,
+			CO_SIDO,
+			CO_ADDR2,
+			CO_ADDR2_1,
+			CO_ADDR2_2,
+			CO_ADDR2_3,
+			CO_PSG,
+			CO_STM,
+			CO_ETM,
+			CO_PRC,
+			CO_PRCTP,
+			CO_FCT,
+			CO_INTRO,
+			CO_MIMGSRC,
+			ATCH_FILE_ID,
+			REG_DATE,
+			CO_CREDIT,
+			CO_STATUS,
+			PREG_STAT,
+			PREG_SESS,
+			PREG_PID
+			) 
+	VALUES (
+			#fishing_type#,
+			#co_nm#,
+			#co_ship_num1#,
+			#co_ship_num2#,
+			#co_info#,
+			#ceo_nm#,
+			#co_phone#,
+			#co_phone1#,
+			#co_phone2#,
+			#co_phone3#,
+			#co_hphone#,
+			#co_hphone1#,
+			#co_hphone2#,
+			#co_hphone3#,
+			#co_2hphone#,
+			#co_2hphone1#,
+			#co_2hphone2#,
+			#co_2hphone3#,
+			#bo_size#,
+			#bo_spd#,
+			#bo_psg#,
+			#co_web#,
+			#co_addr#,
+			#co_addr_1#,
+			#co_addr_2#,
+			#co_addr_3#,
+			#co_fish#,
+			#co_sido#,
+			#co_addr2#,
+			#co_addr2_1#,
+			#co_addr2_2#,
+			#co_addr2_3#,
+			#co_psg#,
+			#co_stm#,
+			#co_etm#,
+			#co_prc#,
+			#co_prctp#,
+			#co_fct#,
+			#co_intro#,
+			#co_mimgsrc#,
+			#atch_file_id#,			
+			SYSDATE(),
+			#co_credit#,
+			'w',
+			#save_status#,
+			#client_ipaddr#,
+			#pnak_id#			
+			)
+		]]>
+	</insert>
+	
+	<update id="NaksinuriDAO.updateInfo_S">
+        <![CDATA[
+            UPDATE NAKSINURI 
+            SET CO_NM      =   #co_nm#,
+            	CO_SHIP_NUM1 = #co_ship_num1#,          
+            	CO_SHIP_NUM2 = #co_ship_num2#,          
+				CO_INFO    =   #co_info#,        	
+				CEO_NM     =   #ceo_nm#,         	
+				CO_PHONE   =   #co_phone#,       	
+				CO_PHONE1  =   #co_phone1#,      	
+				CO_PHONE2  =   #co_phone2#,      	
+				CO_PHONE3  =   #co_phone3#,      	
+				CO_HPHONE  =   #co_hphone#,      	
+				CO_HPHONE1 =   #co_hphone1#,     	
+				CO_HPHONE2 =   #co_hphone2#,     	
+				CO_HPHONE3 =   #co_hphone3#,
+				CO_2HPHONE  =   #co_2hphone#,      	
+				CO_2HPHONE1 =   #co_2hphone1#,     	
+				CO_2HPHONE2 =   #co_2hphone2#,     	
+				CO_2HPHONE3 =   #co_2hphone3#,				     	
+				BO_SIZE    =   #bo_size#,        	
+				BO_SPD     =   #bo_spd#,         	
+				BO_PSG     =   #bo_psg#,         	
+				CO_WEB     =   #co_web#,         	
+				CO_ADDR    =   #co_addr#,        	
+				CO_ADDR_1  =   #co_addr_1#,      	
+				CO_ADDR_2  =   #co_addr_2#,      	
+				CO_ADDR_3  =   #co_addr_3#,      	
+				CO_FISH    =   #co_fish#,  
+				CO_SIDO	   =   #co_sido#,      	
+				CO_ADDR2   =   #co_addr2#,       	
+				CO_ADDR2_1 =   #co_addr2_1#,     	
+				CO_ADDR2_2 =   #co_addr2_2#,     	
+				CO_ADDR2_3 =   #co_addr2_3#,     	
+				CO_PSG     =   #co_psg#,         	
+				CO_STM     =   #co_stm#,         
+				CO_ETM     =   #co_etm#,         
+				CO_PRC     =   #co_prc#,         
+				CO_PRCTP   =   #co_prctp#,       
+				CO_FCT     =   #co_fct#,         	
+				CO_INTRO   =   #co_intro#,       	
+				CO_MIMGSRC =   #co_mimgsrc#,   	
+				ATCH_FILE_ID  =   #atch_file_id#,	  	
+				UPD_DATE   =   SYSDATE(),
+				CO_CREDIT  =   #co_credit#,  
+				CO_STATUS  =   #co_status#,
+				FISHING_TYPE = #fishing_type#,
+				CATE_MOD_ST = #cate_mod_st#,                      	
+				ADRES_LA = #adres_la#,                      	
+				ADRES_LO = #adres_lo#                      	
+            WHERE NAK_ID   =   #nak_id#			
+        ]]>                      			
+    </update>	
+	
+	
+	
+	
+	
+	
+	<!-- 낚시 지방고시 시/구/군 정보불러오기 -->
+	<select id="getbo_sido">
+		SELECT BO_SIDO FROM NAKSINURIBOARD
+		WHERE BO_SN = #bo_sn# AND BO_TRASH = '0'
+	</select>
+	
+<!-- 	연구소 리스트불러오기 -->
+	<select id="select_lab_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD 
+			  WHERE BO_TYPE = #bo_type# AND BO_TRASH = '0'
+			  <isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+				</isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_ATCH_FILE = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = #bo_type# AND BO_TRASH = '0'
+			 	<isNotEmpty property="bo_cate">
+				 AND BO_CATE = #bo_cate#
+				</isNotEmpty>
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<insert id="lab_insert_data">
+	
+	INSERT INTO NAKSINURIBOARD
+	(	
+		BO_SUBJECT,
+		BO_CONTENT,
+		BO_TYPE,
+		BO_INSERT_DT,		
+		BO_PASS,
+		BO_NAME,
+		BO_MAIN_IMG,
+		BO_SUB_IMG,
+		BO_ATCH_FILE,
+		
+		<isNotEmpty property="bo_start_dt">
+			BO_START_DT,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			BO_END_DT,
+		</isNotEmpty>	
+		BO_INFO
+		
+	) 
+	VALUES 
+	(
+		#bo_subject#,
+		#bo_content#,
+		#bo_type#,
+		SYSDATE(),
+		#bo_pass#,
+		#bo_name#,
+		#bo_main_img#,
+		#bo_sub_img#,
+		#bo_atch_file#,
+		<isNotEmpty property="bo_start_dt">
+			#bo_start_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			#bo_end_dt#,
+		</isNotEmpty>
+		#bo_info#
+
+		
+	)
+	
+	</insert>
+	
+	<select id="survey_find"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT * FROM NAKSINURI_SURVEY_MAIN
+		WHERE SV_ID = #sv_id#
+	
+	</select>
+	
+	<select id="survey_qfind"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT * FROM NAKSINURI_SURVEY_QUESTION
+		WHERE SV_ID = #sv_id#
+	
+	</select>
+	
+	<!-- <select id="survey_qifind"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT A.*,
+		  (SELECT COUNT(*) 
+		  FROM
+		    NAKSINURI_SURVEY_ANSWER B 
+		  WHERE B.sqi_id = A.sqi_id 
+		    AND B.sv_id = A.sv_id
+		    <isNotEmpty property="ETC_1">
+		    AND B.ETC_1 = #ETC_1#
+		    </isNotEmpty>
+		    ) AS selector 
+		FROM
+		  NAKSINURI_SURVEY_QUESTION_ITEM A 
+		WHERE SV_ID = #sv_id#
+	</select>  -->
+	
+	
+	
+	
+	
+	<select id="survey_qifind"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+      
+
+      SELECT 
+         *
+      
+         
+      FROM 
+         (SELECT 
+            *,
+            round(((selector * 100) / selector2),1) AS Percentage
+      
+         FROM (
+         
+            SELECT       
+               c.sqi_id AS sqi_id ,
+               c.sv_id AS sv_id ,
+               c.sq_id AS sq_id ,
+               c.svq_item_num AS svq_item_num ,
+               c.svq_item_txt AS svq_item_txt ,
+               c.svq_ck_cnt AS svq_ck_cnt ,
+               c.sqi_etc AS sqi_etc ,   
+               c.nDelCode AS nDelCode ,
+            
+               if(svq_item_num>4,selector+300,selector) AS selector,
+               c.selector2+300   AS selector2
+               
+            
+              FROM (         
+            
+               SELECT A.*,
+                 (SELECT COUNT(*) 
+                 FROM
+                   NAKSINURI_SURVEY_ANSWER B 
+                 WHERE B.sqi_id = A.sqi_id 
+                   AND B.sv_id = A.sv_id
+                   <isNotEmpty property="ETC_1">
+                   AND B.ETC_1 = #ETC_1#
+                   </isNotEmpty>
+                   ) AS selector,
+                           
+                   (SELECT Count(*)
+                    FROM   naksinuri_survey_answer B
+                    WHERE  B.sq_id = A.sq_id
+                     AND B.sv_id = A.sv_id
+                   <isNotEmpty property="ETC_1">
+                   AND B.ETC_1 = #ETC_1#
+                   </isNotEmpty>                     
+                     
+                     GROUP BY sq_id) AS selector2                         
+                   
+                   
+                   
+               FROM
+                 NAKSINURI_SURVEY_QUESTION_ITEM A 
+               WHERE SV_ID = #sv_id#
+         )c
+      )d    
+   )e
+                  
+               
+               
+   </select>
+	
+	
+	
+	
+	
+	
+<!-- 설문 응답사항 결과 조회  응답자 수 -->
+	<select id="survey_anscnt" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT COUNT(asi_id) as survey_anscnt FROM NAKSINURI_SURVEY_ANSWER_INFO
+		WHERE SV_ID = #sv_id#
+		<isNotEmpty property="ASI_CRS_SN">
+		AND ASI_CRS_SN = #ASI_CRS_SN#
+		</isNotEmpty>
+		<isNotEmpty property="ASI_HMBR_SN">
+		AND ASI_HMBR_SN = #ASI_HMBR_SN#
+		</isNotEmpty>
+	</select>
+	<select id="survey_answerole" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT * 
+		FROM NAKSINURI_SURVEY_ANSWER 
+		WHERE sva_txt is not null 
+		AND sva_txt !=''
+		<isNotEmpty property="ETC_1">
+		AND ETC_1 = #ETC_1#
+		</isNotEmpty> 
+		AND sv_id=#sv_id#	
+	</select>
+	<select id="survey_answerole2" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT A.*,(select Q.svq_subject from NAKSINURI_SURVEY_QUESTION as Q where Q.sq_id = A.sq_id)as sv_subject FROM NAKSINURI_SURVEY_ANSWER as A
+		 WHERE A.sva_txt is not null 
+		 	AND A.sva_txt !=''
+		 	AND A.sv_id=#sv_id#
+		 	<isNotEmpty property="ETC_1">
+		 	AND A.ETC_1 = #ETC_1#
+		 	</isNotEmpty> 
+	</select>
+	<select id="survey_find_subject" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT SV_ID FROM NAKSINURI_SURVEY_MAIN
+		WHERE SV_SUBJECT = #sv_subject#
+		ORDER BY SV_ID DESC
+		LIMIT 1
+	
+	</select>
+	<select id="survey_qfind_subject" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT SQ_ID FROM NAKSINURI_SURVEY_QUESTION
+		WHERE SVQ_SUBJECT = #svq_subject#
+		ORDER BY SQ_ID DESC
+		LIMIT 1		
+	</select>
+	
+	<select id="survey_answfind" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		SELECT ASI_ID FROM NAKSINURI_SURVEY_ANSWER_INFO
+		WHERE SVA_IP = #sva_ip#
+		ORDER BY ASI_ID DESC
+		LIMIT 1		
+	</select>
+	
+	<select id="select_endcongress"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		select bo_sn from NAKSINURIBOARD where bo_type = 'congress' and BO_END_DT <![CDATA[<]]> SYSDATE()
+	</select>
+	
+	<select id="participated_congress_list"  resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO">
+		SELECT a.*,b.* FROM 
+		NAKSINURI_CONGRESSINFO as a 
+		INNER JOIN 
+		NAKSINURIBOARD as b 
+		ON a.BO_SN = b.BO_SN
+		WHERE a.MBR_HP = #mbr_hp#
+		AND a.MBR_NAME = #mbr_name# and b.BO_TYPE = "congress" and b.BO_END_DT <![CDATA[>]]> SYSDATE() GROUP BY b.BO_SN ORDER BY b.BO_SN DESC;
+	</select>
+	
+	<select id="survey_get_item" resultClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.SurveyVO">
+		 SELECT Q.*,(select B.svq_item_txt from 
+NAKSINURI_SURVEY_QUESTION_ITEM as B where B.sq_id = Q.sq_id and B.svq_item_num ='1') as item1,
+  		 (select B.svq_item_txt from 
+NAKSINURI_SURVEY_QUESTION_ITEM as B where B.sq_id = Q.sq_id and B.svq_item_num ='2') as item2,
+   		 (select B.svq_item_txt from 
+NAKSINURI_SURVEY_QUESTION_ITEM as B where B.sq_id = Q.sq_id and B.svq_item_num ='3') as item3,
+         (select B.svq_item_txt from 
+NAKSINURI_SURVEY_QUESTION_ITEM as B where B.sq_id = Q.sq_id and B.svq_item_num ='4') as item4,
+         (select B.svq_item_txt from 
+NAKSINURI_SURVEY_QUESTION_ITEM as B where B.sq_id = Q.sq_id and B.svq_item_num ='5') as item5
+   		 from NAKSINURI_SURVEY_QUESTION as Q inner join 
+NAKSINURI_SURVEY_QUESTION_ITEM as QI on QI.sv_id = Q.sv_id where Q.sv_id =#sv_id# group by Q.sq_id;
+	</select>
+	
+	
+	<insert id="survey_insert_data">
+	
+	INSERT INTO NAKSINURI_SURVEY_MAIN
+	(	
+		SV_SUBJECT,
+		SV_STRT_DT,
+		SV_END_DT,
+		SV_SHOW,
+		SV_ITEM_CNT,		
+		REG_DATE,
+		REG_MB_ID,
+		SV_PRIVATE_INFO,
+		SV_LC
+		
+	) 
+	VALUES 
+	(
+		#sv_subject#, 
+		#sv_strt_dt#, 
+		#sv_end_dt#,
+		#sv_show#,  
+		#sv_item_cnt#,
+		SYSDATE(),  
+		#reg_mb_id#,
+		#sv_private_info#,
+		#SV_LC#
+	)
+		
+	</insert>
+	
+	<update id="survey_update_data">
+	
+		UPDATE NAKSINURI_SURVEY_MAIN
+		SET 
+			MOD_DATE = NOW(),
+			MOD_MB_ID = #mod_mb_id#
+			<isNotEmpty property="sv_strt_dt" prepend=",">
+				SV_SUBJECT = #sv_subject#
+			</isNotEmpty>
+			<isNotEmpty property="sv_strt_dt" prepend=",">
+				SV_STRT_DT = #sv_strt_dt#
+			</isNotEmpty>
+			<isNotEmpty property="sv_end_dt" prepend=",">
+				SV_END_DT = #sv_end_dt#
+			</isNotEmpty>
+			<isNotEmpty property="sv_show" prepend=",">
+				SV_SHOW = #sv_show#
+			</isNotEmpty>
+			<isNotEmpty property="sv_item_cnt" prepend=",">
+				SV_ITEM_CNT = #sv_item_cnt#
+			</isNotEmpty>
+			<isNotEmpty property="sv_private_info" prepend=",">
+				SV_PRIVATE_INFO = #sv_private_info#
+			</isNotEmpty>
+			<isNotEmpty property="SV_LC" prepend=",">
+				SV_LC = #SV_LC#
+			</isNotEmpty>
+		WHERE SV_ID = #sv_id#
+	</update>
+	
+	<insert id="survey_insert_quest">
+	
+	INSERT INTO NAKSINURI_SURVEY_QUESTION
+	(	
+		SQ_ORDER,
+		SV_ID,
+		SVQ_NUM,
+		SVQ_MXCNT,		
+		SVQ_TYPE,
+		SVQ_SUBJECT
+		
+	) 
+	VALUES 
+	(
+		#sq_order#,
+		#sv_id#,
+		#svq_num#,
+		#svq_mxcnt#,		
+		#svq_type#,
+		#svq_subject#
+	)
+		
+	</insert>
+	
+	<update id="survey_update_quest">
+	
+		UPDATE NAKSINURI_SURVEY_QUESTION
+		SET 
+			SQ_ID = #sq_id#
+			<isNotEmpty property="svq_num" prepend=",">
+				SVQ_NUM = #svq_num#
+			</isNotEmpty>
+			<isNotEmpty property="svq_mxcnt" prepend=",">
+				SVQ_MXCNT = #svq_mxcnt#
+			</isNotEmpty>
+			<isNotEmpty property="svq_type" prepend=",">
+				SVQ_TYPE = #svq_type#
+			</isNotEmpty>
+			<isNotEmpty property="svq_subject" prepend=",">
+				SVQ_SUBJECT = #svq_subject#
+			</isNotEmpty>
+		WHERE SV_ID = #sv_id# AND SQ_ID = #sq_id#
+	</update>
+	
+	<insert id="survey_insert_quest_item">
+	
+	INSERT INTO NAKSINURI_SURVEY_QUESTION_ITEM
+	(	
+		SV_ID,
+		SQ_ID,
+		SVQ_ITEM_NUM,
+		SVQ_ITEM_TXT,
+		SQI_ETC
+	) 
+	VALUES 
+	(
+		#sv_id#,
+		#sq_id#,
+		#svq_item_num#,
+		#svq_item_txt#,		
+		#sqi_etc#
+	)
+		
+	</insert>
+	
+	<update id="survey_update_quest_item">
+	
+		UPDATE NAKSINURI_SURVEY_QUESTION_ITEM
+		SET 
+			SQI_ID = #sqi_id#
+			<isNotEmpty property="svq_item_num" prepend=",">
+				SVQ_ITEM_NUM = #svq_item_num#
+			</isNotEmpty>
+			<isNotEmpty property="svq_item_txt" prepend=",">
+				SVQ_ITEM_TXT = #svq_item_txt#
+			</isNotEmpty>
+			<isNotEmpty property="sqi_etc" prepend=",">
+				SQI_ETC = #sqi_etc#
+			</isNotEmpty>
+		WHERE SV_ID = #sv_id# AND SQI_ID = #sqi_id#
+	</update>
+	
+	<insert id="survey_insert_answer">
+		INSERT INTO NAKSINURI_SURVEY_ANSWER
+		(	
+			SV_ID,
+			SQ_ID,
+			ASI_ID,
+			SQI_ID,
+			SVA_TXT,
+			<isNotEmpty property="as_name">
+			AS_NAME,
+			</isNotEmpty>
+			<isNotEmpty property="as_email">
+			AS_EMAIL,
+			</isNotEmpty>
+			<isNotEmpty property="as_tel">
+			AS_TEL,
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_SN">
+			HMBR_SN,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_1">
+			ETC_1,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_2">
+			ETC_2,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_3">
+			ETC_3,
+			</isNotEmpty>
+			SVA_MB_IP
+		) VALUES (
+			#sv_id#,
+			#sq_id#,
+			#asi_id#,
+			#sqi_id#,
+			#sva_txt#,
+			<isNotEmpty property="as_name">
+			#as_name#,
+			</isNotEmpty>
+			<isNotEmpty property="as_email">
+			#as_email#,
+			</isNotEmpty>
+			<isNotEmpty property="as_tel">
+			#as_tel#,
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_SN">
+			#HMBR_SN#,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_1">
+			#ETC_1#,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_2">
+			#ETC_2#,
+			</isNotEmpty>
+			<isNotEmpty property="ETC_3">
+			#ETC_3#,
+			</isNotEmpty>
+			#sva_mb_ip#
+		)
+	</insert>
+	<insert id="survey_insert_answer_info">
+		INSERT INTO NAKSINURI_SURVEY_ANSWER_INFO
+		(
+			SV_ID,
+			SVA_DATE,
+			<isNotEmpty property="ASI_CRS_SN">
+			ASI_CRS_SN,
+			</isNotEmpty>
+			<isNotEmpty property="ASI_HMBR_SN">
+			ASI_HMBR_SN,
+			</isNotEmpty>
+			SVA_IP
+		)
+		VALUES
+		(
+			#sv_id#,
+			SYSDATE(),
+			<isNotEmpty property="ASI_CRS_SN">
+			#ASI_CRS_SN#,
+			</isNotEmpty>
+			<isNotEmpty property="ASI_HMBR_SN">
+			#ASI_HMBR_SN#,
+			</isNotEmpty>
+			#sva_ip#
+		)
+	</insert>
+		
+	<insert id="update_mbrstatus">
+		UPDATE NAKSINURI_CONGRESSINFO
+		SET 
+		<isNotEmpty property="is_delete">
+			IS_DELETE = #is_delete#,
+		</isNotEmpty>
+		<isNotEmpty property="is_hide">
+			IS_HIDE = #is_hide#,
+		</isNotEmpty>
+		MBR_STATUS = #mbr_status#
+		WHERE IDX = #idx#
+	</insert>
+	
+	
+	<insert id="update_data" >
+		UPDATE  NAKSINURIBOARD
+		SET	BO_SUBJECT   =	#bo_subject#,
+			BO_CONTENT   =	#bo_content#,
+			BO_CATE		 =  #bo_cate#,
+			BO_TYPE      =	#bo_type#,
+			BO_UPDATE_DT =	SYSDATE(),
+			
+			
+			<isNotEmpty property="bo_pass">
+				BO_PASS = #bo_pass#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_sido">
+				BO_SIDO = #bo_sido#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_email">
+				BO_EMAIL = #bo_email#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_email1">
+				BO_EMAIL1 = #bo_email1#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_email2">
+				BO_EMAIL2 = #bo_email2#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_phone">
+				BO_PHONE = #bo_phone#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_phone1">
+				BO_PHONE1 = #bo_phone1#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_phone2">
+				BO_PHONE2 = #bo_phone2#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_phone3">
+				BO_PHONE3 = #bo_phone3#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_main_img">
+				BO_MAIN_IMG	 =  #bo_main_img#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_sub_img">
+				BO_SUB_IMG	 =  #bo_sub_img#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_atch_file">
+				BO_ATCH_FILE	 =  #bo_atch_file#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_mov_file">
+				BO_MOV_FILE	 =  #bo_mov_file#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_pdf_img_file">
+				BO_PDF_IMG_FILE	 =  #bo_pdf_img_file#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_start_dt">
+				BO_START_DT	 =  #bo_start_dt#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_end_dt">
+				BO_END_DT	 =  #bo_end_dt#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_notice_y">
+				BO_NOTICE_Y	 =  #bo_notice_y#,
+			</isNotEmpty>
+			<isEmpty property="bo_end_dt">
+				BO_END_DT	 =  NULL,
+			</isEmpty>
+			<isEmpty property="bo_start_dt">
+				BO_START_DT	 =  NULL,
+			</isEmpty>
+			<isNotEmpty property="bo_trash">
+				BO_TRASH = #bo_trash#,
+			</isNotEmpty>
+			
+			<isNotEmpty property="is_entry_y">
+				IS_ENTRY_Y = #is_entry_y#,
+			</isNotEmpty>
+			<isNotEmpty property="entry_cnt">
+				ENTRY_CNT = #entry_cnt#,
+			</isNotEmpty>
+			<isNotEmpty property="entry_start_dt">
+				ENTRY_START_DT = #entry_start_dt#,
+			</isNotEmpty>
+			<isNotEmpty property="entry_end_dt">
+				ENTRY_END_DT = #entry_end_dt#,
+			</isNotEmpty>
+			<isNotEmpty property="entry_notice">
+				ENTRY_NOTICE = #entry_notice#,
+			</isNotEmpty>
+			<isNotEmpty property="entry_cash">
+				ENTRY_CASH = #entry_cash#,
+			</isNotEmpty>
+			<isNotEmpty property="host">
+				HOST = #host#,
+			</isNotEmpty>
+			<isNotEmpty property="organizer">
+				ORGANIZER = #organizer#,
+			</isNotEmpty>
+			<isNotEmpty property="cg_location">
+				CG_LOCATION = #cg_location#,
+			</isNotEmpty>
+			<isNotEmpty property="cg_account">
+				CG_ACCOUNT = #cg_account#,
+			</isNotEmpty>
+			<isNotEmpty property="cg_account_name">
+				CG_ACCOUNT_NAME = #cg_account_name#,
+			</isNotEmpty>
+			
+			<isNotEmpty property="is_jacket_offer_y">
+				IS_JACKET_OFFER_Y = #is_jacket_offer_y#,
+			</isNotEmpty>
+			<isNotEmpty property="is_inflow_path_y">
+				IS_INFLOW_PATH_Y = #is_inflow_path_y#,
+			</isNotEmpty>
+			<isNotEmpty property="is_attend_cause_y">
+				IS_ATTEND_CAUSE_Y = #is_attend_cause_y#,
+			</isNotEmpty>
+			<isNotEmpty property="is_naksi_career_y">
+				IS_NAKSI_CAREER_Y = #is_naksi_career_y#,
+			</isNotEmpty>
+			<isNotEmpty property="price_item_name">
+				PRICE_ITEM_NAME = #price_item_name#,
+			</isNotEmpty>
+			<isNotEmpty property="price_item_cash">
+				PRICE_ITEM_CASH = #price_item_cash#,
+			</isNotEmpty>
+			<isEmpty property="price_item_name">
+				PRICE_ITEM_NAME = null,
+			</isEmpty>
+			<isEmpty property="price_item_cash">
+				PRICE_ITEM_CASH = null,
+			</isEmpty>
+			<isNotEmpty property="is_autosend_sms_y">
+				IS_AUTOSEND_SMS_Y = #is_autosend_sms_y#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_info">
+				BO_INFO = #bo_info#,
+			</isNotEmpty>
+			<isNotEmpty property="bo_youtubelink">
+				BO_YOUTUBELINK = #bo_youtubelink#,
+			</isNotEmpty>
+			
+			BO_NAME   =	#bo_name#
+			
+	 	WHERE BO_SN   =   #bo_sn#	
+	</insert>
+	
+	<update id="view_update">
+		UPDATE  NAKSINURIBOARD
+		SET BO_VIEW=BO_VIEW +1 
+		WHERE BO_SN   =   #bo_sn#	
+	</update>
+	<!-- 게시판 추천 -->
+	<update id="like_update">
+		UPDATE NAKSINURIBOARD
+		SET BO_LIKE = BO_LIKE + 1,
+			BO_VIEW = BO_VIEW - 1
+		WHERE BO_SN = #bo_sn#
+	</update>
+		
+	<update id="evnlike_update">
+		UPDATE NAKSINURIEVN
+		SET EVN_LIKE = EVN_LIKE + 1,
+			EVN_VIEWHIT = EVN_VIEWHIT -1
+		WHERE EVN_NO = #evn_no#
+	</update>
+	
+	<update id="gongmolike_update">
+		UPDATE NAKSINURIGONGMO
+		SET EVN_LIKE = EVN_LIKE + 1,
+			EVN_VIEWHIT = EVN_VIEWHIT -1
+		WHERE EVN_NO = #evn_no#
+	</update>
+		
+		
+	<insert id="co_insert">
+	<![CDATA[
+	INSERT INTO NAKSINURICOMMENT
+	(	CO_COMMENT,
+		BO_SN,
+		CO_INSERT_DT,		
+		CO_PASS,
+		CO_NAME) 
+	VALUES 	(	
+		#co_comment#,
+		#bo_sn#,
+		SYSDATE(),		
+		#co_pass#,
+		#co_name#) 
+		]]>
+	</insert>	
+	<select id="select_list_comment" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT * FROM NAKSINURICOMMENT 
+		WHERE BO_SN=#bo_sn#		
+	</select>
+	
+	<select id="select_list_post" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT * FROM NAKSINURIBOARD 
+		WHERE BO_TYPE = #bo_type# AND BO_TRASH = '0'
+		<isEqual compareValue="campaign" property="bo_type">
+			AND DATE_ADD(BO_END_DT, INTERVAL + 1 DAY) >= NOW() 
+		</isEqual>
+		ORDER BY BO_SN DESC
+		LIMIT 5	
+	</select>
+	
+	<select id="latest_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT BO_SN,BO_SUBJECT,BO_NAME,BO_MAIN_IMG,FILE_SN,ORIGNL_FILE_NM 
+		FROM NAKSINURIBOARD A LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE BO_TYPE = 'congress' and BO_END_DT<![CDATA[>]]> SYSDATE() AND BO_TRASH = '0'
+		ORDER BY BO_NOTICE_Y DESC, BO_START_DT ASC
+		LIMIT 4
+		
+	</select>
+	
+	<!-- 물떄 -->
+
+	
+	<select id="tidetm_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.Tide_TMVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.Tide_TMVO" >
+		SELECT *
+		 FROM NAKSINURI_TIDE_TIME 
+		WHERE SOLAR_DATE <![CDATA[>=]]> SYSDATE() 
+		LIMIT 7 ;
+	</select>
+
+	<select id="tidefc_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.Tide_FCVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.Tide_FCVO" >
+		SELECT  TIDE_FORECAST1,TIDE_FORECAST2,TIDE_FORECAST3,TIDE_FORECAST4,DATE_FORMAT(TIDE_DATE,'%m/%d') as TIDE_DATE
+		FROM NAKSINURI_FORECAST_TIDE WHERE TIDE_DATE<![CDATA[>]]> SYSDATE()- INTERVAL 1 DAY 
+		LIMIT 7 ;
+	</select>
+	
+	<select id="select_gongmo_event_post" resultClass="eventVO" parameterClass="eventVO" >
+		SELECT * FROM NAKSINURIGONGMO 
+		WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH = '0'
+		LIMIT 5	
+	</select>
+	
+	
+	<select id="select_event_post" resultClass="eventVO" parameterClass="eventVO" >
+		SELECT * FROM NAKSINURIEVN 
+		WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH = '0'
+		LIMIT 5	
+	</select>
+
+	<select id="select_endevent_post" resultClass="eventVO" parameterClass="eventVO" >
+		SELECT * FROM NAKSINURIEVN 
+		WHERE EVN_ENDDATE <![CDATA[ <  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH = '0'
+		LIMIT 5	
+	</select>
+	
+		<select id="angling_list_bobo" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriAnglingVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriAnglingVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIFTVAPI
+			 WHERE ISDEL = '0'
+			 
+			  ) AS TOT_CNT, N.*	
+				FROM	NAKSINURIFTVAPI N , (SELECT @RNUM := 0) R
+				WHERE ISDEL = '0'
+        GROUP BY mid
+		  
+				ORDER BY mid DESC) A
+        LIMIT 10
+	</select>
+	
+	<select id="select_list_bobo" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = #bo_type#
+			 AND BO_TRASH = '0'
+			  ) AS TOT_CNT, N.*	
+				FROM	NAKSINURIBOARD N , (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = #bo_type#
+				AND BO_TRASH = '0'
+        GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+        LIMIT 10
+	</select>
+	
+	<select id="zazu_list" resultClass="naksinurizisikVO" parameterClass="naksinurizisikVO">
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIZAZUQUEST
+			  WHERE ZAZU_NUM IS NOT NULL AND ZAZU_TRASH = '0'
+			  
+			 
+			  ) AS TOT_CNT,B.*
+				FROM	NAKSINURIZAZUQUEST B, (SELECT @RNUM := 0) R
+				  WHERE ZAZU_NUM IS NOT NULL AND ZAZU_TRASH = '0'
+			 
+		  		GROUP BY ZAZU_NUM
+		  
+				ORDER BY ZAZU_INSERT_DATE DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	
+	</select>
+	
+	<select id="getTrashZazu" resultClass="naksinurizisikVO" parameterClass="naksinurizisikVO">
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIZAZUQUEST
+			  WHERE ZAZU_NUM IS NOT NULL AND ZAZU_TRASH ='1'
+			  
+			 
+			  ) AS TOT_CNT,B.*
+				FROM	NAKSINURIZAZUQUEST B, (SELECT @RNUM := 0) R
+				  WHERE ZAZU_NUM IS NOT NULL AND ZAZU_TRASH = '1'
+			 
+		  		GROUP BY ZAZU_NUM
+		  
+				ORDER BY ZAZU_INSERT_DATE DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	
+	</select>
+		
+	<select id="qna_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIQNA
+			  WHERE QNA_NO IS NOT NULL AND QNA_TYPE = #qna_type# AND QNA_TRASH = '0'
+			  
+			  <isNotEmpty property="searchText">
+				
+			  	<isEqual compareValue="qna_ques" property="searchType">
+					AND QNA_QUES LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="qna_answ" property="searchType">
+					AND QNA_ANSW LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT,B.*
+				FROM	NAKSINURIQNA B, (SELECT @RNUM := 0) R
+				  WHERE QNA_NO IS NOT NULL AND QNA_TYPE = #qna_type# AND QNA_TRASH = '0'
+			 
+			  <isNotEmpty property="searchText">
+			 	
+			 	<isEqual compareValue="qna_ques" property="searchType">
+					AND QNA_QUES LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="qna_answ" property="searchType">
+					AND QNA_ANSW LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY QNA_NO
+		  
+				ORDER BY QNA_INSERT_DT DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	
+	</select>
+	
+	<select id="qna_trash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIQNA
+			  WHERE QNA_NO IS NOT NULL AND QNA_TYPE = #qna_type# AND QNA_TRASH = '1'
+			  
+			  <isNotEmpty property="searchText">
+				
+			  	<isEqual compareValue="qna_ques" property="searchType">
+					AND QNA_QUES LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="qna_answ" property="searchType">
+					AND QNA_ANSW LIKE "%$searchText$%"
+			  	</isEqual>
+			  </isNotEmpty>
+			  ) AS TOT_CNT,B.*
+				FROM	NAKSINURIQNA B, (SELECT @RNUM := 0) R
+				  WHERE QNA_NO IS NOT NULL AND QNA_TYPE = #qna_type# AND QNA_TRASH = '1'
+			 
+			  <isNotEmpty property="searchText">
+			 	
+			 	<isEqual compareValue="qna_ques" property="searchType">
+					AND QNA_QUES LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="qna_answ" property="searchType">
+					AND QNA_ANSW LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			
+		  </isNotEmpty>
+		  		GROUP BY QNA_NO
+		  
+				ORDER BY QNA_INSERT_DT DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	
+	</select>
+	
+	<insert id="insert_qna">
+	
+	INSERT INTO NAKSINURIQNA
+	(	QNA_TYPE,
+		QNA_QUES,
+		QNA_ANSW,
+		QNA_INSERT_DT
+	) 
+	VALUES 
+	(	#qna_type#,
+		#qna_ques#,
+		#qna_answ#,
+		SYSDATE()
+	)
+	
+	</insert>
+	
+	<insert id="update_qna">
+	<![CDATA[
+	UPDATE  NAKSINURIQNA
+	SET	QNA_TYPE   =	#qna_type#,
+		QNA_QUES   =	#qna_ques#,
+		QNA_ANSW   =	#qna_answ#,
+		QNA_UPDATE_DT =	SYSDATE()
+ 	WHERE QNA_NO   =   #qna_no#	
+
+		]]>
+	</insert>
+	<select id="qna_answer_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO" >
+		SELECT * 
+		FROM NAKSINURIQNA
+		WHERE QNA_NO = #qna_no#;
+	</select>
+	
+	<select id="qna_find" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriQnAVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIQNA
+		WHERE QNA_NO = #qna_no#;
+		]]>
+	</select>
+	
+	<delete id="delete_qna">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURIQNA 
+		WHERE QNA_NO = #qna_no#;
+
+		]]>
+	</delete>	
+	
+	<delete id="delete_mbrinfo">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURI_CONGRESSINFO 
+		WHERE BO_SN = #bo_sn#;
+
+		]]>
+	</delete>
+	
+	<insert id="insertZazu">
+	INSERT INTO NAKSINURIZAZUQUEST
+	(	ZAZU_TYPE,
+		ZAZU_QUES,
+		ZAZU_ANSW,
+		ZAZU_INSERT_DATE
+	) 
+	VALUES 
+	(	#zazu_type#,
+		#zazu_ques#,
+		#zazu_answ#,
+		SYSDATE()
+	)
+	</insert>
+	
+	<insert id="updateZazu">
+	<![CDATA[
+	UPDATE  NAKSINURIZAZUQUEST
+	SET	ZAZU_TYPE   =	#zazu_type#,
+		ZAZU_QUES   =	#zazu_ques#,
+		ZAZU_ANSW   =	#zazu_answ#,
+		ZAZU_UPDATE_DATE =	SYSDATE()
+ 	WHERE ZAZU_NUM   =   #zazu_num#	
+
+		]]>
+	</insert>
+	
+	<delete id="deleteZazu">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURIZAZUQUEST 
+		WHERE ZAZU_NUM = #zazu_num#;
+
+		]]>
+	</delete>			
+	<select id="nuri_find" resultClass="naksinurizisikVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIZAZUQUEST
+		WHERE ZAZU_NUM = #zazu_num#;
+		]]>
+	</select>
+	
+	
+	
+	
+</sqlMap>

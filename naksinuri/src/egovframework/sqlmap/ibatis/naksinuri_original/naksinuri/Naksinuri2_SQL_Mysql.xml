@@ -1,0 +1,1695 @@
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Naksi2">
+	
+	<typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias alias="naksinuriVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriVO"/>	
+	<typeAlias alias="NaksinuriSanupVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO"/>	
+	<typeAlias alias="naksinurifileVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriFileVO"/>
+	<typeAlias alias="eventVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO"/>
+	<typeAlias alias="naksinurizisikVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriZisikinVO"/>
+	<typeAlias alias="fishesVO" type="egovframework.naksinuri_original.let.naksinuri.service.FishesVO"/>
+
+	<select id="corpInfo3" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '0'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE
+					,CO_STATUS
+					,CATE_MOD_ST							
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '0'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY CATE_MOD_ST ASC, REG_DATE DESC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="trashBoatfishing_list" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='1'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM								
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE								
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '1'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY REG_DATE DESC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+<!-- 	선상낚시 등록순정렬 리스트 -->
+	<select id="fishjoblist_latest" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='0'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM								
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE								
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '0'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY REG_DATE ASC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="trashBoatlatest_list" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='1'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM								
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE								
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '1'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY REG_DATE ASC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	
+	<select id="fishjoblist_Kor" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='0'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM								
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE								
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '0'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY LTRIM(CO_NM) ASC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="trashBoatKor_list" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT A.*
+		FROM   (
+				SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='1'
+					<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>) AS TOT_CNT
+					,nak_id
+					,FISHING_TYPE								
+					,CO_NM								
+					,CO_SHIP_NUM1								
+					,CO_SHIP_NUM2								
+					,CO_INFO								
+					,CEO_NM								
+					,CO_PHONE								
+					,CO_PHONE1								
+					,CO_PHONE2								
+					,CO_PHONE3								
+					,CO_HPHONE								
+					,CO_HPHONE1								
+					,CO_HPHONE2								
+					,CO_HPHONE3								
+					,CO_2HPHONE								
+					,CO_2HPHONE1								
+					,CO_2HPHONE2								
+					,CO_2HPHONE3
+					,BO_SIZE								
+					,BO_SPD								
+					,BO_PSG								
+					,CO_WEB								
+					,CO_ADDR								
+					,CO_ADDR_1								
+					,CO_ADDR_2								
+					,CO_ADDR_3								
+					,CO_FISH								
+					,CO_ADDR2								
+					,CO_ADDR2_1								
+					,CO_ADDR2_2								
+					,CO_ADDR2_3								
+					,CO_PSG								
+					,CO_STM								
+					,CO_ETM								
+					,CO_PRC								
+					,CO_PRCTP								
+					,CO_FCT								
+					,CO_INTRO								
+					,CO_MIMGSRC								
+					,ATCH_FILE_ID								
+					,REG_DATE								
+					,UPD_DATE								
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH = '1'
+				<isNotEmpty property="searchDate1">
+					<isEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[>=]]> DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r')
+					</isEmpty>
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE BETWEEN DATE_FORMAT(#searchDate1#,'%Y/%m/%d %r') AND DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isEmpty property="searchDate1">
+					<isNotEmpty property="searchDate2">
+						AND REG_DATE <![CDATA[<=]]> DATE_FORMAT(#searchDate2#,'%Y/%m/%d %r')
+					</isNotEmpty>
+				</isEmpty>
+				<isEqual compareValue="co_nm" property="searchType">
+					AND CO_NM LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="ceo_nm" property="searchType">
+					AND CEO_NM LIKE "%$searchText$%"
+				</isEqual>
+				
+				<isEqual compareValue="co_addr" property="searchType">
+					AND CO_ADDR LIKE "%$searchText$%"
+				</isEqual>
+				ORDER BY LTRIM(CO_NM) ASC
+			 	) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+
+	
+	<select id="Fish_list" resultClass="fishesVO" parameterClass="fishesVO">
+		SELECT * FROM NAKSINURIFISHES
+		WHERE FISHING_TYPE = #fishing_type#
+		ORDER BY FISH_NAME ASC;
+	
+	</select>
+	<select id="FishPreview_list" resultClass="fishesVO" parameterClass="fishesVO">
+		SELECT * FROM NAKSINURIFISHES
+		WHERE FISHING_TYPE = #fishing_type#
+		ORDER BY FISH_NAME ASC;
+	
+	</select>	
+	<select id="congress_findCorp" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT *,(SELECT COUNT(*) FROM NAKSINURI_CONGRESSINFO WHERE NAKSINURIBOARD.BO_SN = NAKSINURI_CONGRESSINFO.bo_sn)AS CNT FROM NAKSINURIBOARD 
+		WHERE BO_SN = #bo_sn# 
+	</select>
+	
+	<select id="registered_congress_search" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT *,(SELECT COUNT(*) FROM NAKSINURI_CONGRESSINFO WHERE NAKSINURIBOARD.BO_SN = NAKSINURI_CONGRESSINFO.bo_sn)AS CNT FROM NAKSINURIBOARD 
+		WHERE BO_EMAIL = #bo_email#  
+		and BO_PASS = #bo_pass#
+		and REGIT_NUM = #regit_num#  
+	</select>
+	<select id="Fishjob_list" resultClass="naksinurifileVO" parameterClass="naksinurifileVO">
+		SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM   (SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI
+						WHERE CO_TRASH = '0' and CO_STATUS = 'y'
+						
+						<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+						
+							<isNotEmpty property="searchBoat" prepend="or">
+								FISHING_TYPE LIKE "%$searchBoat$%" 
+							</isNotEmpty>
+							<isNotEmpty property="searchRiver" prepend="or"> 
+								 FISHING_TYPE LIKE "%$searchRiver$%" 
+							</isNotEmpty>
+							<isNotEmpty property="searchSea" prepend="or">
+								 FISHING_TYPE LIKE "%$searchSea$%" 
+							</isNotEmpty>
+						
+						</isNotNull>
+						
+						<isNotEmpty property="searchSido" prepend="and">
+							 CO_ADDR_2 LIKE "$searchSido$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchGugun" prepend="and">
+							 CO_ADDR_2 LIKE "%$searchGugun$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchText1" prepend="and">
+							 CO_FISH LIKE "%$searchText1$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchText2" prepend="and">
+							 CEO_NM LIKE "%$searchText2$%" 
+						</isNotEmpty>
+						<isNotEmpty property="co_nm" prepend="and">
+							 CO_NM LIKE "%$co_nm$%" 
+						</isNotEmpty>
+						<isNotEmpty prepend="and" property="search_info">
+							<iterate property="search_info2" open="(" conjunction="or" close=")" >
+								co_info LIKE CONCAT('%',#search_info2[]#,'%')
+							</iterate>
+						</isNotEmpty>
+						
+						) AS TOT_CNT , N.*		
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE CO_TRASH = '0' and CO_STATUS = 'y'
+			
+			<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+			
+				<isNotEmpty property="searchBoat" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchBoat$%" 
+				</isNotEmpty>
+				<isNotEmpty property="searchRiver" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchRiver$%" 
+				</isNotEmpty>
+				<isNotEmpty property="searchSea" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchSea$%" 
+				</isNotEmpty>
+				
+			</isNotNull>
+			
+			<isNotEmpty property="searchSido" prepend="and">
+				 N.CO_ADDR_2 LIKE "$searchSido$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchGugun" prepend="and">
+				 N.CO_ADDR_2 LIKE "%$searchGugun$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchText1" prepend="and">
+				 N.CO_FISH LIKE "%$searchText1$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchText2" prepend="and">
+				 N.CEO_NM LIKE "%$searchText2$%" 
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="search_info">
+				<iterate property="search_info2" open="(" conjunction="or" close=")" >
+					N.co_info LIKE CONCAT('%',#search_info2[]#,'%')
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="co_nm" prepend="and">
+				CO_NM LIKE "%$co_nm$%" 
+			</isNotEmpty>			
+				<isEqual property="searchType" compareValue="id">
+				ORDER BY NAK_ID DESC
+				</isEqual>
+				
+				<isEqual property="searchType" compareValue="kor">
+				ORDER BY LTRIM(CO_NM) ASC
+				</isEqual>
+				
+				<isEqual property="searchType" compareValue="views">
+				ORDER BY CO_VIEWS DESC
+				</isEqual>
+				
+				) A
+		LEFT JOIN LETTNFILEDETAIL B ON A.CO_MIMGSRC = B.ATCH_FILE_ID
+
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	 	GROUP BY NAK_ID  
+		<isEqual property="searchType" compareValue="id">
+		ORDER BY NAK_ID DESC
+		</isEqual>
+				
+		<isEqual property="searchType" compareValue="kor">
+		ORDER BY LTRIM(CO_NM) ASC
+		</isEqual>
+	
+		<isEqual property="searchType" compareValue="views">
+				ORDER BY CO_VIEWS DESC
+		</isEqual>
+		LIMIT 200 OFFSET 0
+		 
+	</select>
+		
+		
+	<update id="fishjob_uphit">
+		UPDATE NAKSINURI
+		SET CO_VIEWS = CO_VIEWS + 1 
+		WHERE NAK_ID = #nak_id#
+	
+	</update>
+		
+	<update id="industry_uphit">
+		UPDATE NAKSINURISANUP
+		SET SAN_VIEWS = SAN_VIEWS + 1 
+		WHERE SAN_SN = #san_sn#
+	
+	</update>
+	<insert id="insert_data">
+	
+	INSERT INTO NAKSINURIBOARD
+	(	
+		BO_SUBJECT,
+		BO_CONTENT,
+		BO_TYPE,
+		BO_INSERT_DT,		
+		BO_PASS,
+		BO_NAME,
+		BO_MAIN_IMG,
+		BO_SUB_IMG,
+		BO_ATCH_FILE,
+		<isNotEmpty property="bo_mov_file">
+			BO_MOV_FILE,
+		</isNotEmpty>
+		<isNotEmpty property="bo_pdf_img_file">
+			BO_PDF_IMG_FILE,
+		</isNotEmpty>
+		<isNotEmpty property="bo_sido">
+			BO_SIDO,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email">
+			BO_EMAIL,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email1">
+			BO_EMAIL1,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email2">
+			BO_EMAIL2,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone">
+			BO_PHONE,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone1">
+			BO_PHONE1,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone2">
+			BO_PHONE2,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone3">
+			BO_PHONE3,
+		</isNotEmpty>
+		<isNotEmpty property="bo_start_dt">
+			BO_START_DT,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			BO_END_DT,
+		</isNotEmpty>
+		<isNotEmpty property="bo_notice_y">
+			BO_NOTICE_Y,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_entry_y">
+			IS_ENTRY_Y,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cnt">
+			ENTRY_CNT,
+		</isNotEmpty>
+		<isNotEmpty property="entry_start_dt">
+			ENTRY_START_DT,
+		</isNotEmpty>
+		<isNotEmpty property="entry_end_dt">
+			ENTRY_END_DT,
+		</isNotEmpty>
+		<isNotEmpty property="entry_notice">
+			ENTRY_NOTICE,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cash">
+			ENTRY_CASH,
+		</isNotEmpty>
+		
+		<isNotEmpty property="organizer">
+			ORGANIZER,
+		</isNotEmpty>			
+		<isNotEmpty property="host">
+			HOST,
+		</isNotEmpty>
+		<isNotEmpty property="cg_location">
+			CG_LOCATION,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account">
+			CG_ACCOUNT,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account_name">
+			CG_ACCOUNT_NAME,
+		</isNotEmpty>
+		<isNotEmpty property="regit_num">
+			REGIT_NUM,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_jacket_offer_y">
+			IS_JACKET_OFFER_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_inflow_path_y">
+			IS_INFLOW_PATH_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_attend_cause_y">
+			IS_ATTEND_CAUSE_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_naksi_career_y">
+			IS_NAKSI_CAREER_Y,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_name">
+			PRICE_ITEM_NAME,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_cash">
+			PRICE_ITEM_CASH,
+		</isNotEmpty>
+		<isNotEmpty property="is_autosend_sms_y">
+			IS_AUTOSEND_SMS_Y,
+		</isNotEmpty>
+		<isNotEmpty property="bo_info">
+			BO_INFO,
+		</isNotEmpty>
+		<isNotEmpty property="bo_trash">
+			BO_TRASH,
+		</isNotEmpty>
+		
+		BO_CATE
+		
+		
+	) 
+	VALUES 
+	(
+		#bo_subject#,
+		#bo_content#,
+		#bo_type#,
+		SYSDATE(),
+		#bo_pass#,
+		#bo_name#,
+		#bo_main_img#,
+		#bo_sub_img#,
+		#bo_atch_file#,
+		<isNotEmpty property="bo_mov_file">
+			#bo_mov_file#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_pdf_img_file">
+			#bo_pdf_img_file#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_sido">
+			#bo_sido#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email">
+			#bo_email#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email1">
+			#bo_email1#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email2">
+			#bo_email2#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone">
+			#bo_phone#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone1">
+			#bo_phone1#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone2">
+			#bo_phone2#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone3">
+			#bo_phone3#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_start_dt">
+			#bo_start_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			#bo_end_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_notice_y">
+			#bo_notice_y#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_entry_y">
+			#is_entry_y#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cnt">
+			#entry_cnt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_start_dt">
+			#entry_start_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_end_dt">
+			#entry_end_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_notice">
+			#entry_notice#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cash">
+			#entry_cash#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="organizer">
+			#organizer#,
+		</isNotEmpty>			
+		<isNotEmpty property="host">
+			#host#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_location">
+			#cg_location#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account">
+			#cg_account#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account_name">
+			#cg_account_name#,
+		</isNotEmpty>
+		<isNotEmpty property="regit_num">
+			#regit_num#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_jacket_offer_y">
+			#is_jacket_offer_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_inflow_path_y">
+			#is_inflow_path_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_attend_cause_y">
+			#is_attend_cause_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_naksi_career_y">
+			#is_naksi_career_y#,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_name">
+			#price_item_name#,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_cash">
+			#price_item_cash#,
+		</isNotEmpty>
+		<isNotEmpty property="is_autosend_sms_y">
+			#is_autosend_sms_y#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_info">
+			#bo_info#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="bo_trash">
+			#bo_trash#,
+		</isNotEmpty>
+		
+		#bo_cate#
+		
+	)
+	
+	</insert>
+	
+	<insert id="congressOwn_insert_data">
+	
+	INSERT INTO NAKSINURI_CONGRESSINFO_OWNER
+	(	
+		OWN_NAME,
+		OWN_GENDER,
+		OWN_BIRTH,
+		OWN_HP,
+		OWN_ADDRESS,
+		OWN_EMAIL,
+		<isNotEmpty property="own_jacket_offer">
+			OWN_JACKET_OFFER,
+		</isNotEmpty>
+		<isNotEmpty property="own_attend_cause">
+			OWN_ATTEND_CAUSE,
+		</isNotEmpty>
+		<isNotEmpty property="own_inflow_path">
+			OWN_INFLOW_PATH,
+		</isNotEmpty>
+		<isNotEmpty property="own_naksi_career">
+			OWN_NAKSI_CAREER,
+		</isNotEmpty>
+		OWN_DEPOSIT_AMOUNT,
+		OWN_ETC,
+		REGDATE,
+		OWN_DEPO_DATE,
+		MBR_GROUP,
+		REPRE_TITLE,
+		BO_SN,
+		REPRE_WRITER,
+		OWN_REPRE_NAME
+	) 
+	VALUES 
+	(
+		#own_name#,
+		#own_gender#,
+		#own_birth#,
+		#own_hp#,
+		#own_address#,
+		#own_email#,
+		<isNotEmpty property="own_jacket_offer">
+			#own_jacket_offer#,
+		</isNotEmpty>
+		<isNotEmpty property="own_attend_cause">
+			#own_attend_cause#,
+		</isNotEmpty>
+		<isNotEmpty property="own_inflow_path">
+			#own_inflow_path#,
+		</isNotEmpty>
+		<isNotEmpty property="own_naksi_career">
+			#own_naksi_career#,
+		</isNotEmpty>
+		#own_deposit_amount#,
+		#own_etc#,
+		NOW(),
+		#own_depo_date#,
+		#mbr_group#,
+		#repre_title#,
+		#bo_sn#,
+		#repre_writer#,
+		#own_repre_name#
+	)
+	
+	
+	</insert>
+	
+	<insert id="congressmbr_insert_data">
+	
+	INSERT INTO NAKSINURI_CONGRESSINFO
+	(	
+		MBR_NAME,
+		MBR_GENDER,
+		MBR_BIRTH,
+		REPRE_NAME,		
+		DEPO_DATE,
+		JACKET_OFFER,
+		INFLOW_PATH,
+		ATTEND_CAUSE,
+		NAKSI_CAREER,
+		MBR_ADDRESS,
+		ETC,
+		REGDATE,
+		ORGAN_NAME,
+		ORGAN_TITLE,
+		MBR_GROUP,
+		MBR_EMAIL,
+		MBR_HP,
+		MBR_RELATION,
+		MBR_BELONGTO,
+		REPRE_TITLE,
+		REPRE_WRITER,
+		BO_SN,	
+		DEPOSIT_AMOUNT,
+		MBR_OWN_NAME,
+		<isNotEmpty property="ci_type">
+		CI_TYPE,
+		</isNotEmpty>
+		<isNotEmpty property="ci_cate">
+		CI_CATE,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_cate">
+		MBR_CATE,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_pwd">
+		MBR_PWD,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_class">
+		MBR_CLASS,
+		</isNotEmpty>
+		<isNotEmpty property="work_subject">
+		WORK_SUBJECT,
+		</isNotEmpty>
+		<isNotEmpty property="work_summary">
+		WORK_SUMMARY,
+		</isNotEmpty>
+		<isNotEmpty property="bo_atch_file">
+		BO_ATCH_FILE,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_address_jibun">
+		MBR_ADDRESS_JIBUN,
+		</isNotEmpty>
+		MBR_STATUS
+	) 
+	VALUES 
+	(
+		#mbr_name#,
+		#mbr_gender#,
+		#mbr_birth#,
+		#repre_name#,		
+		#depo_date#,
+		#jacket_offer#,
+		#inflow_path#,
+		#attend_cause#,
+		#naksi_career#,
+		#mbr_address#,
+		#etc#,
+		NOW(),
+		#organ_name#,
+		#organ_title#,
+		#mbr_group#,
+		#mbr_email#,
+		#mbr_hp#,
+		#mbr_relation#,
+		#mbr_belongto#,
+		#repre_title#,
+		#repre_writer#,
+		#bo_sn#,
+		#deposit_amount#,
+		#mbr_own_name#,
+		<isNotEmpty property="ci_type">
+		#ci_type#,
+		</isNotEmpty>
+		<isNotEmpty property="ci_cate">
+		#ci_cate#,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_cate">
+		#mbr_cate#,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_pwd">
+		#mbr_pwd#,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_class">
+		#mbr_class#,
+		</isNotEmpty>
+		<isNotEmpty property="work_subject">
+		#work_subject#,
+		</isNotEmpty>
+		<isNotEmpty property="work_summary">
+		#work_summary#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_atch_file">
+		#bo_atch_file#,
+		</isNotEmpty>
+		<isNotEmpty property="mbr_address_jibun">
+		#mbr_address_jibun#,
+		</isNotEmpty>
+		#mbr_status#
+	)
+	
+	
+	</insert>
+	
+	<insert id="congressmbr_update_data">
+	
+	UPDATE NAKSINURI_CONGRESSINFO
+	SET 
+	
+	<isNotEmpty property="mbr_name">
+	MBR_NAME = #mbr_name#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_gender">
+	MBR_GENDER = #mbr_gender#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_birth">
+	MBR_BIRTH = #mbr_birth#,
+	</isNotEmpty>
+	<isNotEmpty property="repre_name">
+	REPRE_NAME = #repre_name#,
+	</isNotEmpty>
+	<isNotEmpty property="depo_date">
+	DEPO_DATE = #depo_date#,
+	</isNotEmpty>
+	<isNotEmpty property="jacket_offer">
+	JACKET_OFFER = #jacket_offer#,
+	</isNotEmpty>
+	<isNotEmpty property="inflow_path">
+	INFLOW_PATH = #inflow_path#,
+	</isNotEmpty>
+	<isNotEmpty property="attend_cause">
+	ATTEND_CAUSE = #attend_cause#,
+	</isNotEmpty>
+	<isNotEmpty property="naksi_career">
+	NAKSI_CAREER = #naksi_career#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_address">
+	MBR_ADDRESS = #mbr_address#,
+	</isNotEmpty>
+	<isNotEmpty property="etc">
+	ETC = #etc#,
+	</isNotEmpty>
+	<isNotEmpty property="regdate">
+	REGDATE = #regdate#,
+	</isNotEmpty>
+	<isNotEmpty property="organ_name">
+	ORGAN_NAME = #organ_name#,
+	</isNotEmpty>
+	<isNotEmpty property="organ_title">
+	ORGAN_TITLE = #organ_title#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_email">
+	MBR_EMAIL = #mbr_email#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_hp">
+	MBR_HP = #mbr_hp#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_relation">
+	MBR_RELATION = #mbr_relation#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_belongto">
+	MBR_BELONGTO = #mbr_belongto#,
+	</isNotEmpty>
+	<isNotEmpty property="repre_title">
+	REPRE_TITLE = #repre_title#,
+	</isNotEmpty>
+	<isNotEmpty property="repre_writer">
+	REPRE_WRITER = #repre_writer#,
+	</isNotEmpty>
+	<isNotEmpty property="deposit_amount">
+	DEPOSIT_AMOUNT = #deposit_amount#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_own_name">
+	MBR_OWN_NAME = #mbr_own_name#,
+	</isNotEmpty>
+
+	<isNotEmpty property="ci_cate">
+	CI_CATE = #ci_cate#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_cate">
+	MBR_CATE = #mbr_cate#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_pwd">
+	MBR_PWD = #mbr_pwd#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_class">
+	MBR_CLASS = #mbr_class#,
+	</isNotEmpty>
+	<isNotEmpty property="work_subject">
+	WORK_SUBJECT = #work_subject#,
+	</isNotEmpty>
+	<isNotEmpty property="work_summary">
+	WORK_SUMMARY = #work_summary#,
+	</isNotEmpty>
+	<isNotEmpty property="mbr_address_jibun">
+	MBR_ADDRESS_JIBUN = #mbr_address_jibun#,
+	</isNotEmpty>
+	<isNotEmpty property="bo_atch_file">
+	BO_ATCH_FILE = #bo_atch_file#,
+	</isNotEmpty>
+	CI_CATE = #ci_cate#
+		
+	WHERE BO_SN = #bo_sn# AND IDX = #idx#	
+	
+	</insert>
+	
+	<insert id="congress_insert_data">
+	
+	INSERT INTO NAKSINURIBOARD
+	(	
+		BO_SUBJECT,
+		BO_CONTENT,
+		BO_TYPE,
+		BO_INSERT_DT,		
+		BO_NAME,
+		BO_MAIN_IMG,
+		BO_SUB_IMG,
+		BO_ATCH_FILE,
+		<isNotEmpty property="bo_mov_file">
+			BO_MOV_FILE,
+		</isNotEmpty>
+		BO_CATE,
+		<isNotEmpty property="bo_pass">
+			BO_PASS,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email">
+			BO_EMAIL,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email1">
+			BO_EMAIL1,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email2">
+			BO_EMAIL2,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone">
+			BO_PHONE,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone1">
+			BO_PHONE1,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone2">
+			BO_PHONE2,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone3">
+			BO_PHONE3,
+		</isNotEmpty>
+		<isNotEmpty property="bo_start_dt">
+			BO_START_DT,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			BO_END_DT,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_entry_y">
+			IS_ENTRY_Y,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cnt">
+			ENTRY_CNT,
+		</isNotEmpty>
+		<isNotEmpty property="entry_start_dt">
+			ENTRY_START_DT,
+		</isNotEmpty>
+		<isNotEmpty property="entry_end_dt">
+			ENTRY_END_DT,
+		</isNotEmpty>		
+		<isNotEmpty property="entry_notice">
+			ENTRY_NOTICE,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cash">
+			ENTRY_CASH,
+		</isNotEmpty>
+		<isNotEmpty property="organizer">
+			ORGANIZER,
+		</isNotEmpty>			
+		<isNotEmpty property="host">
+			HOST,
+		</isNotEmpty>
+		<isNotEmpty property="cg_location">
+			CG_LOCATION,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account">
+			CG_ACCOUNT,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account_name">
+			CG_ACCOUNT_NAME,
+		</isNotEmpty>
+		<isNotEmpty property="regit_num">
+			REGIT_NUM,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_jacket_offer_y">
+			IS_JACKET_OFFER_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_inflow_path_y">
+			IS_INFLOW_PATH_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_attend_cause_y">
+			IS_ATTEND_CAUSE_Y,
+		</isNotEmpty>
+		<isNotEmpty property="is_naksi_career_y">
+			IS_NAKSI_CAREER_Y,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_name">
+			PRICE_ITEM_NAME,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_cash">
+			PRICE_ITEM_CASH,
+		</isNotEmpty>
+		<isNotEmpty property="is_autosend_sms_y">
+			IS_AUTOSEND_SMS_Y,
+		</isNotEmpty>
+		<isNotEmpty property="bo_info">
+			BO_INFO,
+		</isNotEmpty>
+		<isNotEmpty property="bo_member_id">
+			BO_MEMBER_ID,
+		</isNotEmpty>
+		
+			BO_TRASH
+		
+	) 
+	VALUES 
+	(
+		#bo_subject#,
+		#bo_content#,
+		#bo_type#,
+		SYSDATE(),
+		#bo_name#,
+		#bo_main_img#,
+		#bo_sub_img#,
+		#bo_atch_file#,
+		<isNotEmpty property="bo_mov_file">
+			#bo_mov_file#,
+		</isNotEmpty>
+		#bo_cate#,
+		<isNotEmpty property="bo_pass">
+			#bo_pass#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email">
+			#bo_email#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email1">
+			#bo_email1#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_email2">
+			#bo_email2#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone">
+			#bo_phone#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone1">
+			#bo_phone1#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone2">
+			#bo_phone2#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_phone3">
+			#bo_phone3#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_start_dt">
+			#bo_start_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_end_dt">
+			#bo_end_dt#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_entry_y">
+			#is_entry_y#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cnt">
+			#entry_cnt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_start_dt">
+			#entry_start_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_end_dt">
+			#entry_end_dt#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_notice">
+			#entry_notice#,
+		</isNotEmpty>
+		<isNotEmpty property="entry_cash">
+			#entry_cash#,
+		</isNotEmpty>
+		<isNotEmpty property="organizer">
+			#organizer#,
+		</isNotEmpty>			
+		<isNotEmpty property="host">
+			#host#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_location">
+			#cg_location#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account">
+			#cg_account#,
+		</isNotEmpty>
+		<isNotEmpty property="cg_account_name">
+			#cg_account_name#,
+		</isNotEmpty>
+		<isNotEmpty property="regit_num">
+			#regit_num#,
+		</isNotEmpty>
+		
+		<isNotEmpty property="is_jacket_offer_y">
+			#is_jacket_offer_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_inflow_path_y">
+			#is_inflow_path_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_attend_cause_y">
+			#is_attend_cause_y#,
+		</isNotEmpty>
+		<isNotEmpty property="is_naksi_career_y">
+			#is_naksi_career_y#,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_name">
+			#price_item_name#,
+		</isNotEmpty>
+		<isNotEmpty property="price_item_cash">
+			#price_item_cash#,
+		</isNotEmpty>
+		<isNotEmpty property="is_autosend_sms_y">
+			#is_autosend_sms_y#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_info">
+			#bo_info#,
+		</isNotEmpty>
+		<isNotEmpty property="bo_member_id">
+			#bo_member_id#,
+		</isNotEmpty>
+		
+		
+		#bo_trash#
+		
+		
+	)
+	
+	</insert>
+	
+		<select id="Fishcompany_list" resultClass="naksinurifileVO" parameterClass="naksinurifileVO">
+		SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM   (SELECT  
+					@RNUM:=@RNUM+1 AS RN
+					,(SELECT COUNT(*) FROM NAKSINURI
+						WHERE CO_TRASH = '0' and CO_STATUS = 'y'
+						
+						<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+						
+							<isNotEmpty property="searchBoat" prepend="or">
+								FISHING_TYPE LIKE "%$searchBoat$%" 
+							</isNotEmpty>
+							<isNotEmpty property="searchRiver" prepend="or"> 
+								 FISHING_TYPE LIKE "%$searchRiver$%" 
+							</isNotEmpty>
+							<isNotEmpty property="searchSea" prepend="or">
+								 FISHING_TYPE LIKE "%$searchSea$%" 
+							</isNotEmpty>
+						
+						</isNotNull>
+						
+						<isNotEmpty property="searchSido" prepend="and">
+							 CO_ADDR_2 LIKE "$searchSido$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchGugun" prepend="and">
+							 CO_ADDR_2 LIKE "%$searchGugun$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchText1" prepend="and">
+							 CO_FISH LIKE "%$searchText1$%" 
+						</isNotEmpty>
+						<isNotEmpty property="searchText2" prepend="and">
+							 CEO_NM LIKE "%$searchText2$%" 
+						</isNotEmpty>
+						<isNotEmpty property="co_nm" prepend="and">
+							 CO_NM LIKE "%$co_nm$%" 
+						</isNotEmpty>
+						
+						) AS TOT_CNT , N.*		
+				FROM	NAKSINURI N, (SELECT @RNUM := 0) R
+				WHERE CO_TRASH = '0' and CO_STATUS = 'y'
+			
+			<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+			
+				<isNotEmpty property="searchBoat" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchBoat$%" 
+				</isNotEmpty>
+				<isNotEmpty property="searchRiver" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchRiver$%" 
+				</isNotEmpty>
+				<isNotEmpty property="searchSea" prepend="or">
+					 N.FISHING_TYPE LIKE "%$searchSea$%" 
+				</isNotEmpty>
+				
+			</isNotNull>
+			
+			<isNotEmpty property="searchSido" prepend="and">
+				 N.CO_ADDR_2 LIKE "$searchSido$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchGugun" prepend="and">
+				 N.CO_ADDR_2 LIKE "%$searchGugun$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchText1" prepend="and">
+				 N.CO_FISH LIKE "%$searchText1$%" 
+			</isNotEmpty>
+			<isNotEmpty property="searchText2" prepend="and">
+				 N.CEO_NM LIKE "%$searchText2$%" 
+			</isNotEmpty>
+			<isNotEmpty property="co_nm" prepend="and">
+				CO_NM LIKE "%$co_nm$%" 
+			</isNotEmpty>
+				) A
+		LEFT JOIN LETTNFILEDETAIL B ON A.CO_MIMGSRC = B.ATCH_FILE_ID
+		WHERE 1=1
+	 	GROUP BY NAK_ID  
+	</select>
+
+	<select id="OceanFshIdex_list" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT *
+		FROM (SELECT * FROM OCEAN_FSH_IDEX_TB GROUP BY NAME) AS OC
+		WHERE 1=1 
+		<isNotEmpty property="date" prepend="and">
+			OC.DATE = #date#
+		</isNotEmpty>
+		<isNotEmpty property="total_score" prepend="and">
+			OC.TOTAL_SCORE = #total_score#
+		</isNotEmpty>
+		ORDER BY OC.NAME
+	</select>
+
+	<select id="Fishcompany_mapList" resultClass="naksinurifileVO" parameterClass="naksinurifileVO">
+		SELECT *
+		FROM NAKSINURI
+		WHERE 1 = 1
+		<isNotEmpty property="adres_la1" prepend="and">
+			<![CDATA[ ADRES_LA > #adres_la1# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_la2" prepend="and">
+			<![CDATA[ ADRES_LA < #adres_la2# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_lo1" prepend="and">
+			<![CDATA[ ADRES_LO > #adres_lo1# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_lo2" prepend="and">
+			<![CDATA[ ADRES_LO < #adres_lo2# ]]>
+		</isNotEmpty>
+	</select>
+
+
+	<select id="Fishcompany_info" resultClass="naksinurifileVO" parameterClass="naksinurifileVO">
+		SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM  NAKSINURI as A
+		LEFT JOIN LETTNFILEDETAIL B ON A.CO_MIMGSRC = B.ATCH_FILE_ID
+		WHERE 1=1
+		<isNotEmpty property="nak_id" prepend="and">
+			nak_id = #nak_id# 
+		</isNotEmpty>
+	</select>
+
+	<insert id="insert_ocean_fsh_idex">
+		INSERT INTO OCEAN_FSH_IDEX_TB (
+			TIME_TYPE, LON, LAT, WATER_TEMP, AIR_TEMP, WAVE_HEIGHT, TOTAL_SCORE, DATE, FISH_NAME, NAME, REG_DATE
+		) VALUES (
+			#time_type#, #lon#, #lat#, #water_temp#, #air_temp#, #wave_height#, #total_score#, #date#, #fish_name#, #name#, #reg_date#
+		)
+			
+	</insert>
+
+	<select id="get_ocean_fsh_idex_reg_date" resultClass="String" parameterClass="naksinuriVO">
+		SELECT REG_DATE
+		FROM OCEAN_FSH_IDEX_TB
+		GROUP BY REG_DATE
+	</select>
+
+	<delete id="delete_ocean_fsh_idex" parameterClass="naksinuriVO">
+		DELETE FROM OCEAN_FSH_IDEX_TB
+		WHERE REG_DATE = #reg_date#
+	</delete>
+
+	<select id="getInfoOceanFshIdex" parameterClass="naksinuriVO" resultClass="naksinuriVO">
+		SELECT *
+		FROM OCEAN_FSH_IDEX_TB
+		WHERE NAME = #name#
+		AND DATE = #date#
+		GROUP BY NAME
+	</select>
+
+	<select id="get_ocean_fsh_idex_area_list" parameterClass="naksinuriVO" resultClass="naksinuriVO">
+		SELECT NAME
+		FROM (SELECT * FROM OCEAN_FSH_IDEX_TB GROUP BY NAME) AS OC
+		WHERE OC.DATE = #date#
+		<isEqual compareValue="good" property="total_score">
+			AND (OC.TOTAL_SCORE = '좋음' OR OC.TOTAL_SCORE = '매우좋음')
+		</isEqual>
+		<isEqual compareValue="bad" property="total_score">
+			AND (OC.TOTAL_SCORE = '나쁨' OR OC.TOTAL_SCORE = '매우나쁨')
+		</isEqual>
+	</select>
+</sqlMap>

@@ -1,0 +1,149 @@
+@charset "utf-8";
+
+/* 
+ * 작성자 : 전현진
+ * 작성일 : 2017-05-01
+ * 이메일 : manager@dcafein.com
+ */
+
+/* reset css
+*{
+	-webkit-box-sizing:border-box;-moz-box-sizing:border-box;-ms-box-sizing:border-box;-o-box-sizing:border-box;box-sizing:border-box;
+	-webkit-transition:.3s ease-in-out;-moz-transition:.3s ease-in-out;-o-transition:.3s ease-in-out;transition:.3s ease-in-out;
+	letter-spacing:-0.5pt;
+} */
+
+html,body{margin:0;padding:0;}
+body{font:14px/1.2 'Malgun Gothic','돋움', Dotum, '굴림', Gulim, arial, sans-serif;color:#333;background-color:#f5f5f5}
+dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,tbody,tfoot,thead,th,td,article,figure{margin:0;padding:0;}
+input,textarea,select,td,th,button{color:#444;vertical-align:middle;}
+h1,h2,h3,h4,h5,h6{font-weight:normal;font-size:100%;}
+table{width:100%;border-spacing:0;border-collapse:collapse;table-layout:fixed;}
+ol,ul,li,dl{list-style:none;}
+legend, caption, .skip{position:absolute;left:-5000px;top:0;overflow:hidden;line-height:0.1%;font-size:0.1%;width:0.1%;height:0.1%;}
+caption{position:relative;}
+img,fieldset{border:0 none;}
+label,button{cursor:pointer;}
+em,address{font-style:normal;}
+a:link,a:visited{text-decoration:none;}
+a:hover,a:active,a:focus{text-decoration:none;}
+img{max-width:100%}
+
+input[type=text],input[type=password],input[type=submit],textarea{-webkit-border-radius:0;-webkit-appearance:none;}
+input[type=text]::-webkit-input-placeholder{color:#b4b4b4}
+input[type=text]:-moz-placeholder{color:#b4b4b4}
+input[type=text]::-moz-placeholder{color:#b4b4b4}
+input[type=text]:-ms-input-placeholder{color:#b4b4b4}
+input[type=password]::-webkit-input-placeholder{color:#b4b4b4}
+input[type=password]:-moz-placeholder{color:#b4b4b4}
+input[type=password]::-moz-placeholder{color:#b4b4b4}
+input[type=password]:-ms-input-placeholder{color:#b4b4b4}
+textarea::-webkit-input-placeholder{color:#b4b4b4}
+textarea:-moz-placeholder{color:#b4b4b4}
+textarea::-moz-placeholder{color:#b4b4b4}
+textarea:-ms-input-placeholder{color:#b4b4b4}
+
+input[type="radio"]{display:none;}
+input[type="radio"] + label{color:#666;font-weight:normal;}
+input[type="radio"] + label span{display:inline-block;width:32px;height:32px;margin:-3px 5px 0 0;vertical-align:middle;background:url("../img/ico_radio.png") left top no-repeat;cursor:pointer;}
+input[type="radio"]:checked + label span{background:url("../img/ico_radio.png") -32px top no-repeat;}
+
+input[type="checkbox"]{display:none;}
+input[type="checkbox"] + label{color:#666;font-weight:normal;}
+input[type="checkbox"] + label span{display:inline-block;width:32px;height:32px;margin:-3px 5px 0 0;vertical-align:middle;background:url("../img/ico_check.png") left top no-repeat;cursor:pointer;}
+input[type="checkbox"]:checked + label span{background:url("../img/ico_check.png") -32px top no-repeat;}
+
+.basic_textarea{width:100%;height:100px;padding:10px;border:1px solid #ccc}
+
+.w100{width:100%}
+.mgt30{margin-top:30px}
+
+.naksi_input{
+	height:40px;line-height:40px;padding:0 10px;background-color:#fafafa;border:1px solid #cdcdcd;
+	-moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;}
+.naksi_input.readonly{background-color:#e4e4e4;border:1px solid #ccc}
+
+.naksi_select::-ms-expand{display:none;}
+.naksi_select{
+	height:40px;padding:0 22px 0 5px;border:1px solid #cdcdcd;background:#fafafa url("../img/ico_select.png") no-repeat center right;-webkit-appearance:none;-moz-appearance:none;
+	-moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;}
+
+.basicBox{
+	display:inline-block;height:40px;line-height:40px;padding:0 10px;margin:2px 0;border:1px solid #cdcdcd;background-color:#fff;color:#666;vertical-align:top;
+	-moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;}
+.basicBox.bgGray{background-color:#626262;border:1px solid #626262;color:#fff}
+.basicBox.zipcodeBox{margin-left:5px;}
+
+.floats{zoom:1}
+.floats:after{content:'';display:block;clear:both}
+.floats > li{float:left}
+.floats > li.fr{float:right}
+
+#wrapper{position:relative;}
+
+/* 상단헤더 */
+	#header{position:relative;padding:4%;margin-bottom:2%;border-top:5px solid #2688c3;text-align:center;}
+	#header h1{padding-top:2%}
+	#header em{display:block;color:#666}
+	#header span{display:block;margin-top:2%;font-size:24px;color:#3558b2}
+	#header span b{color:#212121}
+
+/* 콘텐츠 */
+	#container{
+		overflow:hidden;position:relative;padding:4% 2%;margin:0 2%;border-top:5px solid #00b9f1;border-bottom:5px solid #00b9f1;background-color:#fff;
+		-moz-box-shadow:0px 2px 7px rgba(0,0,0,0.1);-webkit-box-shadow:0px 2px 7px rgba(0,0,0,0.1);box-shadow:0px 2px 7px rgba(0,0,0,0.1);
+		-moz-border-radius:10px;-webkit-border-radius:10px;border-radius:10px;}
+	#container .content h2{margin-bottom:15px;font-size:20px;font-weight:bold;color:#009999;}
+	#container .content .writeBox{border-top:1px solid #999}
+	#container .content .writeBox dl{padding:2%;border-bottom:1px solid #e0e0e0}
+	#container .content .writeBox dl dt{margin-bottom:5px;font-size:16px;font-weight:normal}
+	#container .content .writeBox .choicebox li{width:33.3%}
+	#container .content .writeBox .choicebox2 li{width:50%}
+	#container .content .writeBox .multi_input .naksi_input,
+	#container .content .writeBox .multi_input .naksi_select{margin:2px 0}
+	#container .btnArea{margin-top:20px;text-align:center;font-size:0;}
+	#container .btnArea .submitBtn{
+		display:inline-block;width:45%;height:50px;line-height:50px;margin:0 3px;border:1px solid #cdcdcd;text-align:center;font-weight:bold;font-size:18px;color:#00b9f1;
+		-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;}
+	#container .btnArea .submitBtn.bgBlue{border:1px solid #00b9f1;background-color:#00b9f1;color:#fff}
+
+	#login .btnArea .submitBtn{display:block;width:100%;margin:3px 0}
+
+	#imgul li > em{display:inline-block;vertical-align:middle;}
+	#imgul li > span{display:inline-block;vertical-align:middle;}
+	#imgul li > span #file{width:250px}
+
+	#shipform .choicebox em{}
+
+	#btnFoldWrap{width:40px !important;height:40px !important;top:-40px !important;right:0px !important}
+
+	.price_input{width:100px;}
+
+/* 하단푸터 */
+	#footer{padding:4%;margin-top:6%;background-color:#555;color:#cecece}
+	#footer ul{margin-top:10px}
+	#footer ul li{margin-right:15px}
+	#footer p{margin-top:10px;text-transform:uppercase;font-size:12px;color:#959595}
+
+
+@media screen and (min-width:900px){
+	.respon{position:relative;width:900px;margin:0 auto !important}
+
+	/* 상단헤더 */
+		#header{padding:10px 0}
+		#header span{margin-top:10px}
+
+	/* 콘텐츠 */
+		#container{padding:40px}
+		#container .content .writeBox dl{padding:10px 0}
+		#container .content .writeBox dl dt{display:inline-block;width:150px;padding-top:10px;padding-left:20px;vertical-align:top}
+		#container .content .writeBox dl dd{display:inline-block;width:650px;vertical-align:top}
+		#container .content .writeBox .choicebox{padding-top:5px}
+		#container .content .writeBox .choicebox li{width:20%}
+		#container .content .writeBox .choicebox2 li{width:25%}
+		#container .btnArea .submitBtn{width:200px}
+
+		#login .btnArea .submitBtn{display:inline-block;width:200px;margin:0 3px}
+
+		.price_input{width:200px;}
+}

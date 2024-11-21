@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="eduCenterMyHistory">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="myHistoryVO" type="egovframework.educenter.myhistory.service.MyHistoryVO"/>
+	
+	<select id="get_educenter_mbrhstry_list_totcnt" parameterClass="myHistoryVO" resultClass="int">
+			SELECT COUNT(T.HMBR_SN)
+			FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_TB AS CRS1 ON CRS1.CRS_SN = T.CRS_SN
+			LEFT JOIN EDU_CAT_INS_INF_TB AS CAT1 ON CAT1.CAT_INS_SN = CRS1.CAT_INS_SN
+			LEFT JOIN EDU_CRTF_TB AS CRTF ON CRTF.CRS_SN = T.CRS_SN AND CRTF.HMBR_SN = T.HMBR_SN
+			WHERE 1=1
+			<isNotEmpty property="LRNNG_CMPLT_ST">	
+				AND ( T.LRNNG_CMPLT_ST = '1' OR T.LRNNG_CMPLT_ST = '3' )
+			</isNotEmpty>
+			<isNotEmpty property="LRNNG_ST">	
+				<isEqual property="LRNNG_ST" compareValue="ok">
+					AND ( T.LRNNG_ST = '0' OR T.LRNNG_ST = '1' )
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>	
+			<isEmpty property="MBR_ID">	
+				AND CRS1.CRS_TYPE = 'fshsk_trnng'
+			</isEmpty>		
+			<isEqual property="HMBR_MBR_TYPE" compareValue="0">
+				AND T.TMP_MBR_NM = #TMP_MBR_NM#
+  				AND T.TMP_MBR_BIRTH = #TMP_MBR_BIRTH#
+			</isEqual>
+	</select>
+	<select id="get_educenter_mbrhstry_list" parameterClass="myHistoryVO" resultClass="myHistoryVO">
+			SELECT 
+				IFNULL(
+				(SELECT 
+				COUNT(T2.HMBR_SN) 
+				FROM EDU_MBR_HSTRY_DTL_TB AS T2 
+				WHERE T2.HMBR_SN = T.HMBR_SN
+				),0
+				) AS HMBR_DTL_CNT,
+			T.*,M.MBR_NM,
+				IFNULL((
+				SELECT SUM(CRS2.CRS_TOT_TIME)
+				FROM EDU_CURRICULUM_DTL_TB AS CRS2 
+				WHERE CRS2.CRS_SN = T.CRS_SN 
+				GROUP BY CRS2.CRS_SN
+				),0) AS SUM_TOT_TIME,
+				IFNULL((
+				SELECT SUM(CRS2.CRS_TOT_POINT)
+				FROM EDU_CURRICULUM_DTL_TB AS CRS2 
+				WHERE CRS2.CRS_SN = T.CRS_SN 
+				GROUP BY CRS2.CRS_SN
+				),0) AS SUM_TOT_POINT,
+			CRS1.CRS_NM,CRS1.CRS_STR_DT,CRS1.CRS_END_DT,CRS1.RECRUIT_STR_DT,
+			CRS1.RECRUIT_END_DT,CRS1.CRS_TYPE,CRS1.LOCK_ST,CRS1.CRS_ST,CRS1.CRS_SV_ST,CRS1.CRS_SV_ID,
+			CRS1.CRS_TOT_TIME,CRS1.CRS_TOT_POINT,CRS1.TYPE_GB,
+			CRS1.CRS_GRP_CD,CRS1.CRS_MBR_CD,
+			CAT1.CAT_INS_NM,
+			CRTF.CRTF_SN,CRTF.CRTF_CD   
+			FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_TB AS CRS1 ON CRS1.CRS_SN = T.CRS_SN
+			LEFT JOIN EDU_CAT_INS_INF_TB AS CAT1 ON CAT1.CAT_INS_SN = CRS1.CAT_INS_SN
+			LEFT JOIN EDU_CRTF_TB AS CRTF ON CRTF.CRS_SN = T.CRS_SN AND CRTF.HMBR_SN = T.HMBR_SN 
+			WHERE 1=1 
+			<isNotEmpty property="LRNNG_CMPLT_ST">	
+				AND ( T.LRNNG_CMPLT_ST = '1' OR T.LRNNG_CMPLT_ST = '3' )
+			</isNotEmpty>
+			<isNotEmpty property="LRNNG_ST">	
+				<isEqual property="LRNNG_ST" compareValue="ok">
+					AND ( T.LRNNG_ST = '0' OR T.LRNNG_ST = '1' )
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>	
+			<isEmpty property="MBR_ID">	
+				AND CRS1.CRS_TYPE = 'fshsk_trnng'
+			</isEmpty>	
+			<isEqual property="HMBR_MBR_TYPE" compareValue="0">
+				AND T.TMP_MBR_NM = #TMP_MBR_NM#
+  				AND T.TMP_MBR_BIRTH = #TMP_MBR_BIRTH#
+			</isEqual>
+			ORDER BY DATE_FORMAT(CRS1.CRS_STR_DT, '%Y') DESC, CRS1.CRS_END_DT ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>	
+	</select>
+	<select id="get_educenter_mbrhstry_dtl_list_totcnt" parameterClass="myHistoryVO" resultClass="int">
+			SELECT COUNT(T.MBR_ID)
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			WHERE 1=1
+			AND T.CRS_SN = #CRS_SN#
+			AND T.HMBR_SN = #HMBR_SN#
+			AND T.MBR_ID = #MBR_ID#
+			ORDER BY T.HMBR_ORD ASC		
+	</select>
+	<select id="get_educenter_mbrhstry_dtl_list" parameterClass="myHistoryVO" resultClass="myHistoryVO">
+			SELECT T.*,M.MBR_NM,C.CRS_DTL_NM,D.TRN_NM,D.TRN_TYPE_ST,D.TRN_FILE_SN  
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_DTL_TB AS C ON C.CRS_DTL_SN = T.CRS_DTL_SN
+			LEFT JOIN EDU_TRNNG_DATA_TB AS D ON D.TRN_SN = T.TRN_SN
+			WHERE 1=1
+			AND T.CRS_SN = #CRS_SN#
+			AND T.HMBR_SN = #HMBR_SN#
+			AND T.MBR_ID = #MBR_ID#
+			ORDER BY C.CRS_ORD ASC, D.TRN_NM ASC, T.HMBR_ORD ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+	<select id="get_educenter_mbrhstry_info" parameterClass="myHistoryVO" resultClass="myHistoryVO">
+			SELECT T.*,M.MBR_NM,M.MBR_HP,
+			C.CRS_NM,C.CRS_SV_ID,C.RECRUIT_STR_DT,C.RECRUIT_END_DT,C.CRS_STR_DT,C.CRS_END_DT,C.CRS_MBR_CD,C.CRS_LAW_TYPE,C.TYPE_GB,
+				IFNULL((SELECT SUM(Tdtl.CRS_TOT_TIME) 
+					FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+					WHERE Tdtl.CRS_SN = T.CRS_SN 
+					GROUP BY Tdtl.CRS_SN),0) AS SUM_TOT_TIME,
+				IFNULL((SELECT SUM(Tdtl.CRS_TOT_POINT) 
+					FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				   	WHERE Tdtl.CRS_SN = T.CRS_SN 
+				   	GROUP BY Tdtl.CRS_SN),0) AS SUM_TOT_POINT 
+			FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_TB AS C ON C.CRS_SN = T.CRS_SN
+			WHERE 1=1
+			<isNotEmpty property="CRS_MBR_CD">
+				AND C.CRS_MBR_CD = #CRS_MBR_CD#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_STR_DT">
+				AND C.CRS_STR_DT LIKE '$CRS_STR_DT$%'
+			</isNotEmpty>
+			<isNotEmpty property="TYPE_GB">
+				AND C.TYPE_GB = #TYPE_GB#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN">
+				AND T.CRS_SN = #CRS_SN#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#	
+			</isNotEmpty>	
+			<isNotEmpty property="HMBR_SN">	
+				AND T.HMBR_SN = #HMBR_SN#	
+			</isNotEmpty>		
+			<isNotEmpty property="LRNNG_ST">	
+				AND T.LRNNG_ST = #LRNNG_ST#	
+			</isNotEmpty>		
+			<isNotEmpty property="LRNNG_CMPLT_ST">	
+				AND T.LRNNG_CMPLT_ST = #LRNNG_CMPLT_ST#	
+			</isNotEmpty>		
+	</select>
+	<select id="get_educenter_mbrhstry_dtl_info" parameterClass="myHistoryVO" resultClass="myHistoryVO">
+			SELECT T.*,M.MBR_NM,C.CRS_DTL_NM,D.TRN_NM,D.TRN_TYPE_ST,C.CRS_DTL_DSCRP,C.CRS_DTL_DC,D.TRN_FILE_SN,C.CRS_DTL_FILE,D.TRN_CONT,
+			CAT1.CAT_NM,CAT2.CAT_DTL_NM,T2.PLAY_LOCK_CD
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			LEFT JOIN EDU_MBR_HSTRY_TB AS T2 ON T2.HMBR_SN = T.HMBR_SN
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_DTL_TB AS C ON C.CRS_DTL_SN = T.CRS_DTL_SN
+			LEFT JOIN EDU_TRNNG_DATA_TB AS D ON D.TRN_SN = T.TRN_SN 
+			LEFT JOIN EDU_CAT_TB AS CAT1 ON CAT1.CAT_SN = T.CAT_SN
+ 			LEFT JOIN EDU_CAT_DTL_TB AS CAT2 ON CAT2.CAT_DTL_SN = T.CAT_DTL_SN
+			WHERE 1=1 
+			<isNotEmpty property="HMBR_SN">
+			AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN">
+			AND T.CRS_SN = #CRS_SN#
+			</isNotEmpty>
+			AND T.HMBR_DTL_SN = #HMBR_DTL_SN#
+			<isNotEmpty property="MBR_ID">
+			AND T.MBR_ID = #MBR_ID#	
+			</isNotEmpty>
+	</select>	
+	<update id="set_educenter_chng_continue_time" parameterClass="myHistoryVO">
+			UPDATE EDU_MBR_HSTRY_DTL_TB AS T
+			SET 
+			LRNNG_PRGRS = #LRNNG_PRGRS#,
+			<isNotEmpty property="LRNNG_CUR_TIME">		
+				LRNNG_CUR_TIME = #LRNNG_CUR_TIME#,
+			</isNotEmpty>
+			<isNotEmpty property="LRNNG_CUR_POINT">		
+				LRNNG_CUR_POINT = #LRNNG_CUR_POINT#,
+			</isNotEmpty>
+			T.TRN_CUR_TIME = #TRN_CUR_TIME#,
+			T.UPD_DT= #UPD_DT#
+			WHERE 1=1 
+			AND T.HMBR_SN = #HMBR_SN#
+			AND T.CRS_SN = #CRS_SN#
+			AND T.HMBR_DTL_SN = #HMBR_DTL_SN#
+			AND T.MBR_ID = #MBR_ID#	
+	</update>	
+	<update id="set_educenter_mbrhstry_dtl_cmplt" parameterClass="myHistoryVO">
+		UPDATE EDU_MBR_HSTRY_DTL_TB 
+		SET 
+			LRNNG_PRGRS = #LRNNG_PRGRS#,
+			LRNNG_CUR_TIME = #LRNNG_CUR_TIME#,
+			LRNNG_CUR_POINT = #LRNNG_CUR_POINT#,
+			LRNNG_CMPLT_DTL_ST = '1',
+			<isNotEmpty property="TRN_CUR_TIME">	
+			TRN_CUR_TIME = #TRN_CUR_TIME#,
+			</isNotEmpty>
+		UPD_DT=NOW() 
+		WHERE HMBR_SN = #HMBR_SN#
+		AND HMBR_DTL_SN = #HMBR_DTL_SN#
+		AND MBR_ID = #MBR_ID#	
+		AND CRS_SN = #CRS_SN#
+	</update>
+	<update id="set_educenter_mbrhstry_cur_cmplt_up" parameterClass="myHistoryVO">
+		<![CDATA[
+		UPDATE EDU_MBR_HSTRY_TB 
+		SET LRNNG_CMPLT_CNT = LRNNG_CMPLT_CNT + 1,
+		UPD_DT=NOW() 
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#	
+		AND CRS_SN = #CRS_SN#
+		]]>
+	</update>
+	<update id="set_educenter_mbrhstry_mod" parameterClass="myHistoryVO">
+			UPDATE EDU_MBR_HSTRY_TB
+			SET
+				<isNotEmpty property="LRNNG_PRGRS">		    	
+				LRNNG_PRGRS = #LRNNG_PRGRS#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_TIME">		    	
+				LRNNG_TOT_TIME = #LRNNG_TOT_TIME#,
+				HMBR_RCGNT_TIME = HMBR_INPUT_TIME+$LRNNG_TOT_TIME$,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_POINT">		    	
+				LRNNG_TOT_POINT = #LRNNG_TOT_POINT#,
+				HMBR_RCGNT_POINT = HMBR_INPUT_POINT+$LRNNG_TOT_POINT$,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_SV_ST">
+				HMBR_SV_ST = #HMBR_SV_ST#,
+				</isNotEmpty>
+				UPD_MBR_ID = #UPD_MBR_ID#,
+				<isNotEmpty property="PLAY_LOCK_CD">
+					<isEqual property="PLAY_LOCK_CD" compareValue="clear">
+					PLAY_LOCK_CD = null,
+					</isEqual>
+				</isNotEmpty>
+				UPD_DT = NOW()
+
+			WHERE HMBR_SN = #HMBR_SN#
+			AND MBR_ID = #MBR_ID#	
+			AND CRS_SN = #CRS_SN#		
+	</update>
+	<insert id="set_educenter_mbrhstry_reg" parameterClass="myHistoryVO">
+			INSERT INTO EDU_MBR_HSTRY_TB
+			(
+				HMBR_SN,
+				<isNotEmpty property="PURCHASE_CMPLT_ST">		
+					PURCHASE_CMPLT_ST,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_ST">		
+					LRNNG_ST,
+				</isNotEmpty>
+				CAT_VISIT_SN,
+				HOPE_AREA,
+				HOPE_INDST,
+				CRS_SN,
+				MBR_ID,
+				HMBR_MAX_TIME,
+				HMBR_MAX_POINT,
+				REG_MBR_ID,
+				UPD_MBR_ID,
+				REG_DT,
+				UPD_DT 
+			) VALUES (
+				#HMBR_SN#,
+				<isNotEmpty property="PURCHASE_CMPLT_ST">
+					#PURCHASE_CMPLT_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_ST">		
+					#LRNNG_ST#,
+				</isNotEmpty>
+				#CAT_VISIT_SN#,
+				#HOPE_AREA#,
+				#HOPE_INDST#,
+				#CRS_SN#,
+				#MBR_ID#,
+				#HMBR_MAX_TIME#,
+				#HMBR_MAX_POINT#,
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#,
+				NOW(),
+				NOW() 
+			)
+			<!-- 
+			<selectKey keyProperty="HMBR_SN" resultClass="String">
+	        SELECT LAST_INSERT_ID()
+	   		</selectKey>
+	   		 -->				
+	</insert>
+	<insert id="set_educenter_mbrhstry_reg_dtl" parameterClass="myHistoryVO">
+			INSERT INTO EDU_MBR_HSTRY_DTL_TB
+			(	
+				HMBR_DTL_SN,
+				HMBR_ORD,
+				TRN_MAX_TIME,
+				HMBR_SN,
+				MBR_ID,
+				CAT_SN,
+				CAT_DTL_SN,
+				CRS_SN,
+				CRS_DTL_SN,
+				TRN_SN,
+				LRNNG_MAX_TIME,
+				LRNNG_MAX_POINT,
+				REG_MBR_ID,
+				UPD_MBR_ID,
+				REG_DT,
+				UPD_DT
+			) VALUES (
+				#HMBR_DTL_SN#,
+				#HMBR_ORD#,
+				#TRN_MAX_TIME#,
+				#HMBR_SN#,
+				#MBR_ID#,
+				#CAT_SN#,
+				#CAT_DTL_SN#,
+				#CRS_SN#,
+				#CRS_DTL_SN#,
+				#TRN_SN#,
+				#LRNNG_MAX_TIME#,
+				#LRNNG_MAX_POINT#,
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#,
+				NOW(),
+				NOW()
+			)
+			<!-- 
+			<selectKey keyProperty="HMBR_DTL_SN" resultClass="String">
+	        SELECT LAST_INSERT_ID()
+	   		</selectKey>
+	   		 -->				
+	</insert>
+	<update id="set_educenter_mbrhstry_cancel" parameterClass="myHistoryVO">
+		<!-- 
+		UPDATE EDU_MBR_HSTRY_TB
+		SET LRNNG_ST = '2'
+			,USE_ST = '0'
+			,DEL_ST = '1'
+			,UPD_DT = NOW()
+			,UPD_MBR_ID = #MBR_ID#
+		WHERE HMBR_SN = #HMBR_SN#
+		AND CRS_SN = #CRS_SN#
+		AND MBR_ID = #MBR_ID#
+		-->
+		DELETE FROM EDU_MBR_HSTRY_TB
+		WHERE HMBR_SN = #HMBR_SN#
+		AND CRS_SN = #CRS_SN#
+		AND MBR_ID = #MBR_ID#
+	</update>
+	<update id="set_educenter_mbrhstry_playlockcode_update" parameterClass="myHistoryVO">
+		UPDATE EDU_MBR_HSTRY_TB
+		SET PLAY_LOCK_CD = #PLAY_LOCK_CD#
+		WHERE HMBR_SN = #HMBR_SN#
+		AND CRS_SN = #CRS_SN#
+		AND MBR_ID = #MBR_ID#
+	</update>
+	
+	<select id="get_educenter_mbrhstry_now_cnt" parameterClass="myHistoryVO" resultClass="int">
+		SELECT COUNT(T.HMBR_SN)
+		FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN EDU_CURRICULUM_TB AS E ON E.CRS_SN = T.CRS_SN
+		WHERE 1 =1
+		AND T.MBR_ID = #MBR_ID#
+		AND T.LRNNG_CMPLT_ST != 1
+		AND T.LRNNG_ST = 0
+		AND E.CRS_END_DT >= NOW()
+	</select>
+</sqlMap>

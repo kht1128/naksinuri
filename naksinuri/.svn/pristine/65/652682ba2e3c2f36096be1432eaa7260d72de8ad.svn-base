@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Codesetsql">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="CodeSetVO" type="egovframework.all.codeset.service.CodeSetVO"/>
+
+	<select id="get_codeset_list"  parameterClass="CodeSetVO" resultClass="CodeSetVO">
+		SELECT T.* 
+		FROM ALL_CODE_SET_TB AS T
+		WHERE 1=1
+		<isNotEmpty property="CD_ID">
+			AND T.CD_ID = #CD_ID#
+		</isNotEmpty> 
+
+		<isNotEmpty property="CD_MASTER_ID">
+			AND T.CD_MASTER_ID = #CD_MASTER_ID#
+		</isNotEmpty> 
+
+		<isNotEmpty property="HIDE_AT">
+			AND T.HIDE_AT = #HIDE_AT#
+		</isNotEmpty>
+		<isNotEmpty property="USE_AT">
+			AND T.USE_AT = #USE_AT#
+		</isNotEmpty>
+		<isNotEmpty property="DEL_AT">
+			AND T.DEL_AT = #DEL_AT#
+		</isNotEmpty>
+  		ORDER BY T.CD_ORD_NO ASC, T.CD_NM ASC
+	</select>
+	
+	<select id="get_codeset_info" parameterClass="CodeSetVO" resultClass="CodeSetVO">
+		SELECT T.* 
+		FROM ALL_CODE_SET_TB AS T
+		WHERE 1=1 
+		<isNotEmpty property="CD_ID">
+			AND T.CD_ID = #CD_ID#
+		</isNotEmpty> 
+		<isNotEmpty property="CD_SN">
+			AND T.CD_SN = #CD_SN#
+		</isNotEmpty> 
+<!-- 		<isNotEmpty property="CD_MASTER_ID"> -->
+<!-- 			AND T.CD_MASTER_ID = #CD_MASTER_ID# -->
+<!-- 		</isNotEmpty>  -->
+		<isNotEmpty property="HIDE_AT">
+			AND T.HIDE_AT = #HIDE_AT#
+		</isNotEmpty>
+		<isNotEmpty property="CD_LEVEL">
+			AND T.CD_LEVEL = #CD_LEVEL#
+		</isNotEmpty>
+		<isNotEmpty property="CD_DES">
+		AND T.CD_DES LIKE '%$CD_DES$%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="get_codeset_info_chk_mbr_dtl" parameterClass="CodeSetVO" resultClass="CodeSetVO">
+		SELECT T.* 
+		FROM ALL_CODE_SET_TB AS T
+		JOIN ALL_CODE_SET_TB AS C ON C.CD_ID = T.CD_MASTER_ID AND C.CD_LEVEL = '2' AND C.CD_MASTER_ID = #CD_MASTER_ID#
+		WHERE 1=1 
+			AND T.CD_LEVEL = '3'
+			AND T.CD_DES LIKE '%$CD_DES$%'	
+		LIMIT 1	
+	</select>
+
+	<update id="set_codeset_mod" parameterClass="CodeSetVO">
+		UPDATE ALL_CODE_SET_TB
+		SET UPD_DT = NOW()
+			<isNotEmpty property="REG_MBR_ID" prepend="," >
+			REG_MBR_ID = #REG_MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="UPD_MBR_ID" prepend="," >
+			UPD_MBR_ID = #UPD_MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="CD_NM" prepend="," >
+			CD_NM = #CD_NM#
+			</isNotEmpty>
+			<isNotEmpty property="CD_ID_CHG" prepend=",">
+			CD_ID = #CD_ID_CHG#
+			</isNotEmpty>
+			<isNotEmpty property="CD_MASTER_ID" prepend=",">
+			CD_MASTER_ID = #CD_MASTER_ID#
+			</isNotEmpty>
+			<isNotEmpty property="CD_DES">
+			,CD_DES = #CD_DES#
+			</isNotEmpty>
+			<isNotEmpty property="HIDE_AT">
+			,HIDE_AT = #HIDE_AT#
+			</isNotEmpty>
+			<isNotEmpty property="CD_ORD_NO" prepend=",">
+			CD_ORD_NO = #CD_ORD_NO#
+			</isNotEmpty>
+		WHERE CD_ID = #CD_ID#
+	</update>
+	
+	<update id="set_codeset_mod_for_all_master" parameterClass="CodeSetVO">
+		UPDATE ALL_CODE_SET_TB
+		SET UPD_DT = NOW()
+			,CD_MASTER_ID = #CD_MASTER_ID_CHG#
+		WHERE CD_MASTER_ID = #CD_MASTER_ID#
+		AND CD_LEVEL = '3'
+	</update>
+	
+	<insert id="set_codeset_insert" parameterClass="CodeSetVO">
+		INSERT INTO ALL_CODE_SET_TB
+		(
+		CD_ID
+		<isNotEmpty property="CD_MASTER_ID" prepend=",">
+		CD_MASTER_ID
+		</isNotEmpty>
+		<isNotEmpty property="CD_NM" prepend=",">
+		CD_NM
+		</isNotEmpty> 
+		<isNotEmpty property="CD_ORD_NO" prepend=",">
+		CD_ORD_NO
+		</isNotEmpty>
+		<isNotEmpty property="CD_LEVEL" prepend=",">
+		CD_LEVEL
+		</isNotEmpty>
+		,REG_DT
+		,UPD_DT
+		,REG_MBR_ID
+		,UPD_MBR_ID
+		) VALUES (
+		#CD_ID#
+		<isNotEmpty property="CD_MASTER_ID" prepend=",">
+		#CD_MASTER_ID#
+		</isNotEmpty> 
+		<isNotEmpty property="CD_NM" prepend=",">
+		#CD_NM#
+		</isNotEmpty>
+		<isNotEmpty property="CD_ORD_NO" prepend=",">
+		#CD_ORD_NO#
+		</isNotEmpty>
+		<isNotEmpty property="CD_LEVEL" prepend=",">
+		#CD_LEVEL#
+		</isNotEmpty>
+		,NOW()
+		,NOW()
+		,#REG_MBR_ID#
+		,#UPD_MBR_ID#
+		)
+	</insert>
+	
+	<delete id="set_codeset_delete" parameterClass="CodeSetVO">
+		DELETE FROM ALL_CODE_SET_TB
+		WHERE 1=1
+			AND CD_ID = #CD_ID#
+			OR CD_MASTER_ID = #CD_MASTER_ID#
+	</delete>
+	
+	
+	
+</sqlMap>

@@ -1,0 +1,935 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="EduMyhistory">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="eduMyHistoryVO" type="egovframework.eduadm.myhistory.service.EduMyHistoryVO"/>
+		
+	<!-- 수강내역 -->
+	<select id="get_edu_mbrhstry_list_totcnt" parameterClass="eduMyHistoryVO" resultClass="eduMyHistoryVO">
+			SELECT P.MBR_ID 
+			FROM (
+				SELECT 
+					( 	SELECT COUNT(*) 
+						FROM MBR_DTL_TB AS MD 
+						WHERE MD.MBR_ID = T.MBR_ID
+							<isNotEmpty property="HMBR_SIDO_CD" prepend="AND"> MD.SIDO_CD = #HMBR_SIDO_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #HMBR_SIGNGU_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_MBR_TRGT_CD" prepend="AND"> MD.DTL_CD = #HMBR_MBR_TRGT_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_YMD_NM" prepend="AND"> MD.YMD_NM LIKE '%$HMBR_YMD_NM$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_NM" prepend="AND"> MD.DTL_NM LIKE '%$HMBR_DTL_NM$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_BUSINESS_NUM" prepend="AND"> MD.BUSINESS_NUM LIKE CONCAT('%',REPLACE(#HMBR_BUSINESS_NUM#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_REG_NUM_CD" prepend="AND"> MD.REG_NUM_CD LIKE CONCAT('%',REPLACE(#HMBR_REG_NUM_CD#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_STR_DT >= CONCAT(#HMBR_SHIP_LICENSE_STR_DT#,' 00:00:00') ]]></isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_END_DT <= CONCAT(#HMBR_SHIP_LICENSE_END_DT#,' 23:59:59') ]]></isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE" prepend="AND"> MD.SHIP_LICENSE = #HMBR_SHIP_LICENSE# </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_ADDR" prepend="AND"> MD.DTL_ADDR LIKE '%$HMBR_DTL_ADDR$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_FSHLC_APPLC" prepend="AND"> MD.FSHLC_APPLC LIKE '%$HMBR_FSHLC_APPLC$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_FSHLC_WORK_CD" prepend="AND"> MD.FSHLC_WORK_CD LIKE '%$HMBR_FSHLC_WORK_CD$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_CD" prepend="AND"> MD.SHIP_CD LIKE CONCAT('%',REPLACE(#HMBR_SHIP_CD#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_GRTG" prepend="AND"> MD.SHIP_GRTG LIKE '%$HMBR_SHIP_GRTG$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_PRLOAD" prepend="AND"> MD.SHIP_PRLOAD LIKE '%$HMBR_SHIP_PRLOAD$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_MAX_PSNGER" prepend="AND"> MD.SHIP_MAX_PSNGER LIKE '%$HMBR_SHIP_MAX_PSNGER$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_MAX_CREW" prepend="AND"> MD.SHIP_MAX_CREW LIKE '%$HMBR_SHIP_MAX_CREW$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_LICENSE_CD" prepend="AND"> MD.DTL_LICENSE_CD = #HMBR_DTL_LICENSE_CD# </isNotEmpty>
+					) AS DTL_CNT ,
+					T.MBR_ID
+				FROM EDU_MBR_HSTRY_TB AS T
+				LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+				WHERE 1=1
+				<isNotEmpty property="MBR_NM" prepend="AND">
+					( M.MBR_NM LIKE '%$MBR_NM$%' OR M.MBR_NCNM LIKE '%$MBR_NM$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_BIRTH" prepend="AND">
+					M.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					( M.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR M.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP" prepend="AND">
+					M.MBR_HP LIKE CONCAT('%',REPLACE(#MBR_HP#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_TEL" prepend="AND">
+					M.MBR_TEL LIKE CONCAT('%',REPLACE(#MBR_TEL#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						M.MBR_REG_TYPE_CD != 'PCD0003'		
+					</isEqual>	
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						M.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+				</isNotEmpty>
+				<isNotEmpty property="CRS_SN" prepend="AND">		    	
+					T.CRS_SN = #CRS_SN#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID" prepend="AND">	    	
+					T.MBR_ID = #MBR_ID#
+				</isNotEmpty>
+				<isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+						( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+						</isNotEmpty>
+						<isEqual property="LRNNG_ST" compareValue="0">		    	
+							AND T.LRNNG_ST = '0'
+						</isEqual>
+						<isNotEqual property="LRNNG_ST" compareValue="0">		    	
+							<isNotEmpty property="LRNNG_ST">		    	
+								AND T.LRNNG_ST = #LRNNG_ST#
+							</isNotEmpty>
+						</isNotEqual>
+						<isEqual property="LRNNG_CMPLT_ST" compareValue="0">		    	
+							AND T.LRNNG_CMPLT_ST = '0'
+						</isEqual>
+						<isNotEqual property="LRNNG_CMPLT_ST" compareValue="0">	
+							<isNotEmpty property="LRNNG_CMPLT_ST">		    	
+								AND T.LRNNG_CMPLT_ST = #LRNNG_CMPLT_ST#
+							</isNotEmpty>
+						</isNotEqual>
+					</isEqual>			
+			  	</isNotEmpty>
+			) AS P
+			WHERE 1=1 
+				<isNotEmpty property="HMBR_SIDO_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SIGNGU_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_MBR_TRGT_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_YMD_NM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_NM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_BUSINESS_NUM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_REG_NUM_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_ADDR" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_FSHLC_APPLC" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_FSHLC_WORK_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_GRTG" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_PRLOAD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_MAX_PSNGER" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_MAX_CREW" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_LICENSE_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>  			
+	</select>
+	<select id="get_edu_mbrhstry_list" parameterClass="eduMyHistoryVO" resultClass="eduMyHistoryVO">
+			SELECT P.* 
+			FROM (
+				SELECT
+					( 	SELECT COUNT(*) 
+						FROM MBR_DTL_TB AS MD 
+						WHERE MD.MBR_ID = T.MBR_ID
+							<isNotEmpty property="HMBR_SIDO_CD" prepend="AND"> MD.SIDO_CD = #HMBR_SIDO_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #HMBR_SIGNGU_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_MBR_TRGT_CD" prepend="AND"> MD.DTL_CD = #HMBR_MBR_TRGT_CD# </isNotEmpty>
+							<isNotEmpty property="HMBR_YMD_NM" prepend="AND"> MD.YMD_NM LIKE '%$HMBR_YMD_NM$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_NM" prepend="AND"> MD.DTL_NM LIKE '%$HMBR_DTL_NM$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_BUSINESS_NUM" prepend="AND"> MD.BUSINESS_NUM LIKE CONCAT('%',REPLACE(#HMBR_BUSINESS_NUM#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_REG_NUM_CD" prepend="AND"> MD.REG_NUM_CD LIKE CONCAT('%',REPLACE(#HMBR_REG_NUM_CD#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_STR_DT >= CONCAT(#HMBR_SHIP_LICENSE_STR_DT#,' 00:00:00') ]]></isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_END_DT <= CONCAT(#HMBR_SHIP_LICENSE_END_DT#,' 23:59:59') ]]></isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_LICENSE" prepend="AND"> MD.SHIP_LICENSE = #HMBR_SHIP_LICENSE# </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_ADDR" prepend="AND"> MD.DTL_ADDR LIKE '%$HMBR_DTL_ADDR$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_FSHLC_APPLC" prepend="AND"> MD.FSHLC_APPLC LIKE '%$HMBR_FSHLC_APPLC$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_FSHLC_WORK_CD" prepend="AND"> MD.FSHLC_WORK_CD LIKE '%$HMBR_FSHLC_WORK_CD$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_CD" prepend="AND"> MD.SHIP_CD LIKE CONCAT('%',REPLACE(#HMBR_SHIP_CD#,'-',''),'%') </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_GRTG" prepend="AND"> MD.SHIP_GRTG LIKE '%$HMBR_SHIP_GRTG$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_PRLOAD" prepend="AND"> MD.SHIP_PRLOAD LIKE '%$HMBR_SHIP_PRLOAD$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_MAX_PSNGER" prepend="AND"> MD.SHIP_MAX_PSNGER LIKE '%$HMBR_SHIP_MAX_PSNGER$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_SHIP_MAX_CREW" prepend="AND"> MD.SHIP_MAX_CREW LIKE '%$HMBR_SHIP_MAX_CREW$%' </isNotEmpty>
+							<isNotEmpty property="HMBR_DTL_LICENSE_CD" prepend="AND"> MD.DTL_LICENSE_CD = #HMBR_DTL_LICENSE_CD# </isNotEmpty>
+					) AS DTL_CNT , 
+					IFNULL(
+					(SELECT 
+					COUNT(T2.HMBR_SN) 
+					FROM EDU_MBR_HSTRY_DTL_TB AS T2 
+					WHERE T2.HMBR_SN = T.HMBR_SN
+					),0
+					) AS HMBR_DTL_CNT,
+					T.*,
+					M.MBR_NM,M.MBR_BIRTH,M.MBR_HP,
+					IFNULL((
+					SELECT SUM(CRS2.CRS_TOT_TIME)
+					FROM EDU_CURRICULUM_DTL_TB AS CRS2 
+					WHERE CRS2.CRS_SN = T.CRS_SN 
+					GROUP BY CRS2.CRS_SN
+					),0) AS SUM_TOT_TIME,
+					IFNULL((
+					SELECT SUM(CRS2.CRS_TOT_POINT)
+					FROM EDU_CURRICULUM_DTL_TB AS CRS2 
+					WHERE CRS2.CRS_SN = T.CRS_SN 
+					GROUP BY CRS2.CRS_SN
+					),0) AS SUM_TOT_POINT,
+					M.MBR_SEX,M.MBR_ADDR1,M.MBR_ADDR2,M.MBR_DSCRP,M.MBR_NCNM,
+					CRS1.CRS_NM,CRS1.CRS_STR_DT,CRS1.CRS_END_DT,CRS1.RECRUIT_STR_DT,
+					CRS1.RECRUIT_END_DT,CRS1.CRS_TYPE,CRS1.LOCK_ST,CRS1.CRS_ST,
+					CRS1.CRS_TOT_TIME,CRS1.CRS_TOT_POINT,
+					CAT1.CAT_INS_NM   
+				FROM EDU_MBR_HSTRY_TB AS T
+				LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+				LEFT JOIN EDU_CURRICULUM_TB AS CRS1 ON CRS1.CRS_SN = T.CRS_SN
+				LEFT JOIN EDU_CAT_INS_INF_TB AS CAT1 ON CAT1.CAT_INS_SN = CRS1.CAT_INS_SN 
+				WHERE 1=1
+				<isNotEmpty property="MBR_NM" prepend="AND">
+					( M.MBR_NM LIKE '%$MBR_NM$%' OR M.MBR_NCNM LIKE '%$MBR_NM$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_BIRTH" prepend="AND">
+					M.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					( M.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR M.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP" prepend="AND">
+					M.MBR_HP LIKE CONCAT('%',REPLACE(#MBR_HP#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_TEL" prepend="AND">
+					M.MBR_TEL LIKE CONCAT('%',REPLACE(#MBR_TEL#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						M.MBR_REG_TYPE_CD != 'PCD0003'		
+					</isEqual>	
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						M.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+				</isNotEmpty>
+				<isNotEmpty property="CRS_SN" prepend="AND">		    	
+					T.CRS_SN = #CRS_SN#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID" prepend="AND">		    	
+					T.MBR_ID = #MBR_ID#
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_FSHRBT_TYPE" prepend="AND">		    	
+					T.HMBR_FSHRBT_TYPE = #HMBR_FSHRBT_TYPE#
+				</isNotEmpty>
+				<isNotEmpty property="REG_MBR_ID_ST">
+					<isEqual property="REG_MBR_ID_ST" compareValue="0">	    	
+						AND T.MBR_ID = T.REG_MBR_ID
+					</isEqual>
+					<isNotEqual property="REG_MBR_ID_ST" compareValue="0">
+						AND T.MBR_ID != T.REG_MBR_ID
+					</isNotEqual>
+				</isNotEmpty>				
+				<isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+						( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+						</isNotEmpty>
+						<isEqual property="LRNNG_ST" compareValue="0">		    	
+							AND T.LRNNG_ST = '0'
+						</isEqual>
+						<isNotEqual property="LRNNG_ST" compareValue="0">		    	
+							<isNotEmpty property="LRNNG_ST">		    	
+								AND T.LRNNG_ST = #LRNNG_ST#
+							</isNotEmpty>
+						</isNotEqual>
+						<isEqual property="LRNNG_CMPLT_ST" compareValue="0">		    	
+							AND T.LRNNG_CMPLT_ST = '0'
+						</isEqual>
+						<isNotEqual property="LRNNG_CMPLT_ST" compareValue="0">	
+							<isNotEmpty property="LRNNG_CMPLT_ST">		    	
+								AND T.LRNNG_CMPLT_ST = #LRNNG_CMPLT_ST#
+							</isNotEmpty>
+						</isNotEqual>
+					</isEqual>			
+			  	</isNotEmpty>
+		 	) AS P
+		 	WHERE 1=1 
+		 		<isNotEmpty property="HMBR_SIDO_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SIGNGU_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_MBR_TRGT_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_YMD_NM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_NM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_BUSINESS_NUM" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_REG_NUM_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_LICENSE" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_ADDR" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_FSHLC_APPLC" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_FSHLC_WORK_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_GRTG" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_PRLOAD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_MAX_PSNGER" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_SHIP_MAX_CREW" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+				<isNotEmpty property="HMBR_DTL_LICENSE_CD" prepend="AND"><![CDATA[ P.DTL_CNT > 0 ]]></isNotEmpty>
+			<isNotEmpty property="searchOrderBy">
+		  		<isEqual property="searchOrderBy" compareValue="1">
+		  		ORDER BY P.LRNNG_CMPLT_DT DESC, P.REG_DT ASC 
+		  		</isEqual>
+				<isEqual property="searchOrderBy" compareValue="2">
+		  		ORDER BY P.MBR_NM ASC
+		  		</isEqual>
+		  	</isNotEmpty>
+		  	<isEmpty property="searchOrderBy">
+		  		ORDER BY P.REG_DT DESC
+		  	</isEmpty>	
+		  	<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex#			
+			</isNotEqual>
+	</select>
+	<select id="get_edu_mbrhstry_dtl_list_totcnt" parameterClass="eduMyHistoryVO" resultClass="int">
+			SELECT COUNT(T.MBR_ID)
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			WHERE 1=1
+			AND T.CRS_SN = #CRS_SN#
+			<isNotEmpty property="HMBR_SN">		    	
+				AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">		    	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			ORDER BY T.HMBR_ORD ASC		
+	</select>
+	<select id="get_edu_mbrhstry_dtl_list" parameterClass="eduMyHistoryVO" resultClass="eduMyHistoryVO">
+			SELECT T.*,M.MBR_NM,C.CRS_DTL_NM,C.CRS_ORD,D.TRN_NM,D.TRN_TYPE_ST 
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_DTL_TB AS C ON C.CRS_DTL_SN = T.CRS_DTL_SN
+			LEFT JOIN EDU_TRNNG_DATA_TB AS D ON D.TRN_SN = T.TRN_SN
+			WHERE 1=1
+			AND T.CRS_SN = #CRS_SN#
+			<isNotEmpty property="HMBR_SN">		    	
+				AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">		    	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			ORDER BY C.CRS_ORD ASC, T.HMBR_ORD ASC	, T.TRN_SN ASC
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+	<select id="get_edu_mbrhstry_info" parameterClass="eduMyHistoryVO" resultClass="eduMyHistoryVO">
+			SELECT T.*,M.MBR_NM,M.MBR_HP,M.MBR_BIRTH,M.MBR_ADDR1
+			FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			WHERE 1=1
+			<isNotEmpty property="CRS_SN">		    	
+				AND T.CRS_SN = #CRS_SN#
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_SN">		    	
+				AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>		
+			<isNotEmpty property="MBR_ID">		    	
+				AND M.MBR_ID = #MBR_ID#
+			</isNotEmpty>		
+	</select>
+	<select id="get_edu_mbrhstry_info_dtl" parameterClass="eduMyHistoryVO" resultClass="eduMyHistoryVO">
+			SELECT T.*,M.MBR_NM,C.CRS_DTL_NM,D.TRN_NM,D.TRN_TYPE_ST
+			FROM EDU_MBR_HSTRY_DTL_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			LEFT JOIN EDU_CURRICULUM_DTL_TB AS C ON C.CRS_DTL_SN = T.CRS_DTL_SN
+			LEFT JOIN EDU_TRNNG_DATA_TB AS D ON D.TRN_SN = T.TRN_SN
+			WHERE 1=1 
+			<isNotEmpty property="HMBR_SN">		    	
+				AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_DTL_SN">		    	
+				AND T.HMBR_DTL_SN = #HMBR_DTL_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN">		    	
+				AND T.CRS_SN = #CRS_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_DTL_SN">		    	
+				AND T.CRS_DTL_SN = #CRS_DTL_SN#
+			</isNotEmpty>
+			<isNotEmpty property="TRN_SN">		    	
+				AND T.TRN_SN = #TRN_SN#
+			</isNotEmpty>		
+			<isNotEmpty property="MBR_ID">		    	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>	
+	</select>
+	<insert id="set_edu_mbrhstry_reg" parameterClass="eduMyHistoryVO">
+			INSERT INTO EDU_MBR_HSTRY_TB
+			(
+				HMBR_SN,
+				<isNotEmpty property="PURCHASE_CMPLT_ST">		
+					PURCHASE_CMPLT_ST,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_VISIT_SN">		
+					CAT_VISIT_SN,
+				</isNotEmpty>
+				<isNotEmpty property="HOPE_AREA">		
+					HOPE_AREA,
+				</isNotEmpty>
+				<isNotEmpty property="HOPE_INDST">		
+					HOPE_INDST,
+				</isNotEmpty>				
+				<isNotEmpty property="LRNNG_PRGRS">		    	
+					LRNNG_PRGRS,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_TIME">		    	
+					LRNNG_TOT_TIME,
+					HMBR_RCGNT_TIME,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_POINT">		    	
+					LRNNG_TOT_POINT,
+					HMBR_RCGNT_POINT,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_TIME">
+				HMBR_INPUT_TIME,		    	
+				HMBR_RCGNT_TIME,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_POINT">
+				HMBR_INPUT_POINT,		    	
+				HMBR_RCGNT_POINT,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_ST">		    	
+					LRNNG_ST,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CMPLT_ST">		    	
+					LRNNG_CMPLT_ST,
+					LRNNG_CMPLT_DT, 
+					LRNNG_CMPLT_MBR_ID,
+				</isNotEmpty>			
+				CRS_SN,
+				MBR_ID,
+				HMBR_MAX_TIME,
+				HMBR_MAX_POINT,
+				<isNotEmpty property="REG_DT">		    	
+					REG_DT,
+				</isNotEmpty>
+				<isEmpty property="REG_DT">		    	
+					REG_DT,
+				</isEmpty>
+				<isNotEmpty property="UPD_DT">		    	
+					UPD_DT,
+				</isNotEmpty>
+				<isEmpty property="UPD_DT">		    	
+					UPD_DT,
+				</isEmpty>
+				<isNotEmpty property="USE_ST">		    	
+					USE_ST,
+				</isNotEmpty>
+				<isNotEmpty property="DEL_ST">		    	
+					DEL_ST,
+				</isNotEmpty>
+				REG_MBR_ID,
+				UPD_MBR_ID
+			) VALUES (
+				#HMBR_SN#,
+				<isNotEmpty property="PURCHASE_CMPLT_ST">		
+					#PURCHASE_CMPLT_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_VISIT_SN">		
+					#CAT_VISIT_SN#,
+				</isNotEmpty>
+				<isNotEmpty property="HOPE_AREA">		
+					#HOPE_AREA#,
+				</isNotEmpty>
+				<isNotEmpty property="HOPE_INDST">		
+					#HOPE_INDST#,
+				</isNotEmpty>				
+				<isNotEmpty property="LRNNG_PRGRS">		    	
+					#LRNNG_PRGRS#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_TIME">		    	
+					#LRNNG_TOT_TIME#,
+					HMBR_INPUT_TIME+$LRNNG_TOT_TIME$,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_POINT">		    	
+					#LRNNG_TOT_POINT#,
+					HMBR_INPUT_POINT+$LRNNG_TOT_POINT$,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_TIME">
+					#HMBR_INPUT_TIME#,		    	
+					$HMBR_INPUT_TIME$+LRNNG_TOT_TIME,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_POINT">
+					#HMBR_INPUT_POINT#,		    	
+					$HMBR_INPUT_POINT$+LRNNG_TOT_POINT,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_ST">		    	
+					#LRNNG_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CMPLT_ST">		    	
+					#LRNNG_CMPLT_ST#,
+					<isEqual property="LRNNG_CMPLT_ST" compareValue="1">
+						<isEmpty property="LRNNG_CMPLT_DT">	
+						LRNNG_CMPLT_DT = NOW(), 
+						LRNNG_CMPLT_MBR_ID = UPD_MBR_ID,
+						</isEmpty>
+					</isEqual>
+					<isEqual property="LRNNG_CMPLT_ST" compareValue="0">
+						LRNNG_CMPLT_DT = NULL, 
+						LRNNG_CMPLT_MBR_ID = NULL,
+					</isEqual>
+				</isNotEmpty>			
+				#CRS_SN#,
+				#MBR_ID#,
+				#HMBR_MAX_TIME#,
+				#HMBR_MAX_POINT#,
+				<isNotEmpty property="REG_DT">		    	
+					#REG_DT#,
+				</isNotEmpty>
+				<isEmpty property="REG_DT">		    	
+					NOW(),
+				</isEmpty>
+				<isNotEmpty property="UPD_DT">		    	
+					#UPD_DT#,
+				</isNotEmpty>
+				<isEmpty property="UPD_DT">		    	
+					NOW(),
+				</isEmpty>
+				<isNotEmpty property="USE_ST">		    	
+					#USE_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="DEL_ST">		    	
+					#DEL_ST#,
+				</isNotEmpty>
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#
+			)
+			<!-- 
+			<selectKey keyProperty="HMBR_SN" resultClass="String">
+	        SELECT LAST_INSERT_ID()
+	   		</selectKey>
+	   		 -->				
+	</insert>
+	<insert id="set_edu_mbrhstry_reg_dtl" parameterClass="eduMyHistoryVO">
+			INSERT INTO EDU_MBR_HSTRY_DTL_TB
+			(
+				HMBR_DTL_SN,
+				HMBR_ORD,
+				TRN_MAX_TIME,
+				HMBR_SN,
+				MBR_ID,
+				CAT_SN,
+				CAT_DTL_SN,
+				CRS_SN,
+				CRS_DTL_SN,
+				TRN_SN,
+				LRNNG_MAX_TIME,
+				LRNNG_MAX_POINT,
+				REG_MBR_ID,
+				UPD_MBR_ID,
+				REG_DT,
+				UPD_DT
+			) VALUES (
+				#HMBR_DTL_SN#,
+				#HMBR_ORD#,
+				#TRN_MAX_TIME#,
+				#HMBR_SN#,
+				#MBR_ID#,
+				#CAT_SN#,
+				#CAT_DTL_SN#,
+				#CRS_SN#,
+				#CRS_DTL_SN#,
+				#TRN_SN#,
+				#LRNNG_MAX_TIME#,
+				#LRNNG_MAX_POINT#,
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#,
+				NOW(),
+				NOW()
+			)
+			<!-- 
+			<selectKey keyProperty="HMBR_DTL_SN" resultClass="String">
+	        SELECT LAST_INSERT_ID()
+	   		</selectKey>
+	   		 -->				
+	</insert>
+	<update id="set_edu_mbrhstry_mod" parameterClass="eduMyHistoryVO">
+			UPDATE EDU_MBR_HSTRY_TB
+			SET
+				<isNotEmpty property="LRNNG_PRGRS">		    	
+				LRNNG_PRGRS = #LRNNG_PRGRS#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_TIME">		    	
+				LRNNG_TOT_TIME = #LRNNG_TOT_TIME#,
+				HMBR_RCGNT_TIME = HMBR_INPUT_TIME+$LRNNG_TOT_TIME$,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TOT_POINT">		    	
+				LRNNG_TOT_POINT = #LRNNG_TOT_POINT#,
+				HMBR_RCGNT_POINT = HMBR_INPUT_POINT+$LRNNG_TOT_POINT$,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_TIME">
+				HMBR_INPUT_TIME = #HMBR_INPUT_TIME#,		    	
+				HMBR_RCGNT_TIME = $HMBR_INPUT_TIME$+LRNNG_TOT_TIME,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_INPUT_POINT">
+				HMBR_INPUT_POINT = #HMBR_INPUT_POINT#,		    	
+				HMBR_RCGNT_POINT = $HMBR_INPUT_POINT$+LRNNG_TOT_POINT,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_ST">		    	
+				LRNNG_ST = #LRNNG_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CMPLT_ST">		    	
+				LRNNG_CMPLT_ST = #LRNNG_CMPLT_ST#,
+					<isEqual property="LRNNG_CMPLT_ST" compareValue="1">
+						<isEqual property="LRNNG_ST" compareValue="0">
+								TMPR_LRNNG_CMPLT_DT = NOW(),
+								LRNNG_CMPLT_MBR_ID = UPD_MBR_ID,
+						</isEqual>
+						<isEqual property="LRNNG_ST" compareValue="1">
+							<isEmpty property="LRNNG_CMPLT_DT">	
+							LRNNG_CMPLT_DT = NOW(), 
+							LRNNG_CMPLT_MBR_ID = UPD_MBR_ID,
+							</isEmpty>
+							<isEmpty property="HMBR_SV_ST">		    	
+							TMPR_LRNNG_CMPLT_DT = NOW(),
+							</isEmpty>								
+						</isEqual>
+					</isEqual>
+					<isEqual property="LRNNG_CMPLT_ST" compareValue="0">
+						LRNNG_CMPLT_DT = NULL, 
+						LRNNG_CMPLT_MBR_ID = NULL,
+						TMPR_LRNNG_CMPLT_DT = NULL,						
+					</isEqual>
+				</isNotEmpty>
+				<isEmpty property="LRNNG_CMPLT_ST">	
+					LRNNG_CMPLT_DT = NULL, 
+					LRNNG_CMPLT_MBR_ID = NULL,
+					TMPR_LRNNG_CMPLT_DT = NULL,
+				</isEmpty>
+				<isNotEmpty property="PURCHASE_CMPLT_ST">		    	
+				PURCHASE_CMPLT_ST = #PURCHASE_CMPLT_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_SV_ST">		    	
+				HMBR_SV_ST = #HMBR_SV_ST#,
+				HMBR_SV_DT = NOW(),
+				</isNotEmpty>			
+				<isNotEmpty property="USE_ST">		    	
+				USE_ST = #USE_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="DEL_ST">		    	
+				DEL_ST = #DEL_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="HMBR_FSHRBT_TYPE">
+				HMBR_FSHRBT_TYPE = #HMBR_FSHRBT_TYPE#,
+				</isNotEmpty>
+				UPD_MBR_ID = #UPD_MBR_ID#,
+				UPD_DT = NOW()
+			WHERE HMBR_SN = #HMBR_SN#
+			AND MBR_ID = #MBR_ID#	
+			AND CRS_SN = #CRS_SN#		
+	</update>
+	<update id="set_edu_mbrhstry_mod_dtl" parameterClass="eduMyHistoryVO">
+			UPDATE EDU_MBR_HSTRY_DTL_TB
+			SET	
+				<isNotEmpty property="TRN_CUR_TIME">		    	
+				TRN_CUR_TIME = #TRN_CUR_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="TRN_MAX_TIME">		    	
+				TRN_MAX_TIME = #TRN_MAX_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_PRGRS">		    	
+				LRNNG_PRGRS = #LRNNG_PRGRS#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CUR_TIME">		    	
+				LRNNG_CUR_TIME = #LRNNG_CUR_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_MAX_TIME">		    	
+				LRNNG_MAX_TIME = #LRNNG_MAX_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CUR_POINT">		    	
+				LRNNG_CUR_POINT = #LRNNG_CUR_POINT#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_MAX_POINT">		    	
+				LRNNG_MAX_POINT = #LRNNG_MAX_POINT#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_CMPLT_DTL_ST">		    	
+				LRNNG_CMPLT_DTL_ST = #LRNNG_CMPLT_DTL_ST#,
+				</isNotEmpty>				
+				<isNotEmpty property="USE_ST">		    	
+				USE_ST = #USE_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="DEL_ST">		    	
+				DEL_ST = #DEL_ST#,
+				</isNotEmpty>
+				UPD_MBR_ID = #UPD_MBR_ID#,
+				UPD_DT = NOW() 
+			WHERE HMBR_SN = #HMBR_SN#
+			<isNotEmpty property="HMBR_DTL_SN">		    	
+			AND HMBR_DTL_SN = #HMBR_DTL_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN">		    	
+			AND CRS_SN = #CRS_SN#
+			</isNotEmpty>					
+			<isNotEmpty property="CRS_DTL_SN">		    	
+			AND CRS_DTL_SN = #CRS_DTL_SN#
+			</isNotEmpty>
+			<isNotEmpty property="TRN_SN">		    	
+			AND TRN_SN = #TRN_SN#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">		    	
+			AND MBR_ID = #MBR_ID#
+			</isNotEmpty>
+	</update>
+	<update id="del_edu_mbrhstry" parameterClass="eduMyHistoryVO">
+		<![CDATA[
+		UPDATE EDU_MBR_HSTRY_TB 
+		SET USE_ST=0,
+			DEL_ST=1,
+			LRNNG_ST=2,
+			UPD_MBR_ID=#UPD_MBR_ID#,
+			UPD_DT=NOW() 
+		WHERE 1=1 
+			AND HMBR_SN = #HMBR_SN#
+		]]>
+	</update>
+	<update id="del_edu_mbrhstry_dtl" parameterClass="eduMyHistoryVO">
+		UPDATE EDU_MBR_HSTRY_DTL_TB 
+		SET USE_ST=0,
+			DEL_ST=1,
+			UPD_MBR_ID=#UPD_MBR_ID#,
+			UPD_DT=NOW() 
+		WHERE 1=1 
+			<isNotEmpty property="HMBR_SN">		    	
+			AND HMBR_SN = #HMBR_SN#
+			</isNotEmpty>	
+			<isNotEmpty property="HMBR_DTL_SN">		    	
+			AND HMBR_DTL_SN = #HMBR_DTL_SN#
+			</isNotEmpty>			
+			<isNotEmpty property="MBR_ID">		    	
+			AND MBR_ID = #MBR_ID#
+			</isNotEmpty>
+	</update>
+	<delete id="remove_edu_mbrhstry" parameterClass="eduMyHistoryVO">
+		<isNotEmpty property="HMBR_SN">	
+			DELETE 
+			FROM EDU_MBR_HSTRY_TB
+			WHERE 1=1 AND HMBR_SN = #HMBR_SN#
+			<isNotEmpty property="MBR_ID">		    	
+			AND MBR_ID = #MBR_ID#
+			</isNotEmpty>
+		</isNotEmpty>
+	</delete>
+	<delete id="remove_edu_mbrhstry_dtl" parameterClass="eduMyHistoryVO">
+		<isNotEmpty property="HMBR_DTL_SN">	
+			DELETE 
+			FROM EDU_MBR_HSTRY_DTL_TB
+			WHERE 1=1 AND HMBR_DTL_SN = #HMBR_DTL_SN#
+			<isNotEmpty property="HMBR_SN">		    	
+			AND HMBR_SN = #HMBR_SN#
+			</isNotEmpty>			
+			<isNotEmpty property="MBR_ID">		    	
+			AND MBR_ID = #MBR_ID#
+			</isNotEmpty>
+		</isNotEmpty>
+	</delete>
+	<update id="set_edu_mbrhstry_cur_cmplt_up" parameterClass="eduMyHistoryVO">
+		<![CDATA[
+		UPDATE EDU_MBR_HSTRY_TB 
+		SET LRNNG_CMPLT_CNT = LRNNG_CMPLT_CNT + 1,
+		UPD_DT=NOW() 
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#	
+		AND CRS_SN = #CRS_SN#
+		]]>
+	</update>
+	<update id="set_edu_mbrhstry_cur_cmplt_down" parameterClass="eduMyHistoryVO">
+		<![CDATA[
+		UPDATE EDU_MBR_HSTRY_TB 
+		SET LRNNG_CMPLT_CNT = LRNNG_CMPLT_CNT - 1,
+		UPD_DT=NOW() 
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#	
+		AND CRS_SN = #CRS_SN#
+		]]>
+	</update>
+	
+	<!-- // 지역별 교육이수율 현황 결과보고서 // -->
+	<select id="get_edu_mbrhstry_area_result" parameterClass="egovMap" resultClass="egovMap">
+		SELECT	A.sidoCdNm AS sidoCdNm,
+   				CONCAT(A.mbrTotCnt,'명') AS mbrTotCnt,
+   				CONCAT(A.mbrCmpltCnt,'명') AS mbrCmpltCnt,
+   				CONCAT(A.mbrPerVal,'%') AS mbrPerVal
+		FROM (
+			SELECT 	Cd.CD_ORD_NO AS CD_ORD_NO, 
+					Cd.CD_NM AS sidoCdNm,
+					(IF(P.MBR_TOT_CNT IS NULL,0,P.MBR_TOT_CNT)) AS mbrTotCnt,
+					(IF(P.MBR_CMPLT_CNT IS NULL,0,P.MBR_CMPLT_CNT)) AS mbrCmpltCnt,
+					(ROUND(IF((IF(P.MBR_CMPLT_CNT IS NULL,0,P.MBR_CMPLT_CNT)/IF(P.MBR_TOT_CNT IS NULL,0,P.MBR_TOT_CNT)*100) IS NULL,0,(IF(P.MBR_CMPLT_CNT IS NULL,0,P.MBR_CMPLT_CNT)/IF(P.MBR_TOT_CNT IS NULL,0,P.MBR_TOT_CNT)*100)))) AS mbrPerVal
+			FROM all_code_set_tb AS Cd
+			LEFT JOIN (
+				SELECT IF(C.CD_NM IS NULL,'지역미설정',C.CD_NM) AS SIDO_NM,COUNT(P2.cnt) AS MBR_TOT_CNT, SUM(IF(P2.cnt >= 1,1,0)) AS MBR_CMPLT_CNT,C.CD_ID
+				FROM (
+					SELECT  P1.*,
+						(
+							SELECT COUNT(T.HMBR_SN)
+							FROM edu_mbr_hstry_tb AS T 
+							LEFT JOIN edu_curriculum_tb AS CRS ON CRS.CRS_SN = T.CRS_SN
+							WHERE T.MBR_ID = P1.MBR_ID
+							AND DATE_FORMAT(CRS.CRS_STR_DT,'%Y') = #searchYear#
+							AND T.LRNNG_CMPLT_ST = '1'
+						) AS cnt
+					FROM (
+						SELECT Mg2.* 
+						FROM (
+							SELECT Mg1.* 
+							FROM (
+								SELECT Md.MBR_ID,Md.SIDO_CD,NULL AS MBR_SIDO_CD
+								FROM mbr_dtl_tb AS Md
+								LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = Md.MBR_ID
+								LEFT JOIN mbr_tb AS M ON M.MBR_ID = Md.MBR_ID
+								WHERE 1=1
+								AND Me.TRGT_YEAR = #searchYear#
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 
+								AND Me.TRGT_YEAR IS NOT NULL
+								AND Md.USE_AT = 'Y' 
+								AND M.MBR_ST = 'Y' 
+								AND DTL_CD = #crsMbrCd#
+								UNION
+								SELECT M.MBR_ID,M.MBR_SIDO_CD AS SIDO_CD,M.MBR_SIDO_CD
+								FROM mbr_tb AS M
+								LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = M.MBR_ID
+								WHERE 1=1 AND M.MBR_LV_ID = '10'
+								AND Me.TRGT_YEAR = #searchYear#	
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 	
+								AND Me.TRGT_YEAR IS NOT NULL
+								AND M.MBR_ST = 'Y' 
+							) AS Mg1 
+							ORDER BY Mg1.MBR_SIDO_CD IS NULL ASC, Mg1.MBR_SIDO_CD ASC, Mg1.SIDO_CD IS NULL ASC, Mg1.SIDO_CD ASC
+						) AS Mg2
+						GROUP BY Mg2.MBR_ID
+					) AS P1
+				) AS P2
+				LEFT JOIN all_code_set_tb AS C ON C.CD_ID = P2.SIDO_CD
+				GROUP BY P2.SIDO_CD
+			) AS P ON P.CD_ID = cd.CD_ID
+			WHERE Cd.CD_MASTER_ID = 'CID00004'
+			
+			UNION
+			
+			SELECT 	'9999' AS CD_ORD_NO, 
+					'지역미설정' AS sidoCdNm,
+					(COUNT(P.cnt)) AS mbrTotCnt,
+					(SUM(IF(P.cnt >= 1, 1, 0))) AS mbrCmpltCnt,
+					(ROUND(IF((SUM(IF(P.cnt >= 1, 1, 0)) / COUNT(P.cnt) * 100) IS NULL,0,(SUM(IF(P.cnt >= 1, 1, 0)) / COUNT(P.cnt) * 100)))) AS mbrPerVal 
+			FROM ( 
+				SELECT P1.*,
+					(
+						SELECT COUNT(T.HMBR_SN) 
+						FROM edu_mbr_hstry_tb AS T 
+						LEFT JOIN edu_curriculum_tb AS CRS ON CRS.CRS_SN = T.CRS_SN 
+						WHERE T.MBR_ID = P1.MBR_ID 
+							AND DATE_FORMAT(CRS.CRS_STR_DT, '%Y') = #searchYear#
+							AND T.LRNNG_CMPLT_ST = '1'
+					) AS cnt 
+				FROM (
+					SELECT Mg2.* 
+					FROM (
+						SELECT Mg1.* 
+						FROM (
+							SELECT 	Md.MBR_ID,
+								Md.SIDO_CD,
+								NULL AS MBR_SIDO_CD 
+							FROM mbr_dtl_tb AS Md 
+							LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = Md.MBR_ID 
+							LEFT JOIN mbr_tb AS M ON M.MBR_ID = Md.MBR_ID 
+							WHERE 1 = 1 
+								AND Me.TRGT_YEAR = #searchYear#
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 
+								AND Me.TRGT_YEAR IS NOT NULL 
+								AND Md.USE_AT = 'Y' 
+								AND M.MBR_ST = 'Y' 
+								AND DTL_CD = #crsMbrCd# 
+							UNION
+							SELECT 	M.MBR_ID,
+								M.MBR_SIDO_CD AS SIDO_CD,
+								M.MBR_SIDO_CD 
+							FROM mbr_tb AS M 
+							LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = M.MBR_ID 
+							WHERE 1 = 1 
+								AND M.MBR_LV_ID = '10' 
+								AND Me.TRGT_YEAR = #searchYear# 
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 
+								AND Me.TRGT_YEAR IS NOT NULL 
+								AND M.MBR_ST = 'Y'
+						) AS Mg1 
+						ORDER BY Mg1.MBR_SIDO_CD IS NULL ASC,
+							 Mg1.MBR_SIDO_CD ASC,
+							 Mg1.SIDO_CD IS NULL ASC,
+							 Mg1.SIDO_CD ASC
+					) AS Mg2 
+					GROUP BY Mg2.MBR_ID
+				) AS P1
+			) AS P 
+			LEFT JOIN all_code_set_tb AS C ON C.CD_ID = P.SIDO_CD 
+			WHERE P.SIDO_CD IS NULL
+			GROUP BY P.SIDO_CD
+			
+			UNION
+			
+			SELECT 	NULL AS CD_ORD_NO, 
+					'합계' AS sidoCdNm,
+					(COUNT(P.cnt)) AS mbrTotCnt,
+					(SUM(IF(P.cnt >= 1, 1, 0))) AS mbrCmpltCnt,
+					(ROUND(IF((SUM(IF(P.cnt >= 1, 1, 0)) / COUNT(P.cnt) * 100) IS NULL,0,(SUM(IF(P.cnt >= 1, 1, 0)) / COUNT(P.cnt) * 100)))) AS mbrPerVal 
+			FROM ( 
+				SELECT P1.*,
+					(
+						SELECT COUNT(T.HMBR_SN) 
+						FROM edu_mbr_hstry_tb AS T 
+						LEFT JOIN edu_curriculum_tb AS CRS ON CRS.CRS_SN = T.CRS_SN 
+						WHERE T.MBR_ID = P1.MBR_ID 
+							AND DATE_FORMAT(CRS.CRS_STR_DT, '%Y') = #searchYear# 
+							AND T.LRNNG_CMPLT_ST = '1'
+					) AS cnt 
+				FROM (
+					SELECT Mg2.* 
+					FROM (
+						SELECT Mg1.* 
+						FROM (
+							SELECT 	Md.MBR_ID,
+								Md.SIDO_CD,
+								NULL AS MBR_SIDO_CD 
+							FROM mbr_dtl_tb AS Md 
+							LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = Md.MBR_ID 
+							LEFT JOIN mbr_tb AS M ON M.MBR_ID = Md.MBR_ID 
+							WHERE 1 = 1 
+								AND Me.TRGT_YEAR = #searchYear# 
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 
+								AND Me.TRGT_YEAR IS NOT NULL 
+								AND Md.USE_AT = 'Y' 
+								AND M.MBR_ST = 'Y' 
+								AND DTL_CD = #crsMbrCd# 
+							UNION
+							SELECT 	M.MBR_ID,
+								M.MBR_SIDO_CD AS SIDO_CD,
+								M.MBR_SIDO_CD 
+							FROM mbr_tb AS M 
+							LEFT JOIN mbr_edu_trgt_tb AS Me ON Me.MBR_ID = M.MBR_ID 
+							WHERE 1 = 1 
+								AND M.MBR_LV_ID = '10' 
+								AND Me.TRGT_YEAR = #searchYear# 
+								AND Me.USE_AT = 'Y' 
+								AND Me.DEL_AT = 'N' 
+								AND Me.TRGT_YEAR IS NOT NULL 
+								AND M.MBR_ST = 'Y'
+						) AS Mg1 
+						ORDER BY Mg1.MBR_SIDO_CD IS NULL ASC,
+							 Mg1.MBR_SIDO_CD ASC,
+							 Mg1.SIDO_CD IS NULL ASC,
+							 Mg1.SIDO_CD ASC
+					) AS Mg2 
+					GROUP BY Mg2.MBR_ID
+				) AS P1
+			) AS P 
+			
+		) AS A
+  		ORDER BY A.CD_ORD_NO IS NULL ASC, A.CD_ORD_NO ASC
+	</select>
+	
+	<select id="get_edu_mbrhstry_dpcn_chk_ok_hmbr_sn" parameterClass="String"  resultClass="int">
+		SELECT 	COUNT(HMBR_SN) totcnt 
+		FROM	EDU_MBR_HSTRY_TB
+		WHERE  	HMBR_SN = #HMBR_SN#
+	</select>
+	
+	<select id="get_edu_mbrhstry_dpcn_chk_ok_hmbr_dtl_sn" parameterClass="String"  resultClass="int">
+		SELECT 	COUNT(HMBR_DTL_SN) totcnt 
+		FROM	EDU_MBR_HSTRY_DTL_TB
+		WHERE  	HMBR_DTL_SN = #HMBR_DTL_SN#
+	</select>
+	
+</sqlMap>

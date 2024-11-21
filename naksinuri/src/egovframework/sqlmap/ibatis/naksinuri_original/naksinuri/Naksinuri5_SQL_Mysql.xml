@@ -1,0 +1,3051 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Naksi3">
+
+	<typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias alias="naksinuriVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriVO"/>	
+	<typeAlias alias="NaksinuriSanupVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO"/>	
+	<typeAlias alias="naksinurifileVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriFileVO"/>
+	<typeAlias alias="eventVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO"/>
+	<typeAlias alias="naksinurizisikVO" type="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriZisikinVO"/>
+	<typeAlias alias="fishesVO" type="egovframework.naksinuri_original.let.naksinuri.service.FishesVO"/>
+
+
+	<select id="zisik_list" resultClass="naksinurizisikVO" parameterClass="naksinurizisikVO">
+		SELECT A.*
+		FROM (SELECT @RNUM:=@RNUM+1 AS RN,(SELECT COUNT(B.nuri_q_num) 
+		FROM NAKSINURIZISIKINQUESTION B WHERE NURI_Q_TRASH = '0' ) AS TOT_CNT,
+      	(SELECT COUNT(nuri_a_num) 
+      	FROM NAKSINURIZISIKINANSWER B 
+      	WHERE N.nuri_q_num = B.nuri_q_num) AS nuri_a_count, N.*
+      	FROM NAKSINURIZISIKINQUESTION N, (SELECT @RNUM :=0) R
+      	WHERE NURI_Q_TRASH = '0'
+    		<isEqual compareValue="nuri_q_subcon" property="searchType">
+			AND	NURI_Q_SUBJECT LIKE "%$searchText$%"
+			OR	NURI_Q_CONTENT LIKE "%$searchText$%"
+			</isEqual>
+			<isEqual compareValue="nuri_q_subject" property="searchType">
+			AND	NURI_Q_SUBJECT LIKE "%$searchText$%"
+			</isEqual>
+    		<isEqual compareValue="nuri_q_content" property="searchType">
+			AND	NURI_Q_CONTENT LIKE "%$searchText$%"
+			</isEqual>
+		ORDER BY NURI_Q_NUM DESC)A  
+		
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	
+	<select id="zisik_trash" resultClass="naksinurizisikVO" parameterClass="naksinurizisikVO">
+		SELECT A.*
+		FROM (SELECT @RNUM:=@RNUM+1 AS RN,(SELECT COUNT(B.nuri_q_num) 
+		FROM NAKSINURIZISIKINQUESTION B WHERE NURI_Q_TRASH = '1'  ) AS TOT_CNT,
+      	(SELECT COUNT(nuri_a_num) 
+      	FROM NAKSINURIZISIKINANSWER B 
+      	WHERE N.nuri_q_num = B.nuri_q_num) AS nuri_a_count, N.*
+      	FROM NAKSINURIZISIKINQUESTION N, (SELECT @RNUM :=0) R
+    	WHERE NURI_Q_TRASH = '1'
+    		<isEqual compareValue="nuri_q_subcon" property="searchType">
+			AND	NURI_Q_SUBJECT LIKE "%$searchText$%"
+			OR	NURI_Q_CONTENT LIKE "%$searchText$%"
+			</isEqual>
+			<isEqual compareValue="nuri_q_subject" property="searchType">
+			AND	NURI_Q_SUBJECT LIKE "%$searchText$%"
+			</isEqual>
+    		<isEqual compareValue="nuri_q_content" property="searchType">
+			AND	NURI_Q_CONTENT LIKE "%$searchText$%"
+			</isEqual>
+		ORDER BY NURI_Q_NUM DESC)A  
+		
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="zpass_find" resultClass="naksinurizisikVO">
+		<![CDATA[
+		SELECT  NURI_Q_PASS
+		FROM	NAKSINURIZISIKINQUESTION
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+		]]>
+	</select>
+	
+	
+	<select id="zisik_find" resultClass="naksinurizisikVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIZISIKINQUESTION
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+		]]>
+	</select>
+	
+	<select id="zisik_next" resultClass="naksinurizisikVO">
+		<![CDATA[
+		SELECT NURI_Q_NUM
+		FROM	NAKSINURIZISIKINQUESTION
+		WHERE NURI_Q_NUM  > #nuri_q_num#  AND NURI_Q_TRASH = '0'
+		ORDER BY NURI_Q_NUM ASC  limit 1;
+		]]>
+	</select>
+	
+	<select id="zisik_prev" resultClass="naksinurizisikVO">
+	<![CDATA[
+		SELECT  NURI_Q_NUM
+		FROM	NAKSINURIZISIKINQUESTION
+		WHERE NURI_Q_NUM < #nuri_q_num# AND NURI_Q_TRASH = '0'
+		ORDER BY NURI_Q_NUM DESC  limit 1;
+	]]>
+	</select>
+	
+	
+	<insert id="insert_zisik">
+	INSERT INTO NAKSINURIZISIKINQUESTION
+	(	NURI_Q_WRITER,
+		NURI_Q_SUBJECT,
+		NURI_Q_CONTENT,
+		NURI_Q_DATE,
+		NURI_Q_PASS
+	) 
+	VALUES 
+	(	#nuri_q_writer#,
+		#nuri_q_subject#,
+		#nuri_q_content#,
+		NOW(),
+		#nuri_q_pass#
+	)
+	</insert>
+	
+	<insert id="update_zisik">
+	<![CDATA[
+	UPDATE  NAKSINURIZISIKINQUESTION
+	SET	NURI_Q_WRITER   =	#nuri_q_writer#,
+		NURI_Q_SUBJECT   =	#nuri_q_subject#,
+		NURI_Q_CONTENT   =	#nuri_q_content#,
+		NURI_Q_UPDATE 	=	NOW()
+ 	WHERE NURI_Q_NUM   =   #nuri_q_num#	
+		]]>
+	</insert>
+	
+	<delete id="delete_zisik">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURIZISIKINQUESTION 
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+		]]>
+	</delete>
+	
+	<select id="answer_list" resultClass="naksinurizisikVO" >
+		SELECT * 
+		FROM NAKSINURIZISIKINANSWER
+		WHERE NURI_Q_NUM = #nuri_q_num#;
+	</select>
+	
+	<select id="ans_find" resultClass="naksinurizisikVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIZISIKINANSWER
+		WHERE NURI_A_NUM = #nuri_a_num#;
+		]]>
+	</select>
+	
+		<insert id="insert_ans">
+	INSERT INTO NAKSINURIZISIKINANSWER
+	(	
+		NURI_Q_NUM,
+		NURI_A_WRITER,
+		NURI_A_SUBJECT,
+		NURI_A_CONTENT,
+		NURI_A_DATE,
+		NURI_A_PASS
+	) 
+	VALUES 
+	(	#nuri_q_num#,
+		#nuri_a_writer#,
+		#nuri_a_subject#,
+		#nuri_a_content#,
+		NOW(),
+		#nuri_a_pass#
+	)
+	</insert>
+	
+	<insert id="update_ans">
+	<![CDATA[
+	UPDATE  NAKSINURIZISIKINANSWER
+	SET	NURI_A_WRITER   =	#nuri_a_writer#,
+		NURI_A_SUBJECT   =	#nuri_a_subject#,
+		NURI_A_CONTENT   =	#nuri_a_content#,
+		NURI_A_UPDATE 	=	NOW()
+ 	WHERE NURI_A_NUM   =   #nuri_a_num#	
+		]]>
+	</insert>
+	
+	<delete id="delete_ans">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURIZISIKINANSWER 
+		WHERE NURI_A_NUM = #nuri_a_num#;
+		]]>
+	</delete>	
+	
+	<select id="main_naksi_congress" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT, BO_MAIN_IMG, FILE_SN , ORIGNL_FILE_NM
+		FROM NAKSINURIBOARD A 
+		LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID 
+		WHERE BO_TYPE = 'congress'
+		AND BO_TRASH = '0' 
+		/*
+		AND BO_TRASH != '3'
+		ORDER BY BO_SN DESC*/ 
+		ORDER BY A.BO_NOTICE_Y DESC, A.BO_START_DT ASC  
+		LIMIT 4 
+	</select>
+	
+	<select id="main_news" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriNewsVO">
+		SELECT MID,LINK,LEFT(TITLE,30) as TITLE,LEFT(REGDATE,10) as REGDATE
+		FROM NAKSINURINEWSAPI
+		WHERE ISDEL = '0'
+		ORDER BY REGDATE DESC
+		LIMIT 3;
+	</select>
+	
+	<select id="main_notice" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT, LEFT(BO_INSERT_DT,10) as BO_INSERT_DT, BO_CONTENT 
+		FROM NAKSINURIBOARD
+		WHERE BO_TYPE = 'notice' AND BO_TRASH = '0'
+		ORDER BY BO_INSERT_DT DESC
+		LIMIT 3;
+	</select>
+	
+	<select id="river_angling" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT,BO_NAME, BO_MAIN_IMG, FILE_SN , ORIGNL_FILE_NM
+		FROM NAKSINURIBOARD A
+		LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE BO_TYPE = #board1# AND BO_TRASH = '0'
+		ORDER BY BO_INSERT_DT DESC
+		LIMIT 2;
+	</select>
+	
+	<!-- 메인화면에서 핫이슈 불러오기 -->
+	<select id="sea_angling" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT,BO_NAME, BO_MAIN_IMG, FILE_SN , ORIGNL_FILE_NM
+		FROM NAKSINURIBOARD A
+		LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE BO_TYPE = #board2# AND BO_TRASH = '0'
+		ORDER BY BO_INSERT_DT DESC
+		LIMIT 2;
+	</select>
+	
+	<!-- 모바일 메인화면에서 여행기 불러오기 -->
+	<select id="river_anglingm" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT,BO_NAME, BO_MAIN_IMG, FILE_SN , ORIGNL_FILE_NM
+		FROM NAKSINURIBOARD A
+		LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE BO_TYPE = #board1# AND BO_TRASH = '0'
+		ORDER BY BO_INSERT_DT DESC
+		LIMIT 2;
+	</select>
+	
+	<!-- 모바일 메인화면에서 핫이슈 불러오기 -->
+	<select id="sea_anglingm" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		SELECT BO_SN,BO_SUBJECT,BO_NAME, BO_MAIN_IMG, FILE_SN , ORIGNL_FILE_NM
+		FROM NAKSINURIBOARD A
+		LEFT JOIN LETTNFILEDETAIL B ON A.BO_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE BO_TYPE = #board2# AND BO_TRASH = '0'
+		ORDER BY BO_INSERT_DT DESC
+		LIMIT 2;
+	</select>
+	
+	<select id="choo_job" resultClass="naksinuriVO">
+    SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI
+			  WHERE FISHING_TYPE = #fishing_type# AND CO_TRASH ='0'
+			  ) AS TOT_CNT, N.*, L.ORIGNL_FILE_NM, L.FILE_SN	
+				FROM	NAKSINURI N LEFT JOIN LETTNFILEDETAIL L ON N.CO_MIMGSRC= L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = #fishing_type#
+				AND CO_TRASH = '0' AND CO_STATUS = 'y'
+		  		GROUP BY nak_id
+				ORDER BY nak_id DESC) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="seafishing_job" resultClass="naksinuriVO">
+    SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI
+			  WHERE FISHING_TYPE = #fishing_type#
+			  AND CO_TRASH = '0'
+			  ) AS TOT_CNT, N.*, L.ORIGNL_FILE_NM, L.FILE_SN	
+				FROM	NAKSINURI N LEFT JOIN LETTNFILEDETAIL L ON N.CO_MIMGSRC= L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = 'seafishing'
+				AND CO_TRASH = '0' AND CO_STATUS = 'y'
+		  		GROUP BY nak_id
+				ORDER BY nak_id DESC) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="boatfishing_job" resultClass="naksinuriVO">
+    SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI
+			  WHERE FISHING_TYPE = #fishing_type#
+			  AND CO_TRASH = '0'
+			  ) AS TOT_CNT, N.*, L.ORIGNL_FILE_NM, L.FILE_SN	
+				FROM	NAKSINURI N LEFT JOIN LETTNFILEDETAIL L ON N.CO_MIMGSRC= L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = 'boatfishing'
+				AND CO_TRASH = '0' AND CO_STATUS = 'y'
+		  		GROUP BY nak_id
+				ORDER BY nak_id DESC) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="riverfishing_job" resultClass="naksinuriVO">
+    SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURI
+			  WHERE FISHING_TYPE = #fishing_type#
+			  AND CO_TRASH = '0'
+			  ) AS TOT_CNT, N.*, L.ORIGNL_FILE_NM, L.FILE_SN	
+				FROM	NAKSINURI N LEFT JOIN LETTNFILEDETAIL L ON N.CO_MIMGSRC= L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE FISHING_TYPE = 'riverfishing'
+				AND CO_TRASH = '0' AND CO_STATUS = 'y'
+		  		GROUP BY nak_id
+				ORDER BY nak_id DESC) A
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	
+	<select id="getListGone" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" >
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIPROHIBINGAONE
+			  WHERE X_CATEGORY = #x_category# AND X_TRASH = '0'
+			  <isNotEqual prepend="AND" property="sido" compareValue="시/도 선택">
+				  <isNotEmpty property="sido">
+				  	X_ADDRESS2 LIKE "%$sido$%" 
+				  </isNotEmpty>
+				  <isNotEmpty property="gugun">
+				  	AND X_ADDRESS2 LIKE "%$gugun$%" 
+				  </isNotEmpty>
+			  </isNotEqual>
+
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURIPROHIBINGAONE N, (SELECT @RNUM := 0) R
+				WHERE X_CATEGORY = #x_category# AND X_TRASH = '0'
+				<isNotEqual prepend="AND" property="sido" compareValue="시/도 선택">
+					<isNotEmpty property="sido">
+						X_ADDRESS2 LIKE "%$sido$%" 
+					</isNotEmpty>
+					<isNotEmpty property="gugun">
+						AND X_ADDRESS2 LIKE "%$gugun$%" 
+					</isNotEmpty>						
+				</isNotEqual>
+				ORDER BY x_sn DESC) A
+				WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+				
+	</select>
+	
+	<select id="getListGonemobile" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" >
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIPROHIBINGAONE
+			  WHERE X_CATEGORY = #x_category# AND X_TRASH = '0'
+			  <isNotEqual prepend="AND" property="sido" compareValue="시/도 선택">
+				  <isNotEmpty property="sido">
+				  	X_ADDRESS2 LIKE "%$sido$%" 
+				  </isNotEmpty>
+				  <isNotEmpty property="gugun">
+				  	AND X_ADDRESS2 LIKE "%$gugun$%" 
+				  </isNotEmpty>
+			  </isNotEqual>
+
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURIPROHIBINGAONE N, (SELECT @RNUM := 0) R
+				WHERE X_CATEGORY = #x_category# AND X_TRASH = '0'
+				<isNotEqual prepend="AND" property="sido" compareValue="시/도 선택">
+					<isNotEmpty property="sido">
+						X_ADDRESS2 LIKE "%$sido$%" 
+					</isNotEmpty>
+					<isNotEmpty property="gugun">
+						AND X_ADDRESS2 LIKE "%$gugun$%" 
+					</isNotEmpty>						
+				</isNotEqual>
+				ORDER BY x_sn DESC) A				
+				
+	</select>
+	
+	<select id="getListGone_admin" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" >
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIPROHIBINGAONE 
+			  WHERE X_TRASH = '0'
+			   <isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="x_name" property="searchType">
+							X_NAME LIKE "%$searchText$%"
+				  	</isEqual>
+				  	<isEqual compareValue="x_address2" property="searchType">
+							X_ADDRESS2 LIKE "%$searchText$%"
+				  	</isEqual>
+			 	 </isNotEmpty>
+
+
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURIPROHIBINGAONE N, (SELECT @RNUM := 0) R
+				WHERE X_TRASH ='0'
+				<isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="x_name" property="searchType">
+							X_NAME LIKE "%$searchText$%"
+				  	</isEqual>
+				  	<isEqual compareValue="x_address2" property="searchType">
+							X_ADDRESS2 LIKE "%$searchText$%"
+				  	</isEqual>
+			 	 </isNotEmpty>
+				ORDER BY x_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	
+	
+	<select id="getTrashGone" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO" >
+		
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIPROHIBINGAONE 
+			  WHERE X_TRASH = '1'
+
+
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURIPROHIBINGAONE N, (SELECT @RNUM := 0) R
+				WHERE X_TRASH ='1'
+				ORDER BY x_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>	
+	
+	
+	<insert id="insert_data_gone">
+	<![CDATA[
+	INSERT INTO NAKSINURIPROHIBINGAONE
+	(	X_NAME,
+		X_TERM,
+		X_END,
+		X_RANG,
+		X_AREA,
+		X_PERSON,
+		X_PURPOSE,
+		X_RELATED,
+		X_LATITUDE,
+		X_HARDNESS,
+		X_CATEGORY,
+		X_ADDRESS,
+		X_ADDRESS2,
+		X_ADDRESS3) 
+	VALUES (	
+		#x_name#,
+		#x_term#,
+		#x_end#,
+		#x_rang#,
+		#x_area#,
+		#x_person#,
+		#x_purpose#,
+		#x_related#,
+		#x_latitude#,
+		#x_hardness#,
+		#x_category#,
+		#x_address#,
+		#x_address2#,
+		#x_address3#)
+		]]>
+	</insert>
+	<select id="promotion_findCorp" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriGoneVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIPROHIBINGAONE
+		WHERE X_SN = #x_sn#
+		
+		
+		]]>
+	</select>
+	
+	<select id="own_detail" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressOwnVO">
+		<![CDATA[
+		SELECT *
+		FROM NAKSINURI_CONGRESSINFO_OWNER
+		WHERE MBR_GROUP = #mbr_group#
+		AND BO_SN = #bo_sn# 
+		]]>
+	</select>
+	
+	<select id="mbr_detail" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO">
+		<![CDATA[
+		SELECT a.*,b.*
+		FROM NAKSINURI_CONGRESSINFO AS a INNER JOIN NAKSINURIBOARD AS b 
+		ON a.BO_SN = b.BO_SN
+		WHERE a.IDX = #idx#
+		AND b.BO_SN = #bo_sn#
+		]]>
+	</select>
+	
+	<select id="mbr_confirm" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO">
+		<![CDATA[
+		SELECT a.*
+		FROM NAKSINURI_CONGRESSINFO AS a 
+		WHERE a.BO_SN = #bo_sn#
+		AND a.MBR_PWD = #mbr_pwd#
+		AND a.MBR_HP = #mbr_hp#
+		AND a.MBR_NAME = #mbr_name#
+		]]>
+	</select>
+	
+	<select id="adminset_findCorp" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriAdminVO">
+		
+		SELECT *
+		FROM NAKSINURIADMINSET
+		LIMIT 1;
+		
+	</select>
+	
+	
+	
+	<update id="zisik_view_count">
+		UPDATE NAKSINURIZISIKINQUESTION
+		SET NURI_VIEW_COUNT=NURI_VIEW_COUNT + 1 
+		WHERE NURI_Q_NUM = #nuri_q_num#	
+	</update>
+	
+		<update id="update_data_gone">
+        <![CDATA[
+            UPDATE NAKSINURIPROHIBINGAONE 
+            SET X_NAME        =#x_name#,
+				X_TERM        =#x_term#,
+				X_END         =#x_end#,
+				X_RANG        =#x_rang#,
+				X_AREA        =#x_area#,
+				X_PERSON      =#x_person#,
+				X_PURPOSE     =#x_purpose#,
+				X_RELATED     =#x_related#,
+				X_LATITUDE    =#x_latitude#,
+				X_HARDNESS    =#x_hardness#,
+				X_CATEGORY    =#x_category#,
+				X_ADDRESS     =#x_address#,
+				X_ADDRESS2    =#x_address2#,
+				X_ADDRESS3    =#x_address3#             	
+            WHERE X_SN   	=   #x_sn#			
+        ]]>                      			
+    </update>
+    
+    <delete id="delete_list_p">
+		<![CDATA[
+		    
+		DELETE 
+		FROM NAKSINURIPROHIBINGAONE 
+		
+	  	WHERE x_sn = #x_sn#
+
+		]]>
+	</delete>
+	<select id="getListIndustry" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" >
+		
+	SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURISANUP
+			  WHERE SAN_TRASH = '0' 
+			 
+			  <isNotEqual property="isSeachAdmin" compareValue="true">
+				 	and SAN_STATUS = 'y' 
+			  </isNotEqual>
+			  
+			  	<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+				  	<isNotEmpty property="san_aag" prepend="or">
+					 	SAN_AAG =#san_aag#
+					</isNotEmpty>
+					<isNotEmpty property="san_zogu" prepend="or">
+					 SAN_ZOGU =#san_zogu#
+					</isNotEmpty>
+					<isNotEmpty property="san_media" prepend="or">
+					 	SAN_MEDIA =#san_media#
+					</isNotEmpty>
+					<isNotEmpty property="san_sell" prepend="or">
+					 	SAN_SELL =#san_sell#
+					</isNotEmpty>
+					<isNotEmpty property="san_chool" prepend="or">
+					 	SAN_CHOOL =#san_chool#
+					</isNotEmpty>
+					<isNotEmpty property="san_inprov" prepend="or">
+					 	SAN_INPROV =#san_inprov#
+					</isNotEmpty>
+				</isNotNull>
+				
+				<isNotEmpty property="searchSido" prepend="and">
+				 	SAN_ADDRESS2  LIKE "$searchSido$%"
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchGugun" prepend="and">
+					SAN_ADDRESS2  LIKE "%$searchGugun$%"
+			  	</isNotEmpty>
+			  	<isEmpty property="searchType" prepend="and">
+					SAN_NAME  LIKE "%$searchText1$%"
+			  	</isEmpty>
+			  	<isNotEmpty property="san_name" prepend="and">
+					SAN_NAME  LIKE "%$san_name$%"
+			  	</isNotEmpty>
+				  <isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="san_name" property="searchType">
+							SAN_NAME LIKE "%$searchText1$%"
+				  	</isEqual>
+				  	<isEqual compareValue="san_buisnessman" property="searchType">
+							SAN_BUISNESSMAN LIKE "%$searchText1$%"
+				  	</isEqual>
+					 <isEqual compareValue="san_addr" property="searchType">
+							SAN_ADDRESS LIKE "%$searchText1$%"
+				  	</isEqual>	
+			 	 </isNotEmpty>
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURISANUP N, (SELECT @RNUM := 0) R
+			  	WHERE SAN_TRASH = '0' 
+			  	
+			  <isNotEqual property="isSeachAdmin" compareValue="true">
+				 	and SAN_STATUS = 'y' 
+			  </isNotEqual>
+			  	
+			  	<isNotNull prepend="and" removeFirstPrepend="true" open="(" close=")">
+				  	<isNotEmpty property="san_aag" prepend="or">
+					 	SAN_AAG =#san_aag#
+					</isNotEmpty>
+					<isNotEmpty property="san_zogu" prepend="or">
+					 	SAN_ZOGU =#san_zogu#
+					</isNotEmpty>
+					<isNotEmpty property="san_media" prepend="or">
+					 	SAN_MEDIA =#san_media#
+					</isNotEmpty>
+					<isNotEmpty property="san_sell" prepend="or">
+					 	SAN_SELL =#san_sell#
+					</isNotEmpty>
+					<isNotEmpty property="san_chool" prepend="or">
+					 	SAN_CHOOL =#san_chool#
+					</isNotEmpty>
+					<isNotEmpty property="san_inprov" prepend="or">
+					 	SAN_INPROV =#san_inprov#
+					</isNotEmpty>
+				</isNotNull>
+			  	<isNotEmpty property="san_name" prepend="and">
+					SAN_NAME  LIKE "%$san_name$%"
+			  	</isNotEmpty>				
+				<isNotEmpty property="searchSido" prepend="and">
+				 	SAN_ADDRESS2  LIKE "$searchSido$%"
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchGugun" prepend="and">
+					SAN_ADDRESS2  LIKE "%$searchGugun$%"
+			  	</isNotEmpty>
+			  	<isEmpty property="searchType" prepend="and">
+					SAN_NAME  LIKE "%$searchText1$%"
+			  	</isEmpty>
+				  <isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="san_name" property="searchType">
+						SAN_NAME LIKE "%$searchText1$%"
+				  	</isEqual>
+				  	<isEqual compareValue="san_buisnessman" property="searchType">
+						SAN_BUISNESSMAN LIKE "%$searchText1$%"
+				  	</isEqual>
+					 <isEqual compareValue="san_addr" property="searchType">
+						SAN_ADDRESS LIKE "%$searchText1$%"
+				  	</isEqual>	
+			 	 </isNotEmpty>
+				
+				<isEqual property="searchType" compareValue="id">
+					ORDER BY SAN_SN DESC
+				</isEqual>
+						
+				<isEqual property="searchType" compareValue="kor">
+					ORDER BY LTRIM(SAN_NAME) ASC
+				</isEqual>
+			
+				<isEqual property="searchType" compareValue="views">
+						ORDER BY SAN_VIEWS DESC
+				</isEqual>
+				<isNotEqual property="searchType" compareValue="id">
+						ORDER BY SAN_DATE DESC
+				</isNotEqual>
+				
+				) A
+				LEFT JOIN LETTNFILEDETAIL B ON A.SAN_IMG = B.ATCH_FILE_ID
+		<isNotEqual property="isNotUsedPagination" compareValue="true">
+	    WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	    </isNotEqual>
+		 
+		
+	</select>	
+	<select id="getMapListIndustry" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" >
+		SELECT *
+		FROM NAKSINURISANUP
+		WHERE 1 = 1
+		<isNotEmpty property="adres_la1" prepend="and">
+			<![CDATA[ ADRES_LA > #adres_la1# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_la2" prepend="and">
+			<![CDATA[ ADRES_LA < #adres_la2# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_lo1" prepend="and">
+			<![CDATA[ ADRES_LO > #adres_lo1# ]]>
+		</isNotEmpty>
+		<isNotEmpty property="adres_lo2" prepend="and">
+			<![CDATA[ ADRES_LO < #adres_lo2# ]]>
+		</isNotEmpty>
+	</select>	
+	
+<select id="getInfoIndustry" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" >
+		
+		SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM  NAKSINURISANUP as A
+		LEFT JOIN LETTNFILEDETAIL B ON A.SAN_IMG = B.ATCH_FILE_ID
+		WHERE 1=1
+		<isNotEmpty property="san_sn" prepend="and">
+			SAN_SN = #san_sn# 
+		</isNotEmpty>		 
+		
+	</select>		
+	
+	
+	<select id="get_trashListIndustry" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" >
+		
+		
+		SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURISANUP
+			  WHERE SAN_TRASH = '1'
+			  	<isNotEmpty property="san_aag" prepend="or">
+				 	SAN_AAG =#san_aag#
+				</isNotEmpty>
+				<isNotEmpty property="san_zogu" prepend="or">
+				 	SAN_ZOGU =#san_zogu#
+				</isNotEmpty>
+				<isNotEmpty property="san_media" prepend="or">
+				 	SAN_MEDIA =#san_media#
+				</isNotEmpty>
+				<isNotEmpty property="san_sell" prepend="or">
+				 	SAN_SELL =#san_sell#
+				</isNotEmpty>
+				<isNotEmpty property="san_chool" prepend="or">
+				 	SAN_CHOOL =#san_chool#
+				</isNotEmpty>
+				<isNotEmpty property="san_inprov" prepend="or">
+				 	SAN_INPROV =#san_inprov#
+				</isNotEmpty>
+				<isNotEmpty property="searchSido" prepend="and">
+				 	SAN_ADDRESS2  LIKE "%$searchSido$%"
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchGugun" prepend="and">
+					SAN_ADDRESS2  LIKE "%$searchGugun$%"
+			  	</isNotEmpty>
+			  	<isEmpty property="searchType" prepend="and">
+					SAN_NAME  LIKE "%$searchText$%"
+			  	</isEmpty>
+				  <isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="san_name" property="searchType">
+						SAN_NAME LIKE "%$searchText$%"
+				  	</isEqual>
+				  	<isEqual compareValue="san_buisnessman" property="searchType">
+						SAN_BUISNESSMAN LIKE "%$searchText$%"
+				  	</isEqual>
+					 <isEqual compareValue="san_addr" property="searchType">
+						SAN_ADDRESS LIKE "%$searchText$%"
+				  	</isEqual>	
+			 	 </isNotEmpty>
+			  ) AS TOT_CNT, N.*		
+				FROM	NAKSINURISANUP N, (SELECT @RNUM := 0) R
+			  	WHERE SAN_TRASH = '1'
+			  	<isNotEmpty property="san_aag" prepend="or">
+				 	SAN_AAG =#san_aag#
+				</isNotEmpty>
+				<isNotEmpty property="san_zogu" prepend="or">
+				 	SAN_ZOGU =#san_zogu#
+				</isNotEmpty>
+				<isNotEmpty property="san_media" prepend="or">
+				 	SAN_MEDIA =#san_media#
+				</isNotEmpty>
+				<isNotEmpty property="san_sell" prepend="or">
+				 	SAN_SELL =#san_sell#
+				</isNotEmpty>
+				<isNotEmpty property="san_chool" prepend="or">
+				 	SAN_CHOOL =#san_chool#
+				</isNotEmpty>
+				<isNotEmpty property="san_inprov" prepend="or">
+				 	SAN_INPROV =#san_inprov#
+				</isNotEmpty>
+				<isNotEmpty property="searchSido" prepend="and">
+				 	SAN_ADDRESS2  LIKE "%$searchSido$%"
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchGugun" prepend="and">
+					SAN_ADDRESS2  LIKE "%$searchGugun$%"
+			  	</isNotEmpty>
+			  	<isEmpty property="searchType" prepend="and">
+					SAN_NAME  LIKE "%$searchText$%"
+			  	</isEmpty>
+				  <isNotEmpty property="searchType" prepend="and">
+				  	<isEqual compareValue="san_name" property="searchType">
+						SAN_NAME LIKE "%$searchText$%"
+				  	</isEqual>
+				  	<isEqual compareValue="san_buisnessman" property="searchType">
+						SAN_BUISNESSMAN LIKE "%$searchText$%"
+				  	</isEqual>
+					 <isEqual compareValue="san_addr" property="searchType">
+						SAN_ADDRESS LIKE "%$searchText$%"
+				  	</isEqual>	
+			 	 </isNotEmpty>
+				ORDER BY san_sn DESC) A
+				LEFT JOIN LETTNFILEDETAIL B ON A.SAN_IMG = B.ATCH_FILE_ID
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>		
+	
+	<insert id="ind_insert" >
+	<![CDATA[
+	INSERT INTO NAKSINURISANUP
+		(	
+			SAN_DIVSION
+			,SAN_AAG
+			,SAN_ZOGU
+			,SAN_MEDIA
+			,SAN_SELL
+			,SAN_CHOOL
+			,SAN_INPROV
+			,SAN_BUISNESSMAN
+			,SAN_NAME
+			,SAN_TEL
+			,SAN_TEL1
+			,SAN_TEL2
+			,SAN_TEL3
+			,SAN_CONTENT
+			,SAN_IMG
+			,SAN_SIMG
+			,SAN_ADDRESS
+			,SAN_ADDRESS1
+			,SAN_ADDRESS2
+			,SAN_ADDRESS3
+			,SAN_ITEM
+			,SAN_PHONE
+			,SAN_PHONE1
+			,SAN_PHONE2
+			,SAN_PHONE3
+			,SAN_HOMEPAGE
+			,SAN_DATE
+			,ADRES_LA
+			,ADRES_LO) 
+	VALUES (
+			
+			#san_divsion#
+			,#san_aag#
+			,#san_zogu#
+			,#san_media#
+			,#san_sell#
+			,#san_chool#
+			,#san_inprov#
+			,#san_buisnessman#
+			,#san_name#
+			,#san_tel#
+			,#san_tel1#
+			,#san_tel2#
+			,#san_tel3#
+			,#san_content#
+			,#san_img#
+			,#san_simg#
+			,#san_address#
+			,#san_address1#
+			,#san_address2#
+			,#san_address3#
+			,#san_item#
+			,#san_phone#
+			,#san_phone1#
+			,#san_phone2#
+			,#san_phone3#
+			,#san_homepage#
+			,SYSDATE()
+			,#adres_la#
+			,#adres_lo#)
+		]]>
+	</insert>
+	<insert id="ind_insert_Preview" >
+	<![CDATA[
+	INSERT INTO NAKSINURISANUP_PREVIEW
+		(	
+			SAN_DIVSION
+			,SAN_AAG
+			,SAN_ZOGU
+			,SAN_MEDIA
+			,SAN_SELL
+			,SAN_CHOOL
+			,SAN_INPROV
+			,SAN_BUISNESSMAN
+			,SAN_NAME
+			,SAN_TEL
+			,SAN_TEL1
+			,SAN_TEL2
+			,SAN_TEL3
+			,SAN_CONTENT
+			,SAN_IMG
+			,SAN_SIMG
+			,SAN_ADDRESS
+			,SAN_ADDRESS1
+			,SAN_ADDRESS2
+			,SAN_ADDRESS3
+			,SAN_ITEM
+			,SAN_PHONE
+			,SAN_PHONE1
+			,SAN_PHONE2
+			,SAN_PHONE3
+			,SAN_HOMEPAGE
+			,SAN_DATE
+			,PREG_STAT
+			,PREG_SESS
+			,PREG_PID
+			) 
+	VALUES (
+			
+			#san_divsion#
+			,#san_aag#
+			,#san_zogu#
+			,#san_media#
+			,#san_sell#
+			,#san_chool#
+			,#san_inprov#
+			,#san_buisnessman#
+			,#san_name#
+			,#san_tel#
+			,#san_tel1#
+			,#san_tel2#
+			,#san_tel3#
+			,#san_content#
+			,#san_img#
+			,#san_simg#
+			,#san_address#
+			,#san_address1#
+			,#san_address2#
+			,#san_address3#
+			,#san_item#
+			,#san_phone#
+			,#san_phone1#
+			,#san_phone2#
+			,#san_phone3#
+			,#san_homepage#
+			,SYSDATE()
+			,#save_status#
+			,#client_ipaddr#
+			,#san_sn#
+			)
+		]]>
+	</insert>
+	<insert id="ind_insert_PreviewP" >
+	<![CDATA[
+	INSERT INTO NAKSINURISANUP_PREVIEW
+		(	
+			SAN_DIVSION
+			,SAN_AAG
+			,SAN_ZOGU
+			,SAN_MEDIA
+			,SAN_SELL
+			,SAN_CHOOL
+			,SAN_INPROV
+			,SAN_BUISNESSMAN
+			,SAN_NAME
+			,SAN_TEL
+			,SAN_TEL1
+			,SAN_TEL2
+			,SAN_TEL3
+			,SAN_CONTENT
+			,SAN_IMG
+			,SAN_SIMG
+			,SAN_ADDRESS
+			,SAN_ADDRESS1
+			,SAN_ADDRESS2
+			,SAN_ADDRESS3
+			,SAN_ITEM
+			,SAN_PHONE
+			,SAN_PHONE1
+			,SAN_PHONE2
+			,SAN_PHONE3
+			,SAN_HOMEPAGE
+			,SAN_DATE
+			,PREG_STAT
+			,PREG_SESS
+			,PREG_PID
+			) 
+	VALUES (
+			
+			#san_divsion#
+			,#san_aag#
+			,#san_zogu#
+			,#san_media#
+			,#san_sell#
+			,#san_chool#
+			,#san_inprov#
+			,#san_buisnessman#
+			,#san_name#
+			,#san_tel#
+			,#san_tel1#
+			,#san_tel2#
+			,#san_tel3#
+			,#san_content#
+			,#san_img#
+			,#san_simg#
+			,#san_address#
+			,#san_address1#
+			,#san_address2#
+			,#san_address3#
+			,#san_item#
+			,#san_phone#
+			,#san_phone1#
+			,#san_phone2#
+			,#san_phone3#
+			,#san_homepage#
+			,SYSDATE()
+			,#save_status#
+			,#client_ipaddr#
+			,#psan_sn#
+			)
+		]]>
+	</insert>
+
+	<insert id="ind_update">
+		<![CDATA[
+			UPDATE NAKSINURISANUP
+			SET  SAN_AAG 		 = #san_aag#
+				,SAN_ZOGU        = #san_zogu#
+				,SAN_MEDIA       = #san_media#
+				,SAN_SELL        = #san_sell#
+				,SAN_CHOOL       = #san_chool#
+				,SAN_INPROV      = #san_inprov#
+				,SAN_BUISNESSMAN = #san_buisnessman#
+				,SAN_NAME        = #san_name#
+				,SAN_TEL         = #san_tel#
+				,SAN_TEL1        = #san_tel1#
+				,SAN_TEL2        = #san_tel2#
+				,SAN_TEL3        = #san_tel3#
+				,SAN_CONTENT     = #san_content#
+				,SAN_IMG         = #san_img#
+				,SAN_SIMG		 = #san_simg#
+				,SAN_ADDRESS     = #san_address#
+				,SAN_ADDRESS1    = #san_address1#
+				,SAN_ADDRESS2    = #san_address2#
+				,SAN_ADDRESS3    = #san_address3#
+				,SAN_ITEM        = #san_item#
+				,SAN_PHONE       = #san_phone#
+				,SAN_PHONE1      = #san_phone1#
+				,SAN_PHONE2      = #san_phone2#
+				,SAN_PHONE3      = #san_phone3#
+				,SAN_HOMEPAGE    = #san_homepage#
+				,SAN_STATUS 	 = #san_status#
+				,SAN_UPDATE      = SYSDATE()
+				,ADRES_LA      	 = #adres_la#
+				,ADRES_LO      	 = #adres_lo#
+			WHERE SAN_SN 		 = #san_sn#		
+		
+		]]>
+	</insert>
+	<insert id="adminset_update">
+		<![CDATA[
+			UPDATE NAKSINURIADMINSET
+			SET  EMAIL 		 = #email#
+				,EMAIL_PW     = #email_pw#
+			WHERE IDX 	 = #idx#		
+		
+		]]>
+	</insert>
+	
+	<select id="ind_find" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO">
+		<![CDATA[
+		SELECT  A.*, B.ORIGNL_FILE_NM, B.FILE_SN, B.FILE_SIZE
+		FROM	NAKSINURISANUP A
+		LEFT JOIN LETTNFILEDETAIL B ON A.SAN_IMG = B.ATCH_FILE_ID
+		WHERE SAN_SN = #san_sn#
+		]]>
+	</select>
+	<select id="ind_find_Preview" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO">
+		<![CDATA[
+		SELECT  A.*, B.ORIGNL_FILE_NM, B.FILE_SN, B.FILE_SIZE
+		FROM	NAKSINURISANUP_PREVIEW A
+		LEFT JOIN LETTNFILEDETAIL B ON A.SAN_IMG = B.ATCH_FILE_ID
+		WHERE A.SAN_BUISNESSMAN = #san_buisnessman# and A.SAN_NAME = #san_name#
+		order by A.SAN_SN desc limit 1
+		]]>
+	</select>
+	<select id="ind_fsimg" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO">
+		<![CDATA[
+		SELECT  A.SAN_SN, A.SAN_SIMG, B.*
+		FROM	NAKSINURISANUP A ,LETTNFILEDETAIL B
+		WHERE SAN_SN = #san_sn#
+		AND A.SAN_SIMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	<select id="ind_fsimg_Preview" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriSanupVO">
+		SELECT 
+		  A.SAN_SN,
+		  A.SAN_SIMG,
+		  B.* 
+		FROM
+		  NAKSINURISANUP_PREVIEW A
+		  RIGHT JOIN LETTNFILEDETAIL AS B ON  B.ATCH_FILE_ID =A.SAN_SIMG
+		  WHERE A.SAN_BUISNESSMAN = #san_buisnessman# and A.SAN_NAME = #san_name# 
+		  
+		<!-- 
+		SELECT  A.SAN_SN, A.SAN_SIMG, B.*
+		FROM	NAKSINURISANUP_PREVIEW A ,LETTNFILEDETAIL B
+		WHERE A.SAN_BUISNESSMAN = #san_buisnessman# and A.SAN_NAME = #san_name# 
+		AND A.SAN_SIMG = B.ATCH_FILE_ID
+	 -->
+	</select>
+	
+	<delete id="ind_delete">
+		<![CDATA[
+			DELETE 
+			FROM NAKSINURISANUP 
+			WHERE SAN_SN = #san_sn#;
+		]]>
+	</delete>
+	<!-- 이벤트 -->
+	
+	<insert id="event_insert">
+	
+	INSERT INTO NAKSINURIEVN
+	(	
+	 
+	 EVN_WRITER,
+	<isNotEmpty property="evn_startdate">
+			EVN_STARTDATE,
+		</isNotEmpty>
+		<isNotEmpty property="evn_enddate">
+			EVN_ENDDATE,
+		</isNotEmpty>
+	 EVN_ANCDATE,
+	 EVN_SUBJECT,
+	 EVN_CONTENT,
+	 EVN_INSERT_DT,
+	 EVN_MAIN_IMG,
+	 EVN_SUB_IMG,
+	 EVN_ATCH_FILE,
+	 EVN_INFO,
+	 EVN_STA
+	)
+	VALUES (
+	 
+	 #evn_writer#,
+	 	<isNotEmpty property="evn_startdate">
+			#evn_startdate#,
+		</isNotEmpty>
+		<isNotEmpty property="evn_enddate">
+			#evn_enddate#,
+		</isNotEmpty>
+	 #evn_ancdate#,
+	 #evn_subject#,
+	 #evn_content#,
+	 SYSDATE(),
+	 #evn_main_img#,
+	 #evn_sub_img#,
+	 #evn_atch_file#,
+	 #evn_info#,
+	 #evn_sta#
+	) 
+	
+
+	</insert>
+	
+	<insert id="event_gongmo_insert">
+	
+	INSERT INTO NAKSINURIGONGMO
+	(	
+	 
+	 EVN_WRITER,
+	<isNotEmpty property="evn_startdate">
+			EVN_STARTDATE,
+		</isNotEmpty>
+		<isNotEmpty property="evn_enddate">
+			EVN_ENDDATE,
+		</isNotEmpty>
+	 EVN_ANCDATE,
+	 EVN_SUBJECT,
+	 EVN_CONTENT,
+	 EVN_INSERT_DT,
+	 EVN_MAIN_IMG,
+	 EVN_SUB_IMG,
+	 EVN_ATCH_FILE,
+	 EVN_INFO,
+	 EVN_STA
+	)
+	VALUES (
+	 
+	 #evn_writer#,
+	 	<isNotEmpty property="evn_startdate">
+			#evn_startdate#,
+		</isNotEmpty>
+		<isNotEmpty property="evn_enddate">
+			#evn_enddate#,
+		</isNotEmpty>
+	 #evn_ancdate#,
+	 #evn_subject#,
+	 #evn_content#,
+	 SYSDATE(),
+	 #evn_main_img#,
+	 #evn_sub_img#,
+	 #evn_atch_file#,
+	 #evn_info#,
+	 #evn_sta#
+	) 
+	
+
+	</insert>
+	
+	
+	<select id="event_list" resultClass="eventVO" parameterClass="eventVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			   WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>	
+	<select id="event_gongmo_list" resultClass="eventVO" parameterClass="eventVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			   WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>	
+
+
+	<select id="getmbr_all_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO">
+		SELECT A.*,F.* FROM NAKSINURI_CONGRESSINFO AS A
+		LEFT JOIN LETTNFILEDETAIL F ON A.BO_ATCH_FILE = F.ATCH_FILE_ID
+		WHERE BO_SN = #bo_sn#  
+		<isNotEmpty property="searchStatus">
+			AND MBR_STATUS = #searchStatus# 
+	  	</isNotEmpty>			  
+	</select>
+	
+	
+	<select id="getmbr_own_all_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressOwnVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressOwnVO">
+		<![CDATA[
+		SELECT own.* ,
+			(SELECT COUNT(idx) FROM NAKSINURI_CONGRESSINFO AS sub WHERE sub.BO_SN = #bo_sn# AND sub.MBR_GROUP = own.MBR_GROUP) AS mbr_total_count
+		FROM NAKSINURI_CONGRESSINFO_OWNER AS own
+		WHERE own.BO_SN = #bo_sn#  
+		]]>
+	</select>
+	
+	
+	
+	
+	<select id="getmbr_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.NaksiCongressMbrVO">
+		SELECT A.*,F.*
+		FROM (
+				SELECT  @RNUM:=@RNUM+1 AS RN,
+			 			(
+						 	SELECT 
+			       				COUNT(*)
+			    			FROM
+			      				NAKSINURI_CONGRESSINFO AS Ts1
+			      				<isNotEmpty property="searchText">
+						  	  		<isEqual compareValue="mbr_name" property="searchType">
+										,(SELECT Ts2.MBR_GROUP FROM NAKSINURI_CONGRESSINFO AS Ts2 WHERE Ts2.MBR_NAME LIKE "%$searchText$%") AS Ts2s
+								  	</isEqual>
+								  	<isEqual compareValue="repre_name" property="searchType">
+										,(SELECT Ts2.MBR_GROUP FROM NAKSINURI_CONGRESSINFO AS Ts2 WHERE Ts2.REPRE_NAME LIKE "%$searchText$%") AS Ts2s
+								  	</isEqual>
+								</isNotEmpty>								  
+			    			WHERE Ts1.BO_SN = #bo_sn#
+			    				<isNotEmpty property="searchText">
+			      				AND Ts1.MBR_GROUP = Ts2s.MBR_GROUP
+			      				</isNotEmpty>		  
+								<isNotEmpty property="searchStatus">
+						 		AND Ts1.MBR_STATUS = #searchStatus# 
+				  	  			</isNotEmpty>
+					  	  		<isEmpty property="searchStatus">
+					  	  		AND Ts1.IS_DELETE != '1' AND Ts1.IS_HIDE != '1'
+					  	  		</isEmpty>
+						) AS TOT_CNT,
+						B.* 
+			  	FROM NAKSINURI_CONGRESSINFO B, 
+			  		 (
+						SELECT 
+					       Ts3.idx
+					    FROM
+					      NAKSINURI_CONGRESSINFO AS Ts3
+					      	<isNotEmpty property="searchText">
+				  	  			<isEqual compareValue="mbr_name" property="searchType">
+									,(SELECT Ts4.MBR_GROUP FROM NAKSINURI_CONGRESSINFO AS Ts4 WHERE Ts4.MBR_NAME LIKE "%$searchText$%") AS Ts4s
+						  		</isEqual>
+						  		<isEqual compareValue="repre_name" property="searchType">
+									,(SELECT Ts4.MBR_GROUP FROM NAKSINURI_CONGRESSINFO AS Ts4 WHERE Ts4.REPRE_NAME LIKE "%$searchText$%") AS Ts4s
+						  		</isEqual>
+							</isNotEmpty>
+					    WHERE Ts3.BO_SN = #bo_sn# 
+					    	<isNotEmpty property="searchText">
+					      	AND Ts3.MBR_GROUP = Ts4s.MBR_GROUP
+					      	</isNotEmpty>		  
+							<isNotEmpty property="searchStatus">
+				 			AND Ts3.MBR_STATUS = #searchStatus# 
+		  	  				</isNotEmpty>
+			  	  			<isEmpty property="searchStatus">
+			  	  			AND Ts3.IS_DELETE != '1' AND Ts3.IS_HIDE != '1'
+			  	  			</isEmpty>
+			  	  		ORDER BY Ts3.idx DESC
+					 ) AS Ts5,
+			  		(SELECT @RNUM := 0) R
+				WHERE BO_SN = #bo_sn#
+		 			AND B.idx = Ts5.idx
+  					<isNotEmpty property="searchStatus">
+					AND B.MBR_STATUS = #searchStatus# 
+	  				</isNotEmpty>
+	  				<isEmpty property="searchStatus">
+	  	  			AND B.IS_DELETE != '1' AND B.IS_HIDE != '1'
+	  				</isEmpty>
+		  		GROUP BY B.idx
+		  		ORDER BY B.idx DESC
+		  	) A
+		LEFT JOIN LETTNFILEDETAIL F ON A.BO_ATCH_FILE = F.ATCH_FILE_ID
+		<isNotEmpty property="pageUnit">
+		WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#	
+		</isNotEmpty>
+				
+	</select>
+
+
+	<select id="endevent_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			    WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59')	<![CDATA[ <  ]]> SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ <  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+		
+	<select id="endevent_gongmo_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			    WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59')	<![CDATA[ <  ]]> SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE DATE_FORMAT(EVN_ENDDATE,'%Y-%m-%d 23:59:59') <![CDATA[ <  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="ancevent_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			    WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_ATCH_FILE = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="ancevent_gongmo_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			    WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='0'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_ATCH_FILE = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='0'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="allevent_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			   WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  
+		
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%""
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				 WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+				
+		 		<isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		 	   </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="allevent_gongmo_list" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			   WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+			  
+		
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%""
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				 WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='0'
+				
+		 		<isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		 	   </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+
+
+<select id="event_trash" resultClass="eventVO" parameterClass="eventVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			   WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>	
+	
+<select id="event_gongmo_trash" resultClass="eventVO" parameterClass="eventVO">
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			   WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_ENDDATE <![CDATA[ >=  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>	
+
+	<select id="endevent_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			    WHERE EVN_ENDDATE	<![CDATA[ <  ]]> SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_ENDDATE <![CDATA[ <  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="endevent_gongmo_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			    WHERE EVN_ENDDATE	<![CDATA[ <  ]]> SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_ENDDATE <![CDATA[ <  ]]>  SYSDATE() AND EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="ancevent_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			    WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_ATCH_FILE = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="ancevent_gongmo_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			    WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='1'
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_ATCH_FILE = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				  WHERE EVN_STARTDATE IS NULL AND EVN_TRASH ='1'
+			
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		  </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>	
+	
+	<select id="allevent_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIEVN
+			   WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  
+		
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%""
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIEVN N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				 WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+				
+		 		<isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		 	   </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="allevent_gongmo_trash" resultClass="eventVO" parameterClass="eventVO">
+			SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIGONGMO
+			   WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+			  
+		
+			  <isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  	<isEqual compareValue="evn_writer" property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content" property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%""
+			  	</isEqual>	
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIGONGMO N LEFT JOIN LETTNFILEDETAIL L ON N.EVN_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				 WHERE EVN_STARTDATE IS NOT NULL AND EVN_TRASH ='1'
+				
+		 		<isNotEmpty property="searchText">
+			  
+			  	<isEqual compareValue="evn_subject" property="searchType">
+					AND EVN_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="evn_writer"  property="searchType">
+					AND EVN_WRITER LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="evn_content"  property="searchType">
+					AND EVN_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>	
+			
+		 	   </isNotEmpty>
+		  		GROUP BY evn_no
+		  
+				ORDER BY evn_no DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+
+	
+	<select id="getevent_view" resultClass="eventVO" >
+		SELECT *
+		FROM NAKSINURIEVN
+		WHERE EVN_NO = #evn_no#;
+	</select>
+	
+	<select id="getevent_gongmoview" resultClass="eventVO" >
+		SELECT *
+		FROM NAKSINURIGONGMO
+		WHERE EVN_NO = #evn_no#;
+	</select>
+	
+	<select id="event_findCorp" resultClass="eventVO">
+		<![CDATA[
+	 SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM NAKSINURIEVN A
+		LEFT JOIN LETTNFILEDETAIL B ON A.EVN_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE EVN_NO = #evn_no#;
+	]]>
+	</select>
+	
+	<select id="event_gongmo_findCorp" resultClass="eventVO">
+		<![CDATA[
+	 SELECT A.*, B.ORIGNL_FILE_NM, B.FILE_SN
+		FROM NAKSINURIGONGMO A
+		LEFT JOIN LETTNFILEDETAIL B ON A.EVN_MAIN_IMG = B.ATCH_FILE_ID
+		WHERE EVN_NO = #evn_no#;
+	]]>
+	</select>
+
+	
+	<select id="emimg" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_MAIN_IMG, FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIEVN A, LETTNFILEDETAIL B
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_MAIN_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	<select id="emimg_gongmo" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_MAIN_IMG, FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIGONGMO A, LETTNFILEDETAIL B
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_MAIN_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	<select id="esimg" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_SUB_IMG,FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIEVN A, LETTNFILEDETAIL B 
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_SUB_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	<select id="esimg_gongmo" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_SUB_IMG,FILE_SN,ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIGONGMO A, LETTNFILEDETAIL B 
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_SUB_IMG = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	
+	<select id="ea_file" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_ATCH_FILE, FILE_SN, ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIEVN A ,LETTNFILEDETAIL B
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_ATCH_FILE = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+	<select id="ea_file_gongmo" resultClass="egovframework.naksinuri_original.let.naksinuri.service.NaksinuriEventVO">
+		<![CDATA[
+		SELECT  EVN_NO, EVN_ATCH_FILE, FILE_SN, ORIGNL_FILE_NM, FILE_SIZE, FILE_STRE_COURS
+		FROM	NAKSINURIGONGMO A ,LETTNFILEDETAIL B
+		WHERE EVN_NO = #evn_no#
+		AND A.EVN_ATCH_FILE = B.ATCH_FILE_ID
+		]]>
+	</select>
+	
+<!-- 	이벤트 조회수  -->
+	<update id="uphit">
+		UPDATE  NAKSINURIEVN
+		SET EVN_VIEWHIT=EVN_VIEWHIT +1 
+		WHERE EVN_NO   =   #evn_no#	
+	</update>
+	
+	<!-- 	이벤트 조회수  -->
+	<update id="uphit_gongmo">
+		UPDATE  NAKSINURIGONGMO
+		SET EVN_VIEWHIT=EVN_VIEWHIT +1 
+		WHERE EVN_NO   =   #evn_no#	
+	</update>
+	
+	<select id="event_next"  resultClass="eventVO" >
+	<![CDATA[
+		SELECT EVN_NO
+		FROM	NAKSINURIEVN
+		WHERE EVN_NO  > #evn_no# AND EVN_TRASH = '0'
+		ORDER BY EVN_NO ASC  limit 1;
+		]]>
+	</select>
+	
+	
+		<select id="event_prev" resultClass="eventVO">
+	<![CDATA[
+		SELECT EVN_NO
+		FROM	NAKSINURIEVN
+		WHERE EVN_NO < #evn_no# AND EVN_TRASH = '0'
+		ORDER BY EVN_NO DESC  limit 1;
+	]]>
+	</select>
+	
+	<select id="event_next_gongmo"  resultClass="eventVO" >
+	<![CDATA[
+		SELECT EVN_NO
+		FROM	NAKSINURIGONGMO
+		WHERE EVN_NO  > #evn_no# AND EVN_TRASH = '0'
+		ORDER BY EVN_NO ASC  limit 1;
+		]]>
+	</select>
+	
+	
+		<select id="event_prev_gongmo" resultClass="eventVO">
+	<![CDATA[
+		SELECT EVN_NO
+		FROM	NAKSINURIGONGMO
+		WHERE EVN_NO < #evn_no# AND EVN_TRASH = '0'
+		ORDER BY EVN_NO DESC  limit 1;
+	]]>
+	</select>
+	
+	<!--  이벤트 댓글 -->
+	
+	<insert id="eco_insert">
+	
+		INSERT INTO NAKSINURIEVNCOMMENT
+		(	ECO_CONTENT,
+			EVN_NO,
+			ECO_INSERT_DT,		
+			ECO_PASS,
+			<isNotEmpty property="eco_gongmo_hp">
+				ECO_GONGMO_HP,
+			</isNotEmpty>
+			<isNotEmpty property="eco_gongmo_url">
+				ECO_GONGMO_URL,
+			</isNotEmpty>
+			<isNotEmpty property="eco_cate">
+				ECO_CATE,
+			</isNotEmpty>			
+			ECO_NAME) 
+		VALUES 	(	
+			#eco_content#,
+			#evn_no#,
+			SYSDATE(),		
+			#eco_pass#,
+			<isNotEmpty property="eco_gongmo_hp">
+				#eco_gongmo_hp#,
+			</isNotEmpty>
+			<isNotEmpty property="eco_gongmo_url">
+				#eco_gongmo_url#,
+			</isNotEmpty>
+			<isNotEmpty property="eco_cate">
+				#eco_cate#,
+			</isNotEmpty>		
+			#eco_name#) 
+	
+	</insert>	
+	
+	<insert id="eco_update">
+		UPDATE NAKSINURIEVNCOMMENT
+		SET <isNotEmpty property="eco_content">
+			ECO_CONTENT	= #eco_content#,
+			</isNotEmpty>
+			<isNotEmpty property="eco_gongmo_hp">
+			eco_gongmo_hp = #eco_gongmo_hp#,
+			</isNotEmpty>
+			<!--
+			ECO_NAME = #eco_name#, 
+			ECO_PASS = #eco_pass#,
+			ECO_UPDATE_DT = #eco_update_dt#
+			 -->
+			ECO_UPDATE_DT = NOW()
+			WHERE ECO_NO = #eco_no#
+	</insert>
+	
+	<delete id= "eco_delete">
+		<![CDATA[
+		DELETE
+		FROM NAKSINURIEVNCOMMENT
+		WHERE ECO_NO = #eco_no#
+	
+		]]>
+	</delete>
+	
+	<select id="select_event_comment" resultClass="eventVO" parameterClass="eventVO" >
+		SELECT * FROM NAKSINURIEVNCOMMENT 
+		WHERE EVN_NO=#evn_no#
+		ORDER BY ECO_INSERT_DT desc		
+	</select>
+	
+	
+	
+	<delete id="deleteEvent">
+		<![CDATA[
+		DELETE 
+		FROM NAKSINURIEVN  
+	  	WHERE EVN_NO = #evn_no#
+		]]>
+	</delete>
+	
+
+	<update id="event_gongmo_update">		
+	UPDATE  NAKSINURIGONGMO
+		SET	EVN_SUBJECT   =	#evn_subject#,
+			EVN_CONTENT   =	#evn_content#,
+			EVN_UPDATE_DT =	SYSDATE(),
+			EVN_PASS      =	#evn_pass#,
+		
+			<isNotEmpty property="evn_startdate">
+			EVN_STARTDATE = #evn_startdate#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_enddate">
+			EVN_ENDDATE = #evn_enddate#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_main_img">
+				EVN_MAIN_IMG	 =  #evn_main_img#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_sub_img">
+				EVN_SUB_IMG	 =  #evn_sub_img#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_atch_file">
+				EVN_ATCH_FILE	 =  #evn_atch_file#,
+			</isNotEmpty>
+				EVN_WRITER    =	#evn_writer#
+	 			WHERE EVN_NO   =   #evn_no#	;
+		
+	</update>
+
+
+	<update id="updateEvent">
+		
+	UPDATE  NAKSINURIEVN
+		SET	EVN_SUBJECT   =	#evn_subject#,
+			EVN_CONTENT   =	#evn_content#,
+			EVN_UPDATE_DT =	SYSDATE(),
+			EVN_PASS      =	#evn_pass#,
+		
+			<isNotEmpty property="evn_startdate">
+			EVN_STARTDATE = #evn_startdate#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_enddate">
+			EVN_ENDDATE = #evn_enddate#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_main_img">
+				EVN_MAIN_IMG	 =  #evn_main_img#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_sub_img">
+				EVN_SUB_IMG	 =  #evn_sub_img#,
+			</isNotEmpty>
+			<isNotEmpty property="evn_atch_file">
+				EVN_ATCH_FILE	 =  #evn_atch_file#,
+			</isNotEmpty>
+				EVN_WRITER    =	#evn_writer#
+	 			WHERE EVN_NO   =   #evn_no#	;
+		
+	</update>
+
+	<select id="ecopass_find" resultClass="eventVO">
+		<![CDATA[
+		SELECT  *
+		FROM	NAKSINURIEVNCOMMENT
+		WHERE ECO_NO = #eco_no#
+		]]>
+	</select>
+	
+	<select id="copass_find" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO">
+		<![CDATA[
+			SELECT CO_PASS
+			FROM NAKSINURICOMMENT
+			WHERE CO_SN = #co_sn#;
+		]]>
+	</select>
+
+	<delete id= "co_delete">
+		<![CDATA[
+		DELETE
+		FROM NAKSINURICOMMENT
+		WHERE CO_SN = #co_sn#
+	
+		]]>
+	</delete>
+	
+	
+	
+	<select id="user_congress_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND BO_TRASH = '0'
+			   AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			  </isNotEmpty>
+		 	  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND BO_TRASH = '0'
+				AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY BO_NOTICE_Y DESC, BO_START_DT ASC, bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="user_congress_endlist" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND BO_TRASH = '0'
+			  AND BO_END_DT	<![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND BO_TRASH = '0'
+ 				AND BO_END_DT <![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL 
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+	  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	
+	<select id="gongmo_all_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0')
+			   AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  
+		 	  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0')
+				AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+						  
+		  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn		  
+				ORDER BY bo_sn DESC) A
+	</select>
+	
+	
+	<select id="gongmo_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0' or BO_TRASH = '3')
+			   AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			  </isNotEmpty>
+		 	  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0' or BO_TRASH = '3')
+				AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+			
+			WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="gongmo_endlist" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0' or BO_TRASH = '3')
+			  AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59')	<![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+	
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_start_dt">
+				AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+				AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'gongmo' AND (BO_TRASH = '0' or BO_TRASH = '3')
+				AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL 
+			
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+			AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+				GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+	
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+
+
+	<select id="gongmo_trash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'gongmo' AND BO_TRASH = '1'
+			   AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+	
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'gongmo' AND BO_TRASH = '1'
+				AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+				GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+	
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="gongmo_endtrash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'gongmo' AND BO_TRASH='1'
+			  AND BO_END_DT	<![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+	
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'gongmo' AND BO_TRASH='1'
+				AND BO_END_DT <![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL 
+			
+			  <isNotEmpty property="searchText">
+				<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+				</isEqual>	
+				<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+				</isEqual>
+				<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+				</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+				GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+	
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	
+	<select id="congress_list" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND (BO_TRASH = '0' or BO_TRASH = '3')
+			   AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	
+			  </isNotEmpty>
+		 	  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND (BO_TRASH = '0' or BO_TRASH = '3')
+				AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  			AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="congress_endlist" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND (BO_TRASH = '0' 
+			  <isEqual property="isSeachAdmin" compareValue="true">
+				 	or BO_TRASH = '3'
+			  </isEqual>
+			  )
+			  AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59')	<![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  </isNotEmpty>
+			  <isNotEmpty property="bo_start_dt">
+		  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+		  	  </isNotEmpty>
+			  <isNotEmpty property="bo_end_dt">
+		  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+		      </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND (BO_TRASH = '0' 
+				 <isEqual property="isSeachAdmin" compareValue="true">
+				 	or BO_TRASH = '3'
+			  	 </isEqual>
+				)
+ 				AND DATE_FORMAT(BO_END_DT,'%Y-%m-%d 23:59:59') <![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL 
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  <isNotEmpty property="bo_start_dt">
+	  		AND BO_START_DT<![CDATA[ >]]> #bo_start_dt#
+	  	  </isNotEmpty>
+		  <isNotEmpty property="bo_end_dt">
+	  		AND BO_END_DT<![CDATA[ <=]]> #bo_end_dt#
+	      </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	
+	<select id="congress_trash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND BO_TRASH = '1'
+			   AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND BO_TRASH = '1'
+				AND BO_END_DT <![CDATA[ >=  ]]>  SYSDATE() AND BO_START_DT IS NOT NULL
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+	</select>
+	
+	<select id="congress_endtrash" resultClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" parameterClass="egovframework.naksinuri_original.let.naksinuri.service.BoardVO" >
+		SELECT A.*
+		FROM   (SELECT  @RNUM:=@RNUM+1 AS RN
+			  ,(SELECT COUNT(*) 
+			  FROM NAKSINURIBOARD
+			  WHERE BO_TYPE = 'congress' AND BO_TRASH='1'
+			  AND BO_END_DT	<![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				<isEqual compareValue="bo_content" property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+			  	</isEqual>
+
+			  </isNotEmpty>
+			  ) AS TOT_CNT, N.*	,L.ORIGNL_FILE_NM	
+				FROM	NAKSINURIBOARD N LEFT JOIN LETTNFILEDETAIL L ON N.BO_MAIN_IMG = L.ATCH_FILE_ID, (SELECT @RNUM := 0) R
+				WHERE BO_TYPE = 'congress' AND BO_TRASH='1'
+ 				AND BO_END_DT <![CDATA[ <  ]]> SYSDATE() AND BO_END_DT IS NOT NULL 
+			
+			  <isNotEmpty property="searchText">
+			  	<isEqual compareValue="bo_subcon" property="searchType">
+					AND	(BO_SUBJECT LIKE "%$searchText$%"
+					OR 	BO_CONTENT LIKE "%$searchText$%")
+			  	</isEqual>	
+			  	<isEqual compareValue="bo_subject" property="searchType">
+					AND BO_SUBJECT LIKE "%$searchText$%"
+			  	</isEqual>
+			  	<isEqual compareValue="bo_name" property="searchType">
+					AND BO_NAME LIKE "%$searchText$%"
+			  	</isEqual>
+				 <isEqual compareValue="bo_content"  property="searchType">
+					AND BO_CONTENT LIKE "%$searchText$%"
+				</isEqual>
+		  </isNotEmpty>
+		  		GROUP BY bo_sn
+		  
+				ORDER BY bo_sn DESC) A
+
+		 WHERE RN BETWEEN (#pageIndex#-1)*#pageUnit#+1 AND #pageIndex# * #pageUnit#
+		
+	</select>
+	
+	<select id="get_yr_fshtb_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT *
+		FROM ( SELECT year, SUM(fshtb_sm) as fshtb_sm
+				FROM fshtb_sttus_tb
+				GROUP BY year
+				ORDER BY year DESC
+				LIMIT 6 
+				) AS P
+		ORDER BY P.year
+	</select>
+
+	<select id="get_yr_fshtb_user_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT *
+		FROM ( SELECT SUBSTRING(year, 3) as year, ROUND(SUM(fshtb_user_cnt)/1000) AS fshtb_user_cnt
+				FROM fshtb_user_tb
+				GROUP BY year 
+				ORDER BY year DESC
+				LIMIT 11 
+			) AS P
+		ORDER BY P.year
+	</select>
+
+	<select id="get_area_fshtb_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT fshtb_area, fshtb_sm
+		FROM fshtb_sttus_tb
+		WHERE year = #year#
+	</select>
+
+	<select id="get_each_area_fshtb_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT fshtb_area, 
+			<iterate property="years" prepend="" conjunction="," >
+            	SUM($years[].yearA$) AS #years[].yearB#
+        	</iterate>
+		FROM ( SELECT fshtb_area, 
+			<iterate property="years2" prepend="" conjunction="," >
+            	CASE WHEN YEAR = #years2[]# THEN fshtb_sm END AS y#years2[]#
+        	</iterate>
+			,expsr_ordr
+		FROM fshtb_sttus_tb 
+		) AS T
+		GROUP BY fshtb_area
+		ORDER BY expsr_ordr
+	</select>
+
+	<select id="get_fshtb_year_list" resultClass="naksinuriVO" >
+		SELECT *
+		FROM ( SELECT year
+				FROM fshtb_sttus_tb
+				GROUP BY year
+				ORDER BY year DESC
+				LIMIT 6 
+			) AS P
+		ORDER BY P.year
+	</select>
+
+	<select id="get_tot_area_fshtb_list" resultClass="naksinuriVO" >
+		SELECT *
+		FROM ( SELECT year, SUM(fshtb_sm) AS fshtb_sm
+				FROM fshtb_sttus_tb
+				GROUP BY year
+				ORDER BY year DESC 
+				LIMIT 6
+			) AS P
+		ORDER BY P.year
+	</select>
+
+	<select id="get_fshtb_user_year_list" resultClass="naksinuriVO" >
+		SELECT *
+		FROM ( SELECT year, SUM(fshtb_user_cnt) AS fshtb_user_cnt
+				FROM fshtb_user_tb
+				GROUP BY year
+				ORDER BY year DESC 
+				LIMIT 11
+			) AS P
+		ORDER BY P.year
+	</select>
+
+	<select id="get_each_area_fshtb_user_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT fshtb_area, 
+			<iterate property="years" prepend="" conjunction="," >
+            	SUM($years[].yearA$) AS #years[].yearB#
+        	</iterate>
+		FROM ( SELECT fshtb_area, 
+			<iterate property="years2" prepend="" conjunction="," >
+            	CASE WHEN YEAR = #years2[]# THEN fshtb_user_cnt END AS y#years2[]#
+        	</iterate>
+			,expsr_ordr
+		FROM fshtb_user_tb 
+		) AS T
+		GROUP BY fshtb_area
+		ORDER BY expsr_ordr
+	</select>
+
+	<select id="get_sido_fshtb_before_year_sttus" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT fshtb_area, fshtb_sm, ton1, ton1_2, ton2_3, ton3_4, ton4_5, ton5_6, ton6_7, ton7_8, ton8_9, ton9_10
+		FROM fshtb_sttus_tb
+		WHERE year = #year#
+	</select>
+
+	<select id="get_sido_fshtb_before_year_list" resultClass="naksinuriVO" parameterClass="naksinuriVO">
+		SELECT SUM(fshtb_sm) AS fshtb_sm, SUM(ton1) AS ton1, SUM(ton1_2) AS ton1_2, SUM(ton2_3) AS ton2_3, SUM(ton3_4) AS ton3_4, SUM(ton4_5) AS ton4_5, 
+				SUM(ton5_6) AS ton5_6, SUM(ton6_7) AS ton6_7, SUM(ton7_8) AS ton7_8, SUM(ton8_9) AS ton8_9, SUM(ton9_10) AS ton9_10
+		FROM fshtb_sttus_tb
+		WHERE year = #year#
+	</select>
+
+</sqlMap>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="File">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="shareLinkVO" type="egovframework.all.sharelink.service.ShareLinkVO"/>
+
+	<select id="allow_all_sharelink_info" parameterClass="shareLinkVO" resultClass="shareLinkVO">
+		SELECT * FROM ALL_SHARE_LINK_TB
+		WHERE 1=1 
+		AND LOCK_ST = 'N' 
+		AND LINK_UNIQ_ID = #LINK_UNIQ_ID#
+	</select>
+	
+	<select id="get_all_sharelink_info" parameterClass="shareLinkVO" resultClass="shareLinkVO">
+		SELECT * FROM ALL_SHARE_LINK_TB
+		WHERE 1=1
+		AND LINK_PL1 = #LINK_PL1# 
+		AND LINK_PL2 = #LINK_PL2#
+		AND LINK_PL3 = #LINK_PL3#
+		AND LINK_PL4 = #LINK_PL4#
+		AND LINK_SID = #LINK_SID#
+		<isNotEmpty property="LINK_TYPE">
+		AND LINK_TYPE = #LINK_TYPE#
+		</isNotEmpty>
+	</select>
+
+	<update id="set_all_sharelink_uphit" parameterClass="shareLinkVO">
+		UPDATE ALL_SHARE_LINK_TB SET
+		LINK_HIT = LINK_HIT+1 
+		WHERE 1=1 AND LINK_URL = #LINK_URL#
+	</update>
+
+	<insert id="set_all_sharelink_reg" parameterClass="shareLinkVO">
+		INSERT INTO ALL_SHARE_LINK_TB
+		(
+			LINK_UNIQ_ID,
+			LINK_URL,
+			LINK_RST_URL,
+			LINK_RST_URL_M,
+			LINK_PL1,
+			LINK_PL2,
+			LINK_PL3,
+			LINK_PL4,
+			LINK_SID,
+			LINK_TYPE
+		)
+		VALUES 
+		(
+			#LINK_UNIQ_ID#,
+			#LINK_URL#,
+			#LINK_RST_URL#,
+			#LINK_RST_URL_M#,
+			#LINK_PL1#,
+			#LINK_PL2#,
+			#LINK_PL3#,
+			#LINK_PL4#,
+			#LINK_SID#,
+			#LINK_TYPE#
+		)
+	</insert>
+
+
+</sqlMap>

@@ -1,0 +1,148 @@
+#-----------------------------------------------------------------------
+#
+#   globals.properties
+#
+#-----------------------------------------------------------------------
+
+# SERVER TYPE(WINDOWS, UNIX)
+Globals.OsType = WINDOWS
+
+# G4C Connect IP (localhost)
+Globals.LocalIp = 127.0.0.1
+
+# Start Page Setting ( base path : webapp/WEB-INF/jsp/egovframework ) - not used
+Globals.PageAllLock = FALSE
+Globals.LockPagePath = /cmmn/error
+Globals.unLockWhiteListPagePath = /sealife/index;/sealife/mobile/index
+Globals.MainHomePagePath = /sealife/index
+Globals.MainMobilePagePath = /sealife/mobile/index
+
+
+#########################################################
+# CHECK !!!!
+#########################################################
+# by 2019.09.04
+
+#------------------------------------------------------------------------
+# SMS Send number : pc , mobile - ok use
+#------------------------------------------------------------------------
+
+Globals.SmsSenderNumber=18337139
+
+
+#-------------------------------------
+# database setting ( mysql )
+#-------------------------------------
+
+# release - naksinuri 
+Globals.DbType = mysql
+Globals.UserName=root
+Globals.Password=0000
+Globals.DriverClassName=net.sf.log4jdbc.DriverSpy
+Globals.Url=jdbc:log4jdbc:mysql://localhost:3306/naksiedu_merge?serverTimezone=UTC
+ 
+
+#-------------------------------------
+# pagination setting 
+#-------------------------------------
+Globals.pageUnit=10
+Globals.pageSize=10
+Globals.mobilepageUnit=10
+Globals.mobilepageSize=5
+
+#-------------------------------------
+# file upload setting 
+#-------------------------------------
+# public
+Globals.atchFileSize=5242880
+Webeditor.atchFileSize=5242880
+
+# release
+Globals.fileCommonPath=/home/data/common
+Globals.fileStorePath=/home/data/file/sht
+Webeditor.fileStorePath=/home/data/upload
+Globals.movfilePath=/home/data/movupload
+Globals.excelDownloadPath=/home/data/file/excel
+Globals.certificateImgPath=/home/data/file/certificateImg
+
+#------------------------------------------------------------------------
+# Ipin : pc , mobile - no use
+#------------------------------------------------------------------------
+
+# watosys
+Ipin.customerId=TFG001
+Ipin.joinNo=003001
+Ipin.idNo=003002
+Ipin.passNo=003003
+Ipin.resetNo=003007
+Ipin.mjoinNo=003004
+Ipin.midNo=003005
+Ipin.mpassNo=003006
+Ipin.mresetNo=003008
+
+#------------------------------------------------------------------------
+# KMC : pc , mobile - no use
+#------------------------------------------------------------------------
+
+# watosys
+Idtfy.customerId=SELM1001
+Idtfy.joinNo=003002
+Idtfy.idNo=003003
+Idtfy.passNo=003004
+Idtfy.resetNo=003010
+Idtfy.mjoinNo=003005
+Idtfy.midNo=003006
+Idtfy.mpassNo=003007
+Idtfy.mresetNo=003011
+
+#------------------------------------------------------------------------
+# KMC : pc , mobile - ok use
+#------------------------------------------------------------------------
+
+# release
+KcbOkCert.licensePath=/home/data/okcert_license/
+KcbOkCert.cpid=V29730000000
+KcbOkCert.siteNm=\ub09a\uc2dc\ub204\ub9ac
+KcbOkCert.siteUrl=https://www.naksinuri.kr/
+
+#------------------------------------------------------------------------
+# ETC API setting 
+#------------------------------------------------------------------------
+# watosys
+Social.api.kakao.jskey=89dd38e234e827d9538a893f95cfbcde
+Social.api.naver.clientid=DGsnplfDthjPqEtotywR
+Social.api.naver.clientsecret=Zx47dpChRf
+Social.api.naver.domain=http://
+Social.api.naver.callback=http://
+
+#------------------------------------------------------------------------
+# CTI API setting 
+#------------------------------------------------------------------------
+#
+#cti.call.api.url=wss://cloudcti.nsiscloud.com:7103/softphone
+#cti.rec.api.url=wss://cloudvlg1.nsiscloud.com:7325
+#cti.rec.file.url=https://twit4.nsiscloud.com:9443/tpw/login.loginVlgListenPopupReq.do
+cti.call.api.url=wss://cloud5cti.nsiscloud.com:7103/softphone
+cti.rec.api.url=wss://cloud5vlg1.nsiscloud.com:7325
+cti.rec.file.url=https://twit0501.nsiscloud.com/tpw/login.loginVlgListenPopupReq.do
+
+#------------------------------------------------------------------------
+# www.koreafca.kr allow member id setting 
+#------------------------------------------------------------------------
+koreafca.mbrIds=seoulstar2,kanghsoo,chj2
+
+#------------------------------------------------------------------------
+# Kakao AlimTalk
+#------------------------------------------------------------------------
+kakao.alimtalk.url=https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send
+kakao.alimtalk.apikey=f66v6r5bx47g6y34j1loap2zrlevqr677ppjaaxj
+kakao.alimtalk.userid=kgc102
+
+
+#------------------------------------------------------------------------
+# KakaoPay Cert Api
+#------------------------------------------------------------------------
+kakaopay.link.id=FIPA_BC
+kakaopay.secret.key=MLqSPjOOd+CTOWgGE+Sz2cnah0lanxDzhu/EQPpXn5g=
+kakaopay.client.code=022050000001
+

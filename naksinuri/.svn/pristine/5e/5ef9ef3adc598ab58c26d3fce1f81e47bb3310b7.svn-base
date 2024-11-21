@@ -1,0 +1,63 @@
+@CHARSET "UTF-8";
+/* 팝업영역 */
+/* 팝업모바일 */
+.popupAreaM {width:100%;display:none;position:fixed;top:20px;left:50%;margin-left:-50%;z-index:9999;border:2px solid #000000;/*background-radius:6px;-webkit-border-radius:6px;*/}
+.popupAreaM ul{padding:0px;margin:0px;list-style:none;}
+.popupAreaM a.popupAreaContent{width:100%;display:inline-block;background:#fff;}
+.popupAreaM .popupClosebtnArea{position:relative;height:40px;line-height:40px;padding:0 10px;background: rgba(49, 49, 49, 0.8);color:#fff;}
+.popupAreaM .popupClosebtnArea .popupAreaCloseBtn{position:absolute;top:0px;right:0;padding:0 15px;font-size:24px;color:#fff;font-weight:bold}
+.popupAreaM .se2img{width:100%;}
+/* 팝업PC */
+.popupArea {/*min-width:600px;*/display:none;position:fixed;top:20px;left:50%;margin-left:-300px;z-index:9999;border:2px solid #000000;/*background-radius:6px;-webkit-border-radius:6px;*/}
+.popupArea ul{padding:0px;margin:0px;list-style:none;}
+.popupArea a.popupAreaContent{display:block;background:#fff;}
+.popupArea .popupClosebtnArea{position:relative;height:40px;line-height:40px;padding:0 10px;background: rgba(49, 49, 49, 0.8);color:#fff;}
+.popupArea .popupClosebtnArea .popupAreaCloseBtn{position:absolute;top:0px;right:0;padding:0 15px;font-size:15px;color:#fff;font-weight:bold}
+.popupArea .se2img{/*width:600px;*/}
+/* 팝업공통 */
+.popupAreaClose {
+    display: none;
+}
+.popupAreaClose + label {
+    color: #212121;
+    font-weight: normal;
+}
+.popupAreaClose + label {
+    color: #fff;
+    font-weight: normal;
+}
+.popupAreaClose + label span {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin: -2px 5px 0 0;
+    vertical-align: middle;
+    background: url(/common/img/ico_radio.png) 0px center no-repeat;
+    background-size: auto 100%;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.popupAreaClose:checked + label span {
+    background: url(/common/img/ico_radio.png) right top no-repeat;
+    background-size: auto 100%;
+}
+
+
+/* 대체텍스트 제공 숨김 */
+.blind {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    margin: -1px;
+    width: 1px;
+    height: 1px;
+}
+
+/* 라벨 커서 없앰 */
+.table_label{
+	cursor:text;
+}
+
+.h_blind{
+	position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;
+}

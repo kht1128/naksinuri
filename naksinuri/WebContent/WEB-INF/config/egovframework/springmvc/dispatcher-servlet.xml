@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xsi:schemaLocation="http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <context:component-scan base-package="egovframework">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan>
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="localeChangeInterceptor" />
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+    <!-- 쿠키를 이용한 Locale 이용시 <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/> -->
+    <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+        <property name="paramName" value="language" />
+    </bean>
+
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="defaultErrorView" value="cmmn/egovError"/>
+        <property name="exceptionMappings">
+            <props>
+                <prop key="org.springframework.dao.DataAccessException">cmmn/dataAccessFailure</prop>
+                <prop key="org.springframework.transaction.TransactionException">cmmn/transactionFailure</prop>
+                <prop key="egovframework.rte.fdl.cmmn.exception.EgovBizException">cmmn/egovError</prop>
+                <prop key="org.springframework.security.AccessDeniedException">cmmn/egovError</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver" p:order="1"
+	    p:viewClass="org.springframework.web.servlet.view.JstlView"
+	    p:prefix="/WEB-INF/jsp/egovframework/" p:suffix=".jsp"/>
+
+    <!-- For Pagination Tag -->
+    <!-- naksinuri_original 낚시누리오리지널 용 -->
+    <bean id="imageRenderer" class="egovframework.naksinuri_original.com.cmm.ImagePaginationRenderer"/>
+    <bean id="textRenderer" class="egovframework.naksinuri_original.let.naksinuri.web.DefaultPaginationRenderer"/>
+    <!-- //End naksinuri_original 낚시누리오리지널 용 -->
+    <bean id="listRenderer" class="egovframework.all.main.web.EgovListPaginationRenderer"/>
+    <bean id="defaultRendererAdmin" class="egovframework.eduadm.main.web.EgovDefaultPaginationRenderer"/>
+    <bean id="defaultRendererAdminCti" class="egovframework.cti.main.web.EgovDefaultTopPaginationRenderer"/>
+	<bean id="defaultRenderer" class="egovframework.educenter.web.EgovDefaultPaginationRenderer"/>
+    <bean id="paginationManager" class="egovframework.rte.ptl.mvc.tags.ui.pagination.DefaultPaginationManager">    
+        <property name="rendererType">
+            <map>
+                <entry key="list" value-ref="listRenderer"/>
+                <entry key="admin" value-ref="defaultRendererAdmin"/><!-- 관리자페이지를 위한 페이징구현 -->
+                <entry key="default" value-ref="defaultRenderer"/><!-- 사용자페이지를 위한 페이징구현 -->
+                <entry key="admin_top" value-ref="defaultRendererAdminCti"/><!-- 관리자페이지를 위한 페이징구현 : CTI상단배치 -->
+                <!-- naksinuri_original 낚시누리오리지널 용 -->
+                <entry key="image" value-ref="imageRenderer"/>
+                <entry key="text" value-ref="textRenderer"/>  
+            </map>
+        </property>
+    </bean>
+	<!-- /For Pagination Tag -->
+
+    <mvc:annotation-driven /> 
+   
+    <!-- / url 링크 및 파라미터 확인 위함  / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="egovframework.utils.UrlActionInterceptor"></bean>
+		</mvc:interceptor>
+		<!-- <mvc:interceptor>
+	        <mvc:mapping path="/**"/> 김현태 ip차단 적용
+	        <bean class="egovframework.utils.IPBlockInterceptor"></bean> IPBlockInterceptor 클래스의 경로를 지정
+	    </mvc:interceptor> -->
+	</mvc:interceptors>
+   
+   
+   	<!-- / adm 관리자페이지 로그인 체크 / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/adm/**"/>
+			<mvc:exclude-mapping path="/adm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/adm/member/agree.do"/>
+			<mvc:exclude-mapping path="/adm/member/pledge_agree.do"/>
+			<mvc:exclude-mapping path="/adm/member/join.do"/>
+			<mvc:exclude-mapping path="/adm/member/login.do"/>
+			<mvc:exclude-mapping path="/adm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/adm/member/actionLogout.do"/>
+			<mvc:exclude-mapping path="/adm/member/modifyAdmPwd.do"/>
+			<mvc:exclude-mapping path="/adm/member/modifyAdmInfo.do"/>
+			<mvc:exclude-mapping path="/adm/member/searchId.do"/>
+			<mvc:exclude-mapping path="/adm/member/searchAuthOverlayInfo.do"/>
+			<mvc:exclude-mapping path="/adm/member/login_crtfc_act.do"/>
+			<mvc:exclude-mapping path="/adm/member/login_pass.do"/>
+			<mvc:exclude-mapping path="/adm/member/login_pass_act.do"/>
+			<bean class="egovframework.adm.main.web.AdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!-- / ctiadm 관리자페이지 로그인 체크 / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/cti/**"/>
+			<mvc:exclude-mapping path="/cti/error/unauth.do"/>
+			<mvc:exclude-mapping path="/cti/member/login.do"/>
+			<mvc:exclude-mapping path="/cti/member/login_act.do"/>
+			<mvc:exclude-mapping path="/cti/member/actionLogout.do"/>
+			<bean class="egovframework.cti.main.web.CtiAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	
+	<!-- / eduadm 관리자페이지 로그인 체크 / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/eduadm/**"/>
+			<mvc:exclude-mapping path="/eduadm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/eduadm/member/login.do"/>
+			<mvc:exclude-mapping path="/eduadm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/eduadm/member/actionLogout.do"/>
+			<bean class="egovframework.eduadm.main.web.EduCenterAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+		
+	<!-- / seadm 관리자페이지 로그인 체크 / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/seadm/**"/>
+			<mvc:exclude-mapping path="/seadm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/seadm/member/actionLogout.do"/>
+			<bean class="egovframework.seadm.main.web.SeAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!-- / 기존 낚시누리 관리자페이지 로그인 체크 / -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/admin/**"/>
+			<mvc:exclude-mapping path="/seadm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/seadm/member/actionLogout.do"/>
+			<bean class="egovframework.seadm.main.web.SeAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/info/admin/*"/>
+			<mvc:exclude-mapping path="/seadm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/seadm/member/actionLogout.do"/>
+			<bean class="egovframework.seadm.main.web.SeAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/info/adminset/*"/>
+			<mvc:exclude-mapping path="/seadm/error/unauth.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login.do"/>
+			<mvc:exclude-mapping path="/seadm/member/login_act.do"/>
+			<mvc:exclude-mapping path="/seadm/member/actionLogout.do"/>
+			<bean class="egovframework.seadm.main.web.SeAdmLoginInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+   
+   
+   	<!-- //websocket -->
+	<!-- <context:component-scan base-package="com.spring.ws" /> -->
+    <websocket:handlers>
+		<websocket:mapping handler="echoHandler" path="/ws/cti.do"/>
+		<!-- WebSocket Handshake : 웹소켓 핸들러 클래스(echoHandler)가 호출되기전에 HttpSession에 접속하여  -->
+		<!-- '이용자 아이디를 추출하는 기능' 등을 인터셉터가 수행하도록 설정 -->
+		<websocket:handshake-interceptors>
+       		<bean class="org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor"/>
+		</websocket:handshake-interceptors>
+		<!-- <websocket:sockjs /> -->
+	</websocket:handlers>
+	<bean id="echoHandler" class="egovframework.cti.main.websocket.CtiWebSocketManager" />
+   	<!-- //End of websocket -->
+     
+</beans>

@@ -1,0 +1,238 @@
+@CHARSET "UTF-8";
+
+/* 간편인증 20220504 */
+.simpleCert::after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+.simpleCert li {
+	float: left;
+	width: 25%;
+	padding: 20px;
+}
+
+.simpleCert li label {
+	padding: 20px 3px;
+	width: 100%;
+}
+
+.simpleCert li input:checked + label {
+	border: 3px solid #0178CD;
+	border-radius: 15px;
+    box-shadow: 0 3px 6px 0 rgb(0 0 0 / 16%);
+}
+
+.simpleCert li input:focus + label {
+	border: 1px dashed #000; 
+}
+
+.simpleCert li input + label span, .simpleCert li input:checked + label span {
+	background: none;
+	width: auto;
+    height: auto;
+    margin: 0;
+}
+
+.simpleCert li p {
+	margin-bottom: 10px;
+}
+
+.simpleCert li .imgBox {
+    position: relative;
+    width: 6.5rem;
+    height: 6.5rem;
+    border-radius: 2.2rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    border: 1px solid #D8D8D8;
+}
+
+.formTypeA {
+	border-bottom:1px solid #acacac;
+}
+
+.formTypeA tbody th,.formTypeA tbody td { 
+	border:1px solid #acacac;
+	border-width:1px 0 0 0; 
+	color:#333;
+}
+
+.formTypeA tbody th {
+	padding:10px;
+	background-color: #f6f6f6;
+	font-weight: normal;
+	text-align:center;
+}
+
+.formTypeA tbody th label {
+	font-weight: 500;
+}
+
+.formTypeA tbody td {
+	padding:10px 20px;
+	word-break:break-all;
+	text-align: left;
+}
+
+.button-group {
+	position: absolute;
+    bottom: 0;
+    left: 0;
+    right: -1px;
+    border-top: 1px solid #bbb;
+}
+
+.button-group button {
+    height: 45px;
+    float: left;
+    border: 0;
+    transition: all 0.3s;
+}
+
+.button-group button:first-child {
+	background: #fff;
+	width: 40%;
+}
+
+.button-group button:first-child:hover {
+	background: #ececec;
+}
+
+.button-group button:last-child {
+	background: #0178CD;
+	color: #fff;
+	width: 60%;
+}
+
+.button-group button:last-child:hover {
+	background: #006ab5;
+}
+
+
+.stepArea {
+	margin: 30px 0;
+	display: flex;
+    justify-content: center;
+}
+
+.stepArea::after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+.stepArea .step {
+	float: left;
+	position: relative;
+}
+
+.step .iconBox {
+    width: 11.4rem;
+    height: 11.4rem;
+    border-radius: 5.7rem;
+    border: 1px solid rgb(216, 216, 216);
+    margin-bottom: 1rem;
+}
+
+.step .iconBox img {
+    position: relative;
+    top: calc(50% - 3rem);
+    width: 6rem;
+    height: 6rem;
+}
+
+.appIconArea {
+    position: absolute;
+    width: 4.4rem;
+    height: 4.4rem;
+    background: rgb(255, 255, 255);
+    z-index: 5;
+    top: 0px;
+    right: 0px;
+    border-radius: 1.7rem;
+    overflow: hidden;
+    outline: none;
+    box-shadow: rgb(255 255 255) 0px 0px 0px 4px;
+}
+
+.appIconArea img {
+    width: 100%;
+}
+
+.stepArea .arrow {
+    width: 15px;
+    height: 15px;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAaCAYAAABctMd+AAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEzSURBVHgBtZSBrYIwFEUfxQEcoW5AgAH+Bn+E/91AJ1AnUCdQN3ADGQCQDXQDWQDwPgVjDEpb6k2AtLyc93JvUyIoCII/fsiyBL+qqhrhs0WDUxiGv2RJ4mUt0WiPJhvP8yT1lHiz/++67sn3/RmaDMky/CbHceZocjTNQyjUSKrz0LVKBf5owlbp5KEDb8R5HDmPrkITOGvIebBVn/IwhTeSdM/j0GZVX3ijn7Y8bMEbcR4H5DH5BpwlkceS8/gG/CZcI/YnBzTH5Is0TUcDsqt1WZZzgHNe2IJHPG0cx9HzZi84LDgDOk2SZN/23wjOvgoh1kVRrLIsy9/VmcC38JUDO3cV6sBbfe0Fr4/WBL7uSFODT1AVX03gEXwdq/iqDMe0Gaad6vjaCYenl/q8rsiiripvgxoGh7cLAAAAAElFTkSuQmCC);
+    background-size: 15px 15px;
+    float: left;
+    position: relative;
+    top: 50px;
+    margin-left: 3rem;
+    margin-right: 3rem;
+}
+
+.m_icon {
+	display: none;
+}
+
+.csTxt {
+	padding: 1.5rem;
+    background: rgb(248, 248, 248);
+    border: 1px solid rgb(216, 216, 216);
+    text-align: left;
+    bottom: 2rem;
+}
+
+.csTxt > p {
+	margin-bottom: 1rem;
+}
+
+.csTxt li {
+	line-height: 1.6rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.1rem;
+}
+
+.csTxt p.num {
+	width: 1.6rem;
+    height: 1.6rem;
+    line-height: 1.6rem;
+    font-size: 1.2rem;
+    border-radius: 0.8rem;
+    background: rgb(216, 216, 216);
+    text-align: center;
+    margin-right: 0.5rem;
+    float: left;
+}
+
+
+/* 반응형 추가 20221201 */
+@media(max-width:800px) {
+	.simpleCert {margin-bottom: 20px;}
+	.simpleCert li {width: 50%;padding: 5px 10px;}
+	.simpleCert li:nth-child(3n) {clear: both;}
+	.simpleCert li label {padding: 22px 5px;}
+	.simpleCert li input + label span:first-child {display: block;}
+	.simpleCert li p {margin-bottom: 10px;}
+
+	.formTypeA colgroup col {display: none;}
+	.formTypeA tbody th,.formTypeA tbody td {display: block; width: 100%;}
+	.formTypeA tbody th {padding: 5px 10px;}
+	.formTypeA tbody td {padding: 10px 0;}
+	.formTypeA tbody td input {width: 100%;}
+	.formTypeA tbody tr:nth-child(3) td input {width: calc(100% - 60px);}
+	
+	.stepArea {display: none;}
+	.m_icon {display: block;position: relative;width: 90px;height: 100px;left: calc(50% - 34px);margin-bottom: 15px;margin-top: 10px;}
+	.m_icon > img {position: absolute;bottom: 0px;left: 0px;width: 60px;height: 60px;}
+	.m_icon .logoBg {position: absolute;top: 0px;right: 0px;width: 50px;height: 50px;border-radius: 18px 18px 18px 0px;background: rgb(55, 59, 64);padding: 6px;}
+	.m_icon .logoBox {width: 38px;height: 38px;border-radius: 13px;overflow: hidden;background: rgb(255, 255, 255);}
+	.logoBox img {width: 100%;height: 100%;}
+}
+
+@media(max-width:360px) {
+	.simpleCert li {padding: 0;}
+}

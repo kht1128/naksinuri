@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="admPopup">
+
+	<typeAlias alias="popupVO" type="egovframework.adm.popup.service.PopupVO" />
+
+
+	<select id="admPopup.get_seadm_popup_list_totcnt" parameterClass="popupVO" resultClass="int">
+			SELECT COUNT(T.PP_SN)
+			FROM SL_POPUP_TB AS T
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword">
+				<isEqual prepend="AND" property="searchCondition" compareValue="1">
+		            ( PP_TITLE LIKE '%' #searchKeyword# '%' or PP_CONT LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="2">
+		            ( PP_TITLE LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+		        <isEqual prepend="AND" property="searchCondition" compareValue="3">
+		            ( PP_CONT LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="PP_HIDE_ST">
+			AND PP_HIDE_ST = #PP_HIDE_ST#
+			</isNotEmpty>
+			<isNotEmpty property="PP_TYPE">
+			AND PP_TYPE = #PP_TYPE#
+			</isNotEmpty>
+			<isEqual prepend="AND" property="chk_show_allow_poup" compareValue="true">
+			(
+				PP_SEA = #PP_SEA#
+				OR PP_EDU = #PP_EDU#
+				OR PP_EXPO = #PP_EXPO#
+				OR PP_CTI = #PP_CTI#
+			)
+			</isEqual>
+			ORDER BY 
+			<isNotEmpty property="PP_RANK">
+			T.PP_RANK ASC,
+			</isNotEmpty>
+			T.REG_DT ASC		
+	</select>
+	<select id="admPopup.get_seadm_popup_list" parameterClass="popupVO" resultClass="popupVO">
+			SELECT T.* 
+			FROM SL_POPUP_TB AS T
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword">
+				<isEqual prepend="AND" property="searchCondition" compareValue="1">
+		            ( PP_TITLE LIKE '%' #searchKeyword# '%' or PP_CONT LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+				<isEqual prepend="AND" property="searchCondition" compareValue="2">
+		            ( PP_TITLE LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+		        <isEqual prepend="AND" property="searchCondition" compareValue="3">
+		            ( PP_CONT LIKE '%' #searchKeyword# '%' )
+		        </isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="PP_HIDE_ST">
+			AND PP_HIDE_ST = #PP_HIDE_ST#
+			</isNotEmpty>
+			<isNotEmpty property="PP_TYPE">
+			AND PP_TYPE = #PP_TYPE#
+			</isNotEmpty>
+			<isEqual prepend="AND" property="chk_show_allow_poup" compareValue="true">
+			(
+				PP_SEA = #PP_SEA#
+				OR PP_EDU = #PP_EDU#
+				OR PP_EXPO = #PP_EXPO#
+				OR PP_CTI = #PP_CTI#
+			)
+			</isEqual>
+			ORDER BY 
+			<isNotEmpty property="PP_RANK">
+			T.PP_RANK ASC,
+			</isNotEmpty>
+			T.REG_DT DESC		
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+
+
+
+	<insert id="admPopup.set_seadm_pupup_info_reg" parameterClass="popupVO">
+		INSERT INTO SL_POPUP_TB   
+		(
+			<isNotEmpty property="PP_LINK_TARGET">
+			PP_LINK_TARGET,
+			</isNotEmpty>
+			PP_TYPE,
+			<isNotEmpty property="PP_SEA">
+			PP_SEA,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EDU">
+			PP_EDU,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EXPO">
+			PP_EXPO,
+			</isNotEmpty>
+			<isNotEmpty property="PP_CTI">
+			PP_CTI,
+			</isNotEmpty>
+			PP_TITLE,
+			PP_CONT,
+			PP_FILE,
+			<isNotEmpty property="PP_FILE2">
+			PP_FILE2,
+			</isNotEmpty>
+			PP_FILE_SE2,
+			PP_LINK_URL,
+			<isNotEmpty property="PP_LINK_URL2">
+			PP_LINK_URL2,
+			</isNotEmpty>
+			PP_STR_DT,
+			PP_END_DT,
+			PP_TOP,
+			PP_LEFT,
+			<isEmpty property="PP_HIDE_ST">
+			PP_HIDE_ST,
+			</isEmpty>
+			REG_MBR_ID,
+			UPD_MBR_ID,
+			REG_DT,
+			UPD_DT
+		)
+		VALUES
+		(
+			<isNotEmpty property="PP_LINK_TARGET">
+			#PP_LINK_TARGET#,
+			</isNotEmpty>
+			#PP_TYPE#,
+			<isNotEmpty property="PP_SEA">
+			#PP_SEA#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EDU">
+			#PP_EDU#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EXPO">
+			#PP_EXPO#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_CTI">
+			#PP_CTI#,
+			</isNotEmpty>
+			#PP_TITLE#,
+			#PP_CONT#,
+			#PP_FILE#,
+			<isNotEmpty property="PP_FILE2">
+			#PP_FILE2#,
+			</isNotEmpty>
+			#PP_FILE_SE2#,
+			#PP_LINK_URL#,
+			<isNotEmpty property="PP_LINK_URL2">
+			#PP_LINK_URL2#,
+			</isNotEmpty>
+			#PP_STR_DT#,
+			#PP_END_DT#,
+			<isNotEmpty property="PP_TOP">
+			#PP_TOP#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_LEFT">
+			#PP_LEFT#,
+			</isNotEmpty>
+			<isEmpty property="PP_TOP">
+			'0',
+			</isEmpty>
+			<isEmpty property="PP_LEFT">
+			'0',
+			</isEmpty>	
+			<isEmpty property="PP_HIDE_ST">
+			#PP_HIDE_ST#,
+			</isEmpty>
+			#REG_MBR_ID#,
+			#UPD_MBR_ID#,
+			NOW(),
+			NOW()
+		)    
+	</insert>
+	
+	
+	<select id="admPopup.get_seadm_poup_info" parameterClass="popupVO" resultClass="popupVO">
+		<![CDATA[
+			SELECT T.* 
+			FROM SL_POPUP_TB AS T
+			WHERE 1=1
+			AND PP_SN = #PP_SN#
+		]]>					
+	</select>
+	
+	<delete id="admPopup.remove_seadm_popup" parameterClass="popupVO">
+     	<![CDATA[
+	    DELETE FROM SL_POPUP_TB 
+	    WHERE 1=1 AND PP_SN = #PP_SN#
+		]]>
+   	</delete>   	
+   	
+   	<update id="admPopup.del_seadm_popup" parameterClass="popupVO">
+		UPDATE SL_POPUP_TB
+		SET DEL_ST = '1',
+			USE_ST = '0',
+			PP_HIDE_ST = 'Y',
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE 1=1
+		AND PP_SN = #PP_SN#	
+	</update>
+	
+	<update id="admPopup.set_seadm_pupup_info_mod" parameterClass="popupVO">
+		UPDATE SL_POPUP_TB   
+		SET 
+			PP_RANK = #PP_RANK#,
+			<isNotEmpty property="PP_LINK_TARGET">
+			PP_LINK_TARGET = #PP_LINK_TARGET#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_TYPE">
+			PP_TYPE = #PP_TYPE#,
+			</isNotEmpty>
+			<isEmpty property="PP_SEA">
+			PP_SEA = 'N',
+			</isEmpty>
+			<isEmpty property="PP_EDU">
+			PP_EDU = 'N',
+			</isEmpty>
+			<isEmpty property="PP_EXPO">
+			PP_EXPO = 'N',
+			</isEmpty>
+			<isEmpty property="PP_CTI">
+			PP_CTI = 'N',
+			</isEmpty>
+			<isNotEmpty property="PP_SEA">
+			PP_SEA = #PP_SEA#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EDU">
+			PP_EDU = #PP_EDU#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_EXPO">
+			PP_EXPO = #PP_EXPO#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_CTI">
+			PP_CTI = #PP_CTI#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_TITLE">
+			PP_TITLE = #PP_TITLE#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_CONT">
+			PP_CONT = #PP_CONT#,
+			</isNotEmpty>
+			PP_FILE = #PP_FILE#,
+			<isNotEmpty property="PP_FILE2">
+			PP_FILE2 = #PP_FILE2#,
+			</isNotEmpty>
+			PP_FILE_SE2	= #PP_FILE_SE2#,
+			PP_LINK_URL = #PP_LINK_URL#,
+			<isNotEmpty property="PP_LINK_URL2">
+			PP_LINK_URL2 = #PP_LINK_URL2#,
+			</isNotEmpty>
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			PP_TOP = #PP_TOP#,
+			PP_LEFT = #PP_LEFT#,
+			PP_HIDE_ST = #PP_HIDE_ST#,
+			<isNotEmpty property="PP_STR_DT">
+			PP_STR_DT = #PP_STR_DT#,
+			</isNotEmpty>
+			<isNotEmpty property="PP_END_DT">
+			PP_END_DT = #PP_END_DT#,
+			</isNotEmpty>
+			<isNotEmpty property="USE_ST">		    	
+			USE_ST = #USE_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="DEL_ST">		    	
+			DEL_ST = #DEL_ST#,
+			</isNotEmpty>
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE 1=1
+		AND PP_SN = #PP_SN#	
+	</update>
+	
+	<update id="admPopup.chkBoardAutoEnded">
+        <![CDATA[
+              UPDATE SL_POPUP_TB AS T 
+			  SET T.PP_HIDE_ST = 'Y'
+			  WHERE T.PP_END_DT < NOW() 
+			  AND T.PP_HIDE_ST = 'N'
+        ]]>
+    </update>
+
+</sqlMap>
+

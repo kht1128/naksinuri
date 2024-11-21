@@ -1,0 +1,27 @@
+<div class="roll_book_group" style="page-break-after:always;">
+	<h2 class="roll_book_tit">사전 수강신청 출석부</h2>
+	<p class="info">
+		<span class="in_bl pr10">[[CAT_INS_NM]]</span><span class="in_bl">[[CRS_NM]] </span><span class="in_bl pl10">[[CRS_STR_DT]]</span>
+	</p>
+	<p class="num_persons mb20">
+		<span class="in_bl pr10">신청자수 : [[MBR_CUR_CNT]]명</span><span class="in_bl">이수자수 : [[MBR_CMPLT_CNT]]명</span>
+	</p>
+	<table class="roll_book_t" align="center">
+		<tr>
+			<th rowspan="2">No.</th>
+			<th rowspan="2">시·도</th>
+			<th rowspan="2">시·군·구</th>
+			<th rowspan="2">낚시어선명<br>/낚시터명<br></th>
+			<th rowspan="2">성명</th>
+			<th rowspan="2">등록<br>서명</th>
+			<th colspan="2">이수구분</th>
+			<th rowspan="2">비고</th>
+		</tr>
+		<tr>
+			<th>이<br>수</th>
+			<th>미<br>이<br>수</th>
+		</tr>
+		[[DATA_TABLE]]		
+	</table>
+	<p class="font18 mt10 bld6">※ 교육이수는 반드시 본인이 직접 하여야 하며, 대리출석은 불가능하고,<br>만일 대리 서명·출석시 교육이수가 취소될 수 있습니다.</p>
+</div>

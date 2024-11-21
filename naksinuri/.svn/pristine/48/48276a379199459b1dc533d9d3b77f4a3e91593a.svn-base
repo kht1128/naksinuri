@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<!-- 환경설정 기본정보를 globals.properties 에서 참조하도록 propertyConfigurer 설정  -->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:/egovframework/egovProps/globals.properties</value>
+            </list>
+        </property>
+    </bean>
+
+	<!-- 프로퍼티 정보 설정 -->
+	<bean name="propertiesService" class="egovframework.rte.fdl.property.impl.EgovPropertyServiceImpl" destroy-method="destroy">
+		<property name="properties">
+	        <map>	        
+	        	<entry key="Globals.SmsSenderNumber" value="${Globals.SmsSenderNumber}"/>
+	        	<entry key="KcbOkCert.cpid" value="${KcbOkCert.cpid}"/>
+	        	<entry key="KcbOkCert.licensePath" value="${KcbOkCert.licensePath}"/>
+	        	<entry key="KcbOkCert.siteNm" value="${KcbOkCert.siteNm}"/>
+	        	<entry key="KcbOkCert.siteUrl" value="${KcbOkCert.siteUrl}"/>
+	        	<entry key="Ipin.customerId" value="${Ipin.customerId}"/> 		
+                <entry key="Ipin.joinNo" value="${Ipin.joinNo}"/>	
+                <entry key="Ipin.idNo" value="${Ipin.idNo}"/>	
+                <entry key="Ipin.passNo" value="${Ipin.passNo}"/>
+                <entry key="Ipin.resetNo" value="${Ipin.resetNo}"/>
+                <entry key="Ipin.mjoinNo" value="${Ipin.mjoinNo}"/>	
+                <entry key="Ipin.midNo" value="${Ipin.midNo}"/>	
+                <entry key="Ipin.mpassNo" value="${Ipin.mpassNo}"/>
+                <entry key="Ipin.mresetNo" value="${Ipin.mresetNo}"/>					
+                <entry key="Idtfy.customerId" value="${Idtfy.customerId}"/>
+                <entry key="Idtfy.joinNo" value="${Idtfy.joinNo}"/>
+                <entry key="Idtfy.idNo" value="${Idtfy.idNo}"/>
+                <entry key="Idtfy.passNo" value="${Idtfy.passNo}"/>
+                <entry key="Idtfy.resetNo" value="${Idtfy.resetNo}"/>
+                <entry key="Idtfy.mjoinNo" value="${Idtfy.mjoinNo}"/>
+                <entry key="Idtfy.midNo" value="${Idtfy.midNo}"/>
+                <entry key="Idtfy.mpassNo" value="${Idtfy.mpassNo}"/>
+                <entry key="Idtfy.mresetNo" value="${Idtfy.mresetNo}"/>	
+	        	<entry key="Globals.PageAllLock" value="${Globals.PageAllLock}"/>
+	        	<entry key="Globals.unLockWhiteListPagePath" value="${Globals.unLockWhiteListPagePath}"/>
+	        	<entry key="Globals.LockPagePath" value="${Globals.LockPagePath}"/>
+	        	<entry key="Globals.MainHomePagePath" value="${Globals.MainHomePagePath}"/>
+	        	<entry key="Globals.MainMobilePagePath" value="${Globals.MainMobilePagePath}"/>
+	        	<entry key="pageUnit" value="${Globals.pageUnit}"/>
+	        	<entry key="pageSize" value="${Globals.pageSize}"/>
+	        	<entry key="mobilepageUnit" value="${Globals.mobilepageUnit}"/>
+                <entry key="mobilepageSize" value="${Globals.mobilepageSize}"/>                		
+                <entry key="Globals.fileStorePath" value="${Globals.fileStorePath}"/>
+                <entry key="Globals.movfilePath" value="${Globals.movfilePath}"/>
+                <entry key="Webeditor.fileStorePath" value="${Webeditor.fileStorePath}"/>
+                <entry key="Globals.fileCommonPath" value="${Globals.fileCommonPath}"/>
+                <entry key="Globals.excelDownloadPath" value="${Globals.excelDownloadPath}"/>
+                <entry key="Globals.certificateImgPath" value="${Globals.certificateImgPath}"/>
+                <entry key="cti.call.api.url" value="${cti.call.api.url}"/>
+                <entry key="cti.rec.api.url" value="${cti.rec.api.url}"/>
+                <entry key="cti.rec.file.url" value="${cti.rec.file.url}"/>
+                <entry key="koreafca.mbrIds" value="${koreafca.mbrIds}"/>
+                <entry key="kakao.alimtalk.url" value="${kakao.alimtalk.url}"/>
+                <entry key="kakao.alimtalk.apikey" value="${kakao.alimtalk.apikey}"/>
+                <entry key="kakao.alimtalk.userid" value="${kakao.alimtalk.userid}"/>
+                <entry key="kakaopay.link.id" value="${kakaopay.link.id}"/>
+                <entry key="kakaopay.secret.key" value="${kakaopay.secret.key}"/>
+                <entry key="kakaopay.client.code" value="${kakaopay.client.code}"/>
+	        </map>
+		</property>
+	</bean>
+	
+</beans>	

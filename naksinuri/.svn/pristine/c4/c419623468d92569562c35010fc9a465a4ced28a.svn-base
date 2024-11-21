@@ -1,0 +1,221 @@
+<?php
+// 매 10분 마다 실행
+// */10 * * * * php -q /home/data/cron/auto_sms_robot_manager_process.php
+
+// 0 9 * * * php -q /home/data/cron/auto_sms_robot_manager_process.php 
+
+include "_logmanager.php";
+include "_database.php";
+
+$_TAG = 'AUTO_SMS_ROBOT_PROSS';
+$FILE_NAME = "auto_sms_robot_manager_process_".date("Y-m-d");
+$row_date = date("Y-m-d H:i:s"); //현재시간
+log_message($_TAG,'_________________________  start ... '.$row_date ,$FILE_NAME,false);
+log_message($_TAG,'stop! '.$row_date ,$FILE_NAME);
+exit;
+//-------------------------------------------------------------------------------
+// 기간 세팅
+//-------------------------------------------------------------------------------
+$cur_date = date("Y-m-d");
+$cur_year = date("Y");
+$cur_month = date("m");
+$cur_day = date("d");
+$cur_hour = date("H");
+$cur_min = date("i");
+$cur_sec = date("s");
+$prev_date = date("Y-m-d", strtotime($cur_date." -1 day"));
+$prev_year = date("Y", strtotime($cur_date." -1 day"));
+$prev_month = date("m", strtotime($cur_date." -1 day"));
+$prev_day = date("d", strtotime($cur_date." -1 day"));
+$prev_prev_date = date("Y-m-d", strtotime($prev_date." -1 day"));
+$cur_back_month_date = date("Y-m-d", strtotime($cur_date." -1 month"));
+$prev_back_month_date = date("Y-m-d", strtotime($prev_date." -1 month"));
+log_message($_TAG,'기준일자 : '.$cur_date ,$FILE_NAME);
+log_message($_TAG,'기준-년 : '.$cur_year ,$FILE_NAME);
+log_message($_TAG,'기준-월 : '.$cur_month ,$FILE_NAME);
+log_message($_TAG,'기준-일 : '.$cur_day ,$FILE_NAME);
+log_message($_TAG,'기준-한달전 : '.$cur_back_month_date ,$FILE_NAME);
+log_message($_TAG,'과거일자 : '.$prev_date ,$FILE_NAME);
+log_message($_TAG,'과거-년 : '.$prev_year ,$FILE_NAME);
+log_message($_TAG,'과거-월 : '.$prev_month ,$FILE_NAME);
+log_message($_TAG,'과거-일 : '.$prev_day ,$FILE_NAME);
+log_message($_TAG,'과거-전일 : '.$prev_prev_date ,$FILE_NAME);
+log_message($_TAG,'과거-한달전 : '.$prev_back_month_date ,$FILE_NAME);
+//--------------------------------------------------
+// sms 문자 확인
+//--------------------------------------------------
+$chksql = " SELECT	m.MBR_NM,m.MBR_HP
+				,DATE_FORMAT(crs.CRS_STR_DT, '%Y-%m-%d %H:%i') AS CRS_S_DT
+				,DATE_FORMAT(crs.CRS_END_DT, '%H:%i') AS CRS_E_DT
+				,crs.CRS_NM,crs.CRS_STR_DT,crs.CRS_MBR_CD,crs.CRS_PLACE,crs.CRS_ADDR,crs.CRS_LAW_TYPE,crs.TYPE_GB
+				,t.HMBR_SN,t.CRS_SN,t.MBR_ID
+			FROM edu_mbr_hstry_tb AS t
+			LEFT JOIN edu_curriculum_tb AS crs ON crs.CRS_SN = t.CRS_SN
+			LEFT JOIN mbr_tb AS m ON m.MBR_ID = t.MBR_ID
+			WHERE DATE_FORMAT(DATE_ADD(crs.CRS_STR_DT,INTERVAL - 1 DAY), '%Y-%m-%d') = '${cur_date}'
+				AND ( t.LRNNG_ST = '0' OR t.LRNNG_ST = '1' )
+				AND crs.USE_ST = '1' AND crs.DEL_ST = '0'
+				AND t.SMS_STATUS = '0'
+				AND crs.CRS_ST = '1'
+			ORDER BY crs.crs_str_dt DESC  
+			";
+$query = query($chksql);
+$row_count = mysql_num_rows($query);
+log_message($_TAG,'조회수 : '.$row_count ,$FILE_NAME,false);
+if($row_count > 0) {
+	$locksql = "";
+	$lockid = "";
+	$LOCK_NUMBER = 'CRON_'.strval(rand(1, 99)).strval($cur_min).strval($cur_sec).strval(rand(1, 999));
+	while ($row=mysql_fetch_array($query)) 
+	{
+		$HMBR_SN = $row['HMBR_SN'];
+		//$CRS_SN = $row['CRS_SN'];
+		//$MBR_ID = $row['MBR_ID'];
+		if(!empty($lockid)) $lockid .= " OR ";
+		//$lockid .= "( HMBR_SN='${HMBR_SN}' AND CRS_SN='${CRS_SN}' AND MBR_ID='${MBR_ID}' )";
+		$lockid .= " HMBR_SN='${HMBR_SN}' ";
+	}//End while
+	if(!empty($lockid)) {
+		$locksql = " UPDATE edu_mbr_hstry_tb SET SMS_STATUS='${LOCK_NUMBER}' WHERE ".$lockid;
+		log_message($_TAG,$locksql ,$FILE_NAME,false);
+		query($locksql);
+	}
+	mysql_data_seek($query,0);//데이터포지션을처음으로
+	while ($row=mysql_fetch_array($query)) 
+	{				
+		$RSTKEY = $cur_year.''.$cur_month.''.$cur_day.'cron'.sprintf("%05d",strval(rand(1, 99999)));
+		$HMBR_SN = $row['HMBR_SN'];
+		$CRS_SN = $row['CRS_SN'];
+		$MBR_ID = $row['MBR_ID'];
+		$MBR_HP = $row['MBR_HP'];
+		$CRS_MBR_CD = $row['CRS_MBR_CD'];
+		$CRS_NM = $row['CRS_NM'];
+		$TYPE_GB = $row['TYPE_GB'];
+		$CRS_LAW_TYPE = $row['CRS_LAW_TYPE'];
+		
+		$CRS_INFO = '■ 교육일시 : '.$row['CRS_S_DT'].'~'.$row['CRS_E_DT'].'\n■ 교육장소 : '.$row['CRS_PLACE'].'\n■ 교육장주소지 : '.$row['CRS_ADDR'];
+
+		$SEND_DATE = $cur_date.' 12:00:00';
+
+		$SUBMSG = '';//제목
+		$MSG = '';//내용
+		$SMS_MENT_SN = '';
+
+		//기존 문자발송조건
+		if($CRS_MBR_CD=='CIDN010200') {//낚시터업자
+			$SMS_MENT_SN = '8';
+		} else if($CRS_MBR_CD=='CIDN010300') {//낚시어선업자
+			$SMS_MENT_SN = '9';
+		}
+		//End of 기존 문자발송조건
+
+		//문자발송조건변경(2020.11.14) : 8,9번 멘트가 맞는거 같은 아래 조건은 검토 후 진행
+		/*
+		if($TYPE_GB == "offline") {					//오프라인교육
+			if($CRS_LAW_TYPE == "CIDLAW002") {		//낚시어선 신규,재개자교육
+				$SMS_MENT_SN = '34';	
+			} else {
+				if($CRS_MBR_CD == "CIDN010200") {	//낚시터업자
+					$SMS_MENT_SN = '34';	
+				} else {							//낚시어선업자
+					$SMS_MENT_SN = '34';	
+				}
+			}
+ 		} else {
+			if($CRS_LAW_TYPE == "CIDLAW002") {		//낚시어선 신규,재개자교육
+				$SMS_MENT_SN = '32';	
+			} else {
+				if($CRS_MBR_CD == "CIDN010200") {	//낚시터업자
+					$SMS_MENT_SN = '4';	
+				} else {							//낚시어선업자
+					$SMS_MENT_SN = '5';	
+				}
+			}
+ 		}
+		*/
+		//End of 문자발송조건변경(2020.11.14)
+
+
+		if(!empty($SMS_MENT_SN)) {
+			$chksql_ment = " SELECT T.* FROM ALL_SMS_MENT AS T WHERE 1=1 AND T.SMS_MENT_SN = '${SMS_MENT_SN}' ";
+			$query_ment = query($chksql_ment);
+			$row_count_ment = mysql_num_rows($query_ment);
+			if($row_count_ment > 0) {
+				while ($row_data_ment=mysql_fetch_array($query_ment)) {
+					$SUBMSG = $row_data_ment['SMS_MENT_TITLE'];
+					$MSG = $row_data_ment['SMS_MENT_CONT'];
+				}
+			}
+		}
+		$SUBMSG = $SUBMSG.'('.$CRS_NM.')';
+		$MSG = $CRS_INFO.'\n'.$MSG;
+		$mmssql = " INSERT INTO MMS_MSG_EDU (
+					SUBJECT, PHONE, CALLBACK, STATUS, REQDATE, MSG, FILE_CNT, FILE_PATH1, TYPE, ETC1, ETC2
+				) VALUE(
+					'${SUBMSG}','${MBR_HP}','${SEND_PHONE_NUMBER}','0','${SEND_DATE}','${MSG}',0,NULL,'0','localhost','${RSTKEY}'
+				)   ";
+
+		query($mmssql);
+		log_message($_TAG,$mmssql ,$FILE_NAME,false);
+
+		$sendqueuesql = " INSERT INTO NAKSINURI_SMS_QUEUE (
+							STAT,
+							REG_DATE, 
+							UPD_DATE, 
+							MSG_TYPE, 
+							SEND_DATE,
+							R_PHONE, 
+							S_PHONE, 
+							IP, 
+							SUBMSG, 
+							MSG, 
+							APIKEY, 
+							MODULE_TYPE,
+							IMG_CNT, 
+							IMG_PATH,
+							RSTKEY,
+							MBR_ID,
+							SMS_MENT_DTL_CD,
+							REG_MBR_ID,
+							UPD_MBR_ID
+						) VALUES(
+							'0',
+							NOW(),
+							NOW(),
+							'${MSG_TYPE}',
+							'${SEND_DATE}',
+							'${MBR_HP}',
+							'${SEND_PHONE_NUMBER}',
+							'localhost',
+							'${SUBMSG}',
+							'${MSG}',
+							'${RSTKEY}',
+							'EDU',
+							'0',
+							'',
+							'${RSTKEY}',
+							'${MBR_ID}',
+							'${CRS_MBR_CD}',
+							'${REG_MBR_ID}',
+							'${REG_MBR_ID}'
+						)   ";
+
+		query($sendqueuesql);
+		log_message($_TAG,$sendqueuesql ,$FILE_NAME,false);
+
+	}//End while
+	if(!empty($lockid)) {
+		$locksql = " UPDATE edu_mbr_hstry_tb SET SMS_STATUS='1' WHERE SMS_STATUS='${LOCK_NUMBER}' ";
+		log_message($_TAG,$locksql ,$FILE_NAME,false);
+		query($locksql);
+	}
+}
+// End 처리부
+//--------------------------------------------------
+log_message($_TAG,'>> 종료',$FILE_NAME,false);	
+//--------------------------------------------------
+// disconnect
+//--------------------------------------------------
+dbclose();
+//--------------------------------------------------
+log_message($_TAG,'_________________________  complete ... ' ,$FILE_NAME,false);

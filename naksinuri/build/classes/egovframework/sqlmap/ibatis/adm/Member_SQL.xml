@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="Member">
+
+	<typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="userSearchVO" type = "egovframework.seadm.member.service.UserDefaultVO"/>
+	<typeAlias  alias="memberVO" 	 type = "egovframework.seadm.member.service.MemberVO" />
+	<typeAlias  alias="eduMemberVO"	 type = "egovframework.eduadm.member.service.EduMemberVO" />
+	<typeAlias  alias="admMemberVO"  type = "egovframework.adm.member.service.AdmMemberVO"/>
+	<typeAlias  alias="admCntnAuthorIpVO"  type = "egovframework.adm.member.service.AdmCntnAuthorIpVO"/>
+
+	<!-- 현재 안쓰임으로 보임 -->
+	<select id="memberDAO.memberList" parameterClass="memberVO" resultClass="egovMap">
+		SELECT 
+		    mbrSn, mbrId, mbrPwd, mbrNm, mbrTel, mbrHp, mbrEmail, mbrAddr1, mbrAddr2, mbrZipcd,
+		    mbrLastConTm, mbrLastConIpaddr, mbrRegDt, mbrModDt, mbrPositionCd, mbrTypeCd, mbrGrpId,
+		    mbrBirth, mbrSex, mbrHopeZone, mbrHopeBusiness, mbrSt
+		FROM(
+		    SELECT 
+		        MBR_SN					mbrSn,
+		        MBR_ID					mbrId,
+		        MBR_PWD					mbrPwd,
+		        MBR_NM					mbrNm,
+		        MBR_TEL					mbrTel,
+		        MBR_HP					mbrHp,
+		        MBR_EMAIL				mbrEmail,
+		        MBR_ADDR1				mbrAddr1,
+		        MBR_ADDR2				mbrAddr2,
+		        MBR_ZIPCD				mbrZipcd,
+		        MBR_LAST_CON_TM			mbrLastConTm,
+		        MBR_LAST_CON_IPADDR		mbrLastConIpaddr,
+		        MBR_REG_DT				mbrRegDt,
+		        MBR_MOD_DT				mbrModDt,
+		        MBR_POSITION_CD			mbrPositionCd,
+		        MBR_TYPE_CD				mbrTypeCd,
+		        MBR_BIRTH				mbrBirth,
+		        MBR_SEX					mbrSex,
+		        MBR_HOPE_ZONE			mbrHopeZone,
+		        MBR_HOPE_BUSINESS		mbrHopeBusiness,
+		        MBR_ST					mbrSt,
+		        MBR_LV_ID				mbrlv
+		    FROM    MBR_TB
+		    ) A
+	    WHERE mbrSt = 'Y' 
+	    <isNotEmpty property="mbr_lv_id">
+			<isEqual compareValue="1" property="mbr_lv_id">
+			
+			</isEqual>
+			<isEqual compareValue="2" property="mbr_lv_id">
+			AND mbrlv >= 2
+			</isEqual>
+			<isEqual compareValue="3" property="mbr_lv_id">
+			AND mbrlv >= 3
+			</isEqual>
+			<isEqual compareValue="4" property="mbr_lv_id">
+			AND mbrlv >= 4
+			</isEqual>
+			<isEqual compareValue="10" property="mbr_lv_id">
+			AND mbrlv >= 10
+			</isEqual>
+		</isNotEmpty>
+	    <isNotEmpty property="searchKeyword">
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+	            mbrId LIKE '%$searchKeyword$%'
+	        </isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+	            mbrNm LIKE '%$searchKeyword$%'
+	        </isEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="3">
+	            mbrHp LIKE '%$searchKeyword$%'
+	        </isEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="4">
+	            mbrEmail LIKE '%$searchKeyword$%'
+	        </isEqual>
+		</isNotEmpty>
+	    ORDER BY mbrSn DESC 
+	    LIMIT #recordCountPerPage# OFFSET #firstIndex#
+    </select>
+    
+    <!-- 현재 안쓰임으로 보임 -->
+    <select id="mberManageDAO.memberListTotCnt" parameterClass="userSearchVO" resultClass="int">
+        SELECT 
+		   	count(*)
+		FROM(
+		    SELECT 
+		        MBR_SN					mbrSn,
+		        MBR_ID					mbrId,
+		        MBR_PWD					mbrPwd,
+		        MBR_NM					mbrNm,
+		        MBR_TEL					mbrTel,
+		        MBR_HP					mbrHp,
+		        MBR_EMAIL				mbrEmail,
+		        MBR_ADDR1				mbrAddr1,
+		        MBR_ADDR2				mbrAddr2,
+		        MBR_ZIPCD				mbrZipcd,
+		        MBR_LAST_CON_TM			mbrLastConTm,
+		        MBR_LAST_CON_IPADDR		mbrLastConIpaddr,
+		        MBR_REG_DT				mbrRegDt,
+		        MBR_MOD_DT				mbrModDt,
+		        MBR_POSITION_CD			mbrPositionCd,
+		        MBR_TYPE_CD				mbrTypeCd,
+		        MBR_BIRTH				mbrBirth,
+		        MBR_SEX					mbrSex,
+		        MBR_HOPE_ZONE			mbrHopeZone,
+		        MBR_HOPE_BUSINESS		mbrHopeBusiness,
+		        MBR_ST					mbrSt,
+		        MBR_LV_ID				mbrlv
+		    FROM    MBR_TB
+		    ) A
+	    WHERE mbrSt = 'Y' 
+	    <isNotEmpty property="mbr_lv_id">
+			<isEqual compareValue="1" property="mbr_lv_id">
+			
+			</isEqual>
+			<isEqual compareValue="2" property="mbr_lv_id">
+			AND mbrlv >= 2
+			</isEqual>
+			<isEqual compareValue="3" property="mbr_lv_id">
+			AND mbrlv >= 3
+			</isEqual>
+			<isEqual compareValue="4" property="mbr_lv_id">
+			AND mbrlv >= 4
+			</isEqual>
+			<isEqual compareValue="10" property="mbr_lv_id">
+			AND mbrlv >= 10
+			</isEqual>
+		</isNotEmpty>
+	    <isNotEmpty property="searchKeyword">
+			<isEqual prepend="AND" property="searchCondition" compareValue="1">
+	            mbrId LIKE '%$searchKeyword$%'
+	        </isEqual>
+			<isEqual prepend="AND" property="searchCondition" compareValue="2">
+	            mbrNm LIKE '%$searchKeyword$%'
+	        </isEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="3">
+	            mbrHp LIKE '%$searchKeyword$%'
+	        </isEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="4">
+	            mbrEmail LIKE '%$searchKeyword$%'
+	        </isEqual>
+		</isNotEmpty>
+    </select>
+
+	<!-- 안쓰는거같음. 확인필요 -->
+    <select id="getmemberInfo" parameterClass="memberVO" resultClass="memberVO">
+        SELECT 
+				MBR_SN	as	 mbrSn,
+		        MBR_ID		as	 mbrId,
+		        MBR_PWD		as			mbrPwd,
+		        MBR_NM		as			mbrNm,
+		        MBR_TEL		as			mbrTel,
+		        MBR_HP		as			mbrHp,
+		        MBR_EMAIL	as			mbrEmail,
+		        MBR_ADDR1		as		mbrAddr1,
+		        MBR_ADDR2		as		mbrAddr2,
+		        MBR_ZIPCD		as		mbrZipcd,
+		        MBR_LAST_CON_TM		as		mbrLastConTm,
+		        MBR_LAST_CON_IPADDR	as		mbrLastConIpaddr,
+		        MBR_REG_DT	as		mbrRegDt,
+		        MBR_MOD_DT	as		mbrModDt,
+		        MBR_POSITION_CD	as		mbrPositionCd,
+		        MBR_TYPE_CD	as		mbrTypeCd,
+		        MBR_BIRTH	as		mbrBirth,
+		        MBR_SEX		as		mbrSex,
+		        MBR_HOPE_ZONE		as		mbrHopeZone,
+		        MBR_HOPE_BUSINESS	as		mbrHopeBusiness,
+		        MBR_ST	as		mbrSt        
+        FROM 
+        	MBR_TB
+		WHERE MBR_SN=#mbrsn#
+		and MBR_ST = 'Y'
+    </select>
+	<!-- 안쓰는거같음. 확인필요 -->
+	<update id="memberInfoUpdate" parameterClass="memberVO" >
+		UPDATE MBR_TB SET
+			<isNotEmpty property="mbrpwd">
+				<![CDATA[ 
+				MBR_PWD = #mbr_pwd#, 
+				]]>
+			</isNotEmpty>						
+			MBR_TEL = #mbr_tel#, 
+			MBR_SEX = #mbr_sex#,
+			MBR_HP = #mbr_hp#, 
+			MBR_EMAIL = #mbr_email#,
+			MBR_ADDR1 = #mbr_addr1#, 
+			MBR_ADDR2 = #mbr_addr2#, 
+			MBR_ZIPCD = #mbr_zipcd#,
+			MBR_MOD_DT = now(), 
+			MBR_BIRTH = #mbr_birth#, 
+			MBR_HOPE_ZONE = #mbr_hope_zone#, 
+			MBR_HOPE_BUSINESS = #mbr_hope_business# 
+		WHERE MBR_SN = #mbr_sn#
+	</update>
+	<!-- 안쓰는거같음. 확인필요 -->
+	<update id="memberInfoDelete" parameterClass="memberVO" >
+		UPDATE MBR_TB SET
+			MBR_MOD_DT = now(), 
+			MBR_ST = 'N'
+		WHERE MBR_SN = #mbr_sn#
+	</update>
+	
+	
+	
+	
+	
+	
+	<update id="set_seadm_member_auth_mod" parameterClass="eduMemberVO" >
+		UPDATE MBR_TB SET
+			MBR_LV_ID = #MBR_LV_ID#,	
+			MBR_POSITION_CD = #MBR_POSITION_CD#,
+			<isNotEmpty property="MBR_GRP_1_ST">
+			MBR_GRP_1_ST = #MBR_GRP_1_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST">
+			MBR_GRP_2_ST = #MBR_GRP_2_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST">
+			MBR_GRP_3_ST = #MBR_GRP_3_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST">
+			MBR_GRP_4_ST = #MBR_GRP_4_ST#,
+			</isNotEmpty>			
+			MBR_MOD_DT = now() 
+		WHERE MBR_ID = #MBR_ID#
+	</update>
+	
+	<select id="get_seadm_member_auth_info" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+        SELECT T.*      
+        FROM MBR_TB AS T
+		WHERE MBR_ID=#MBR_ID#
+    </select>
+	
+	<select id="get_seadm_member_auth_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+        SELECT COUNT(MBR_SN)
+		FROM MBR_TB
+		WHERE 1=1
+		<isEmpty property="searchUseYn">
+			<isNotEmpty property="MBR_LV_ID">
+			AND MBR_LV_ID = #MBR_LV_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_1_ST">
+			AND MBR_GRP_1_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST">
+			AND MBR_GRP_2_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST">
+			AND MBR_GRP_3_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST">
+			AND MBR_GRP_4_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD">
+			AND MBR_POSITION_CD = #MBR_POSITION_CD#
+			</isNotEmpty>
+		</isEmpty>
+		<isNotEmpty property="searchUseYn">
+			<![CDATA[ AND MBR_LV_ID >= 2 ]]>
+			<isEqual compareValue="Y" property="searchUseYn">
+				<isNotEmpty property="MBR_LV_ID">
+					<isEqual compareValue="1" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 1
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="2" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 2
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="3" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 3
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="4" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 4
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="10" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 10
+						</isNotEmpty>
+					</isEqual>
+				</isNotEmpty>
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="MBR_ST">
+		AND MBR_ST=#MBR_ST#	
+		</isNotEmpty>
+		<isNotEmpty property="searchUseYn">
+			<isEqual compareValue="Y" property="searchUseYn">
+				<isNotEmpty property="searchKeyword" prepend="AND">
+				( MBR_NM LIKE '%$searchKeyword$%' OR MBR_HP LIKE '$searchKeyword$%' OR MBR_ID LIKE '%$searchKeyword$%' )
+				</isNotEmpty>
+			</isEqual>			
+	  	</isNotEmpty>
+	  	<isNotEmpty property="MBR_IDS">
+		  	<iterate property="MBR_IDS" prepend="AND MBR_ID NOT IN" open="(" close=")" conjunction="," >
+            #MBR_IDS[]#
+        	</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="MBR_ADDED_IDS">
+		  	<iterate property="MBR_ADDED_IDS" prepend="AND MBR_ID NOT IN" open="(" close=")" conjunction="," >
+            #MBR_ADDED_IDS[]#
+        	</iterate>
+		</isNotEmpty>
+		ORDER BY MBR_NM ASC
+    </select>
+    
+    <select id="get_seadm_member_auth_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+        SELECT *
+		FROM MBR_TB
+		WHERE 1=1 
+		<isEmpty property="searchUseYn">
+			<isNotEmpty property="MBR_LV_ID">
+			AND MBR_LV_ID = #MBR_LV_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_1_ST">
+			AND MBR_GRP_1_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST">
+			AND MBR_GRP_2_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST">
+			AND MBR_GRP_3_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST">
+			AND MBR_GRP_4_ST = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD">
+			AND MBR_POSITION_CD = #MBR_POSITION_CD#
+			</isNotEmpty>
+		</isEmpty>
+		<isNotEmpty property="searchUseYn">
+			<![CDATA[ AND MBR_LV_ID >= 2 ]]>
+			<isEqual compareValue="Y" property="searchUseYn">
+				<isNotEmpty property="MBR_LV_ID">
+					<isEqual compareValue="1" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 1
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="2" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 2
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="3" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 3
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="4" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 4
+						</isNotEmpty>
+					</isEqual>
+					<isEqual compareValue="10" property="MBR_LV_ID">
+						<isNotEmpty property="MBR_GRP_ID">
+							AND MBR_LV_ID = 10
+						</isNotEmpty>
+					</isEqual>
+				</isNotEmpty>
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="MBR_ST">
+		AND MBR_ST=#MBR_ST#	
+		</isNotEmpty>
+		<isNotEmpty property="searchUseYn">
+			<isEqual compareValue="Y" property="searchUseYn">
+				<isNotEmpty property="searchKeyword" prepend="AND">
+				( MBR_NM LIKE '%$searchKeyword$' OR MBR_NM LIKE '%$searchKeyword$%' OR MBR_HP LIKE '$searchKeyword$%' OR MBR_ID LIKE '%$searchKeyword$%' )
+				</isNotEmpty>
+			</isEqual>			
+	  	</isNotEmpty>
+	  	<isNotEmpty property="MBR_IDS">
+		  	<iterate property="MBR_IDS" prepend="AND MBR_ID NOT IN" open="(" close=")" conjunction="," >
+            #MBR_IDS[]#
+        	</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="MBR_ADDED_IDS">
+		  	<iterate property="MBR_ADDED_IDS" prepend="AND MBR_ID NOT IN" open="(" close=")" conjunction="," >
+            #MBR_ADDED_IDS[]#
+        	</iterate>
+		</isNotEmpty>
+		ORDER BY MBR_NM ASC	
+		<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex#
+		</isNotEqual>	
+    </select>
+	
+	
+	<select id="admMember.get_member_info" parameterClass="admMemberVO" resultClass="admMemberVO">
+		<isNotEmpty property="MBR_ID">
+			SELECT *
+			FROM MBR_TB
+			WHERE MBR_ID = #MBR_ID# 
+				AND MBR_LV_ID = '10'
+				<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+				</isNotEmpty>
+		</isNotEmpty>
+	</select>
+	
+	<select id="admMember.get_member_all_info" parameterClass="admMemberVO" resultClass="admMemberVO">
+		<isNotEmpty property="MBR_ID">
+			SELECT *
+			FROM MBR_TB
+			WHERE MBR_ID = #MBR_ID# 
+				<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+				</isNotEmpty>
+		</isNotEmpty>
+	</select>
+	<select id="get_member_all_info_list" parameterClass="admMemberVO" resultClass="admMemberVO">
+		SELECT *
+		FROM MBR_TB
+		WHERE 1 = 1
+			AND MBR_NM = #MBR_NM#
+			AND MBR_HP = REPLACE(#MBR_HP#,'-','')
+			AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+			<isNotEmpty property="MBR_ST" prepend="AND">
+			MBR_ST = #MBR_ST#
+			</isNotEmpty>
+	</select>
+	
+	<select id="get_cntn_author_ip_info" parameterClass="admCntnAuthorIpVO" resultClass="admCntnAuthorIpVO">
+		SELECT *
+		FROM CNTN_AUTHOR_IP_TB
+		WHERE CNTN_AUTHOR_IP = #CNTN_AUTHOR_IP#
+	</select>
+
+</sqlMap>

@@ -1,0 +1,312 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>이수증</title>
+<style>
+		*{margin:0;padding:0;}
+
+		/*이수증*/
+		#wrap
+		{
+		font-family:'Malgun Gothic','sans-serif';
+		width:100%;
+		position:relative;
+		font-size:13px;
+		}
+
+		.con_box
+		{
+		width:100%;
+		margin:auto;
+		}
+
+		.top_num
+		{
+		width:100%;
+		border-top:1px solid #555;
+		padding-top:20px;
+		overflow:hidden;
+		}
+
+		.top_num span
+		{
+		float:left;
+		display:block;
+		}
+		.contents
+		{
+		margin:auto;
+		width:95%;
+		border-bottom:1px solid #555;
+		padding-bottom:30px;
+		overflow:hidden;
+		}
+
+		.contents p.title
+		{
+		width:100%;
+		text-align:center;
+		font-size: 35px;
+		font-weight:600;
+		margin-top:40px;
+		font-family:'Malgun Gothic','sans-serif';
+		}
+
+		.certificate_num_box
+		{
+		float:left;
+		width:100%;
+		border-bottom:1px solid #bfbfbf;
+		padding-top:20px;
+		}
+
+		.blt_dot{
+			display:inline-block;
+			width:3px;
+			height:3px;
+			background:#fff;
+			border-radius:5px;
+			margin-right:10px;
+			vertical-align:middle;
+		}
+		
+		ul.mem_info_js {
+			margin: 65px 0 60px 0;
+			padding: 0 20px 0 0;
+			float: right;
+			list-style:none;
+		}
+		ul.mem_info_js li {
+			line-height: 27px;
+		}
+		ul.mem_info_js span.tit,
+		ul.mem_info_js span.colon,
+		ul.mem_info_js span.con,
+		ul.mem_info_js span.blt_dot {
+			display: inline-block;
+			font-size: 17px;
+			font-weight: 500;
+			vertical-align: middle;
+		}
+		ul.mem_info_js span.tit {
+			width: 120px;
+		}
+		ul.mem_info_js span.colon {
+			width: 30px;
+			text-align: center;
+		}
+		ul.mem_info_js span.con {
+			width: 260px;
+		}
+		ul.mem_info_js .stretch {
+			overflow-x: hidden;
+		}
+		ul.mem_info_js .stretch_it {
+			white-space: nowrap;
+		}
+		ul.mem_info_js .justify {
+			text-align: justify;
+			text-justify: inter-cluster;
+		}
+
+		
+		ul.mem_info_js2 {
+			margin: 65px 0 30px 0;
+			padding: 0 20px 0 0;
+			float: right;
+			list-style:none;
+		}
+		ul.mem_info_js2 li {
+			line-height: 27px;
+		}
+		ul.mem_info_js2 span.tit,
+		ul.mem_info_js2 span.colon,
+		ul.mem_info_js2 span.con,
+		ul.mem_info_js2 span.blt_dot {
+			display: inline-block;
+			font-size: 17px;
+			font-weight: 500;
+			vertical-align: middle;
+		}
+		ul.mem_info_js2 span.tit {
+			width: 120px;
+		}
+		ul.mem_info_js2 span.colon {
+			width: 30px;
+			text-align: center;
+		}
+		ul.mem_info_js2 span.con {
+			width: 260px;
+		}
+		ul.mem_info_js2 .stretch {
+			overflow-x: hidden;
+		}
+		ul.mem_info_js2 .stretch_it {
+			white-space: nowrap;
+		}
+		ul.mem_info_js2 .justify {
+			text-align: justify;
+			text-justify: inter-cluster;
+		}
+
+
+		.certificate_num_box ul
+		{
+		list-style:none;
+		padding:0;
+		margin:0;
+		}
+
+		.certificate_num_box ul li
+		{
+		margin-bottom:10px;
+		}
+
+
+		.certificate_num_box ul li span
+		{
+		display:inline-block;
+		font-size:14px;
+		}
+
+		.certificate_num_box ul li span.num
+		{
+		padding:0 7px;
+		}
+
+		.certificate_num_box ul li span.num02
+		{
+		width:150px;
+		margin-left:5px;
+		border-bottom:1px solid #333;
+		}
+
+		table.certificate_t
+		{
+		float:left;
+		width:100%;
+		border-top:1px dashed #555;
+		border-left:1px dashed #555;
+		margin-top:30px;
+		font-size:12px;
+		}
+
+		table.certificate_t th
+		{
+		text-align:center;
+		padding:8px 0;
+		background:#eee;
+		border-right:1px dashed #555;
+		border-bottom:1px dashed #555;
+		}
+		table.certificate_t td
+		{
+		text-align:center;
+		border-right:1px dashed #555;
+		border-bottom:1px dashed #555;
+		padding:5px 0;
+		}
+
+		.law_box
+		{
+		position:relative;
+		float:left;
+		width:100%;
+		overflow:hidden;
+		margin-top:10px;
+		}
+
+		p.law_text
+		{
+		width:95%;
+		font-size:18px;
+		line-height:30px;
+		margin: auto;
+		text-align: left;
+		}
+
+		p.law_day
+		{
+		float:left;
+		width:100%;
+		text-align:center;
+		margin-top:100px;
+		/*margin-top:110px \0/IE9;*/
+		font-size:17px;
+		}
+		@media \0screen {
+		p.law_day{margin-top:100px;}
+		}
+		p.law_day span
+		{
+		display:inline-block;
+		margin-left:10px;
+		}
+
+		p.law_day2
+		{
+		float:left;
+		width:100%;
+		text-align:center;
+		margin-top:50px;
+		/*margin-top:110px \0/IE9;*/
+		font-size:17px;
+		}
+		@media \0screen {
+		p.law_day2{margin-top:50px;}
+		}
+		p.law_day2 span
+		{
+		display:inline-block;
+		margin-left:10px;
+		}
+
+		.stamp_box
+		{
+		/*top:281px \0/IE9;*/
+		width:100%;
+		float:left;
+		margin-top:40px;
+		}
+
+		.organization
+		{
+			margin:auto;
+			font-size:19px;
+		}
+		.organization td
+		{
+			text-align:center;
+			font-family:'Malgun Gothic','sans-serif';
+		}
+		.organization span
+		{
+			float:left;
+			font-weight:800;
+			line-height:25px;
+			font-size:27px;
+		}
+		.stamp
+		{
+			margin-left:-13px;
+			margin-top:-20px;
+		}
+		.noti_text{
+			display:block;
+			float:left;
+			width:100%;
+			color:blue;
+			text-align:center;
+			margin-top:25px;
+			line-height:20px;
+		}
+		.text-top{
+			vertical-align:top !important;
+		}
+		#certificateArea{
+			color : #343a40;
+		}
+	</style>
+</head>
+<body>
+	

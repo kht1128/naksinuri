@@ -1,0 +1,2971 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="eduMember">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="eduMyHistoryVO" type="egovframework.eduadm.myhistory.service.EduMyHistoryVO"/>
+	<typeAlias  alias="eduMemberVO" type="egovframework.eduadm.member.service.EduMemberVO"/>
+	<typeAlias  alias="logAdmAuthVO" type="egovframework.eduadm.member.service.LogAdmAuthVO"/>
+	<typeAlias  alias="eduExcelUploadVO" type="egovframework.eduadm.member.service.EduExcelUploadVO"/>
+
+
+	<select id="eduMember.get_id_search" parameterClass="eduMemberVO" resultClass="int">
+		SELECT COUNT(MBR_ID) as is_id_cnt FROM MBR_TB WHERE MBR_ID=#MBR_ID#
+	</select>
+	
+	
+	
+<!-- 회원조회 : 교육센터-교육대상자 목록호출 할 때만 씀 -->
+	<select id="eduMember.get_edu_member_target_list_totcnt_only" parameterClass="eduMemberVO" resultClass="int">
+			select count(P.MBR_ID) as tot_cnt
+			from (
+				SELECT
+			<!-- 낚시어선,낚시터 보유 상세정보 -->
+				IF(COUNT(MDTL.DTL_CD)>=1,'Y','N') AS DTL_YN
+			   ,IF(SUM(IF(MDTL.DTL_CD='CIDN010300',1,0))>=1,'Y','N') AS DTL_S_YN
+			   ,IF(SUM(IF(MDTL.DTL_CD='CIDN010200',1,0))>=1,'Y','N') AS DTL_H_YN 
+			<!-- End of 낚시어선,낚시터 보유 상세정보 -->
+            <!-- 교육이수여부 정보 -->
+			   ,IF(SUM(IF(H.LRNNG_CMPLT_ST = '1',1,0))>=1,'Y','N') AS EDU_CMPLT_YN
+            <!-- End of 교육이수여부 정보 -->	
+			  ,t.MBR_ID
+			  ,t.MBR_ST
+			  ,CMPLT_ST
+			FROM MBR_TB AS t 
+			LEFT OUTER JOIN MBR_DTL_TB AS MDTL ON MDTL.MBR_ID = t.MBR_ID AND MDTL.USE_AT = 'Y'    
+			LEFT OUTER JOIN MBR_EDU_TRGT_TB AS E ON E.MBR_ID = t.MBR_ID AND E.USE_AT = 'Y' AND E.DEL_AT = 'N' AND E.TRGT_YEAR IS NOT NULL 
+			LEFT OUTER JOIN EDU_MBR_HSTRY_TB AS H ON H.MBR_ID = t.MBR_ID AND H.USE_ST = '1' AND H.DEL_ST = '0' 
+			LEFT JOIN EDU_CURRICULUM_TB AS C ON C.CRS_SN = H.CRS_SN 
+			LEFT JOIN all_code_set_tb AS C1 ON C1.CD_ID = MDTL.SIDO_CD 
+			LEFT JOIN all_code_set_tb AS C2 ON C2.CD_ID = MDTL.SIGNGU_CD 
+			LEFT JOIN all_code_set_tb AS C3 ON C3.CD_ID = MDTL.DTL_CD 
+			LEFT JOIN all_code_set_tb AS C4 ON C4.CD_ID = MDTL.DTL_LICENSE_CD 
+			WHERE   1=1
+			   AND t.MBR_LV_ID >= 10   
+			   AND t.MBR_ID IS NOT NULL
+			  
+				<!-- 가입대상 구분 -->
+				  <isEqual property="MBR_JOIN" compareValue="auto">
+				 	AND t.MBR_JOIN = #MBR_JOIN#
+				  </isEqual>
+				  <!-- End of 가입대상 구분 -->
+				
+				<!-- 낚시어선 신규,재개자,기존 구분 --> 
+				<isNotEmpty property="MBR_FSHRBT_TYPE" prepend="AND">
+					t.MBR_FSHRBT_TYPE = #MBR_FSHRBT_TYPE#
+				</isNotEmpty>
+				 <!-- End of  낚시어선 신규,재개자,기존 구분 -->
+				
+				<!-- 대상자 년도 지정 -->
+				 <isNotEmpty property="searchYear" prepend="AND">
+					( E.TRGT_YEAR = #searchYear# OR C.CRS_YEAR = #searchYear# )
+				</isNotEmpty>
+			   <!-- AND E.TRGT_YEAR = '2021' --> 
+			   <!-- AND C.CRS_YEAR = '2022' -->
+			   <!-- End of 대상자 년도 지정 -->
+			   
+			   <!-- 교육타입 구분 --> 
+			   <isNotEmpty property="TYPE_GB" prepend="AND">
+					C.TYPE_GB = #TYPE_GB#
+				</isNotEmpty>
+			   <!-- End of  교육타입 구분 --> 
+			   
+			   <!-- 교육신청 구분 --> 
+			   <isNotEmpty property="MBR_LRNNG_ST" prepend="AND">
+					H.LRNNG_ST = #MBR_LRNNG_ST#
+				</isNotEmpty>
+			   <!-- AND H.LRNNG_ST = '0' --> 
+			   <!-- End of  교육신청 구분 --> 
+			
+				<!-- 교육책임자 구분 -->
+				<isNotEmpty property="MBR_EDU_RSPNBER_TYPE" prepend="AND">
+					t.MBR_EDU_RSPNBER_TYPE = #MBR_EDU_RSPNBER_TYPE#
+				</isNotEmpty>
+				<!-- end of 교육책임자 구분 -->
+				
+			   <!-- 관리대상 구분 -->
+			   <isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<!-- 공단 등록건 -->
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						<!-- (t.MBR_POSITION_CD != 'PCD0007' AND MDTL.REG_TYPE_CD != 'PCD0007')  -->
+						(t.MBR_REG_TYPE_CD != 'PCD0003' OR t.MBR_REG_TYPE_CD IS NULL)            
+					</isEqual>   
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						<!-- (t.MBR_POSITION_CD = 'PCD0007' AND MDTL.REG_TYPE_CD = 'PCD0007')  -->
+						t.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+				</isNotEmpty>
+			   <!-- AND (
+			      	t.MBR_REG_TYPE_CD != 'PCD0003' 
+			      	OR t.MBR_REG_TYPE_CD IS NULL) -->
+			   <!-- End of 관리대상 구분 -->
+			   
+			   <!-- 지역(시도) 검색 -->
+			   <isNotEmpty property="MBR_SIDO_CD" prepend="AND">
+					C1.CD_ID = #MBR_SIDO_CD# 
+				</isNotEmpty>
+			   <!-- AND C1.CD_ID = 'CIDA00005' --> 
+			   <!-- End of 지역(시도) 검색 -->
+			   
+			   <!-- 지역(시군구) 검색 -->
+			   <isNotEmpty property="MBR_SIGNGU_CD" prepend="AND">
+					C2.CD_ID = #MBR_SIGNGU_CD#
+				</isNotEmpty>
+			   <!-- AND C2.CD_ID = 'CIDB00001' --> 
+			   <!-- End of 지역(시군구) 검색 -->
+			   
+			   <!-- 이름 검색 -->
+			   <isNotEmpty property="MBR_NM" prepend="AND">
+	               ( t.MBR_NM LIKE '%$MBR_NM$%' OR MDTL.MBR_NM LIKE '%$MBR_NM$%' OR t.MBR_NCNM LIKE '%$MBR_NM$%')
+	            </isNotEmpty>
+			   <!-- AND (
+			      t.MBR_NM LIKE '%가인석%' 
+			      OR MDTL.MBR_NM LIKE '%가인석%' 
+			      OR t.MBR_NCNM LIKE '%가인석%') --> 
+			   <!-- End of 이름 검색 -->
+			   
+			   <!-- 생년월일 검색시 -->
+			   <isNotEmpty property="MBR_BIRTH" prepend="AND">
+					t.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+			   </isNotEmpty>
+			   <!-- End of 생년월일 검색시 -->
+			   
+			   <!-- 주소 검색 -->
+			   <isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					(t.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR t.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+			   <!-- AND (
+			      t.MBR_ADDR1 LIKE '%충남%' 
+			      OR t.MBR_ADDR2 LIKE '%충남%'
+			   ) -->
+			   <!-- End of 주소 검색 -->
+			   
+			   <!-- 읍면동 검색 -->
+			   <isNotEmpty property="YMD_NM" prepend="AND">
+					MDTL.YMD_NM LIKE '%$YMD_NM$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.YMD_NM LIKE '%근흥면%' --> 
+			   <!-- End of 읍면동 검색 -->
+			   
+			   <!-- 연락처(일반) 검색 -->
+			   <isNotEmpty property="MBR_HP" prepend="AND">
+					REPLACE(t.MBR_HP,'-','') = REPLACE(#MBR_HP#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(t.MBR_HP, '-', '') = REPLACE('01024078549', '-', '') -->
+			   <!-- End of 연락처(일반) 검색 -->
+			   
+			   <!-- 연락처(휴대폰) 검색 -->
+			   <isNotEmpty property="MBR_TEL" prepend="AND">
+					REPLACE(t.MBR_TEL,'-','') = REPLACE(#MBR_TEL#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(t.MBR_TEL, '-', '') = REPLACE('04263807777', '-', '') -->
+			   <!-- End of 연락처(휴대폰) 검색 -->
+			   
+			   <!-- 어선명 검색 -->
+			   <isNotEmpty property="DTL_NM" prepend="AND">
+					MDTL.DTL_NM LIKE '%$DTL_NM$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_NM LIKE '%어선명%' --> 
+			   <!-- End of 어선명 검색 -->
+			   
+			    
+			   <!-- 신고번호(어선) / 허가(등록)번호(낚시터) 검색 -->
+			   <isNotEmpty property="REG_NUM_CD" prepend="AND">
+					MDTL.REG_NUM_CD = #REG_NUM_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.REG_NUM_CD = '1111111' --> 
+			   <!-- End of 신고번호(어선) / 허가(등록)번호(낚시터) 검색 -->
+			   
+			   <!-- 사업자번호 검색 -->
+			   <isNotEmpty property="BUSINESS_NUM" prepend="AND">
+					REPLACE(MDTL.BUSINESS_NUM,'-','') = REPLACE(#BUSINESS_NUM#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(MDTL.BUSINESS_NUM, '-', '') = REPLACE('2222222222222', '-', '') --> 
+			   <!-- End of 사업자번호 검색 -->
+			   
+			   <!-- 라이센스 기간 검색(시작) -->
+			   <isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND">
+					<![CDATA[  
+						DATE_FORMAT(MDTL.SHIP_LICENSE_STR_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE(#SHIP_LICENSE_STR_DT#, '%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 00:00:00')
+					]]>
+				</isNotEmpty>
+			   <!-- AND DATE_FORMAT(MDTL.SHIP_LICENSE_STR_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE('2022-12-28','%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 00:00:00') --> 
+			   <!-- End of 라이센스 기간 검색(시작) -->
+			
+			   <!-- 라이센스 기간 검색(종료) -->
+			   	<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND">
+					<![CDATA[
+						DATE_FORMAT(MDTL.SHIP_LICENSE_END_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE(#SHIP_LICENSE_END_DT#, '%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 23:59:59')
+					]]>
+				</isNotEmpty>
+			   <!-- AND DATE_FORMAT(MDTL.SHIP_LICENSE_END_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE('2022-12-28','%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 23:59:59') --> 
+			   <!-- End of 라이센스 기간 검색(종료) -->
+			   
+			   <!-- 사업자구분코드 검색 -->
+			   <isNotEmpty property="DTL_LICENSE_CD" prepend="AND">
+					MDTL.DTL_LICENSE_CD = #DTL_LICENSE_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_LICENSE_CD = 'CIDL00001' --> 
+			   <!-- End of 사업자구분코드 검색 -->
+			   
+			   <!-- 낚시터업 구분 --> 
+			   <isNotEmpty property="FSHLC_WORK_CD" prepend="AND">
+					MDTL.FSHLC_WORK_CD = #FSHLC_WORK_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.FSHLC_WORK_CD = 'NSID00001' --> 
+			   <!-- End of 낚시터업 구분 --> 
+			   
+			   <!-- 소재지 명 검색 -->
+			   	<isNotEmpty property="DTL_ADDR" prepend="AND">
+					MDTL.DTL_ADDR LIKE '%$DTL_ADDR$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_ADDR LIKE '%소재지%' --> 
+			   <!-- End of 소재지 명 검색 -->
+			   
+			   <!-- 낚시터 적용수면 검색 -->
+			   <isNotEmpty property="FSHLC_APPLC" prepend="AND">
+					MDTL.FSHLC_APPLC LIKE '%$FSHLC_APPLC$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.FSHLC_APPLC LIKE '%적용수면%' --> 
+			   <!-- End of 낚시터 적용수면 검색 -->
+			
+			   <!-- 어선부가정보-어선번호 -->
+			   <isNotEmpty property="SHIP_CD" prepend="AND">
+					MDTL.SHIP_CD LIKE CONCAT('%',REPLACE(#SHIP_CD#,'-',''),'%')
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_CD LIKE CONCAT('%',REPLACE('33333333', '-', ''),'%') --> 
+			   <!-- End of 어선부가정보-어선번호 -->
+			   
+			   <!-- 어선부가정보-총톤수 -->
+			   <isNotEmpty property="SHIP_GRTG" prepend="AND">
+					MDTL.SHIP_GRTG LIKE '%$SHIP_GRTG$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_GRTG LIKE '%34444444444444444%' --> 
+			   <!-- End of 어선부가정보-총톤수 -->
+			   
+			   <!-- 어선부가정보-선적항 -->
+			   <isNotEmpty property="SHIP_PRLOAD" prepend="AND">
+					MDTL.SHIP_PRLOAD LIKE '%$SHIP_PRLOAD$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_PRLOAD LIKE '%55555%' --> 
+			   <!-- End of 어선부가정보-선적항 -->
+			   
+			   <!-- 어선부가정보-최대승객 -->
+			   <isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND">
+					MDTL.SHIP_MAX_PSNGER LIKE '%$SHIP_MAX_PSNGER$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_MAX_PSNGER LIKE '%666666%' --> 
+			   <!-- End of 어선부가정보-최대승객 -->
+			    
+			   <!-- 어선부가정보-최대선원 -->
+			   <isNotEmpty property="SHIP_MAX_CREW" prepend="AND">
+					MDTL.SHIP_MAX_CREW LIKE '%$SHIP_MAX_CREW$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_MAX_CREW LIKE '%7777777%' --> 
+			   <!-- End of 어선부가정보-최대선원 -->
+			   
+			   <!-- 어선부가정보-해기사면허,낚시터부가정보-업구분 -->
+			   <isNotEmpty property="SHIP_LICENSE" prepend="AND">
+					MDTL.SHIP_LICENSE = #SHIP_LICENSE#
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_LICENSE = '유' --> 
+			   <!-- End of 어선부가정보-해기사면허,낚시터부가정보-업구분 -->
+			   
+			   <!-- 검색어 조건 -->
+			   <isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+							(t.MBR_NM LIKE '%$searchKeyword$'
+							OR t.MBR_ID LIKE '%$searchKeyword$%' 
+							OR t.MBR_HP LIKE '%$searchKeyword$'
+							OR t.MBR_TEL LIKE '%$searchKeyword$%')
+						</isNotEmpty>
+					</isEqual>         
+				</isNotEmpty>
+			   <!-- AND (
+			      t.MBR_NM LIKE '%검색어' 
+			      OR t.MBR_ID LIKE '%검색어%' 
+			      OR t.MBR_HP LIKE '%검색어' 
+			      OR t.MBR_TEL LIKE '%검색어%'
+			   )  -->
+			   <!-- End of 검색어 조건 -->
+			   
+			GROUP BY t.MBR_ID
+			HAVING   1=1 
+			
+			   <!-- 교육대상구분  조건문 -->
+			     <isNotEmpty property="MBR_TRGT_CD" >
+			        <!-- 교육대상구분 (낚시터업자만 선택시) CIDN010200 조건문 -->
+					<isEqual compareValue="CIDN010200" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'N'
+			   			AND DTL_H_YN = 'Y'
+					</isEqual>
+					<!-- 교육대상구분 (낚시어선업자만 선택시) CIDN010300 조건문 -->
+					<isEqual compareValue="CIDN010300" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'Y'
+			   			AND DTL_H_YN = 'N'
+					</isEqual>
+					<!-- 교육대상구분 (낚시어선업자/낚시터업자 선택시) 조건문 -->
+					<isEqual compareValue="CIDN010400" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'Y' 
+			   			AND DTL_H_YN = 'Y' 
+					</isEqual>
+					<!-- 교육대상구분 (상세정보없음 선택시) 조건문 -->
+					<isEqual compareValue="CIDN010500" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'N' 
+			   			AND DTL_H_YN = 'N' 
+					</isEqual>
+				</isNotEmpty>
+			   <!-- End of 교육대상구분 조건문 -->
+			   	
+			   <!--고광훈 추가 - 이수여부 -->
+			   <isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+						CMPLT_ST = #MBR_LRNNG_CMPLT_ST#
+			    </isNotEmpty>	   	
+			   	
+			   	
+			   	
+			   <!-- 교육대상구분 (낚시터업자만 선택시) CIDN010300 조건문 -->
+			   <!-- AND DTL_S_YN = 'N' -->
+			   <!-- AND DTL_H_YN = 'Y' -->
+			   <!-- End of 교육대상구분 (낚시터업자만 선택시) 조건문 -->
+			   
+			   <!-- 교육대상구분 (낚시터업자만 선택시) CIDN010200 조건문 -->
+			   <!-- AND DTL_S_YN = 'Y' -->
+			   <!-- AND DTL_H_YN = 'N' -->
+			   <!-- End of 교육대상구분 (낚시터업자만 선택시) 조건문 -->
+			      
+			   <!-- 교육대상구분 (낚시어선업자/낚시터업자 선택시) 조건문 -->
+			   <!-- AND DTL_S_YN = 'Y' -->
+			   <!-- AND DTL_H_YN = 'Y' -->
+			   <!-- End of 교육대상구분 (낚시어선업자/낚시터업자 선택시) 조건문 -->
+			   
+			   <!-- 교육대상구분 (상세정보없음 선택시) 조건문 -->
+			   <!-- AND DTL_S_YN = 'N' -->
+			   <!-- AND DTL_H_YN = 'N' -->
+			   <!-- End of 교육대상구분 (상세정보없음 선택시) 조건문 -->
+			   
+			   <!-- 회원 활성화,비활성화 조건에 따라 분기 조회(MBR_ST = DTL_YN) -->
+			   <!-- 회원상태 선택시(활성,비활성,전체) -->
+				<isNotEmpty property="MBR_ST" prepend="AND">
+				<!-- 전체 -->	
+					<isEqual compareValue="ALL" property="MBR_ST">
+						
+					</isEqual>
+				<!-- 활성 -->
+					<isEqual compareValue="Y" property="MBR_ST">
+						(t.MBR_ST = 'Y' AND DTL_YN = 'Y')
+					</isEqual>
+				<!-- 비활성 -->	
+					<isEqual compareValue="N" property="MBR_ST">
+						(t.MBR_ST = 'N' OR DTL_YN = 'N')
+					</isEqual>
+				</isNotEmpty>
+			   <!-- AND ( t.MBR_ST = 'Y' AND DTL_YN = 'Y') -->
+			   <!-- AND ( t.MBR_ST = 'N' OR DTL_YN = 'N') -->
+			   <!-- End of 회원 활성화,비활성화 조건에 따라 분기 조회 -->
+			   
+			   <!-- 교육이수여부 구분 -->
+			   <isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+					<isEqual compareValue="1" property="MBR_LRNNG_CMPLT_ST">
+						EDU_CMPLT_YN = 'Y'
+					</isEqual>
+					<isEqual compareValue="0" property="MBR_LRNNG_CMPLT_ST">
+						EDU_CMPLT_YN = 'N'
+					</isEqual>
+				</isNotEmpty>
+			 	<!-- 수정 전 쿼리 : MBR_LRNNG_CMPLT_ST 여부를 이수 1, 미이수 0으로 표현
+				<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+					EDU_CMPLT_YN = #MBR_LRNNG_CMPLT_ST#
+				</isNotEmpty> -->
+			   <!-- AND EDU_CMPLT_YN = 'Y' --> 
+			   <!-- AND EDU_CMPLT_YN = 'N' --> 
+			   <!-- End of 교육이수여부 구분 -->  
+			   
+			ORDER BY t.MBR_NM ASC
+			) as P
+	</select>
+	
+	<select id="eduMember.get_edu_member_target_list_only" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT
+			<!-- 낚시어선,낚시터 보유 상세정보 -->
+				IF(COUNT(MDTL.DTL_CD)>=1,'Y','N') AS DTL_YN
+			   ,IF(SUM(IF(MDTL.DTL_CD='CIDN010300',1,0))>=1,'Y','N') AS DTL_S_YN
+			   ,IF(SUM(IF(MDTL.DTL_CD='CIDN010200',1,0))>=1,'Y','N') AS DTL_H_YN 
+			<!-- End of 낚시어선,낚시터 보유 상세정보 -->
+            <!-- 교육이수여부 정보 -->
+			   ,IF(SUM(IF(H.LRNNG_CMPLT_ST = '1',1,0))>=1,'Y','N') AS EDU_CMPLT_YN
+            <!-- End of 교육이수여부 정보 -->	
+			   ,C1.CD_NM AS SIDO_CD_NM
+			   ,C1.CD_ID AS SIDO_CD
+			   ,C2.CD_NM AS SIGNGU_CD_NM
+			   ,C2.CD_ID AS SIGNGU_CD
+			   ,MDTL.YMD_NM
+			   ,MDTL.DTL_NM
+			   ,MDTL.MBR_NM AS DTL_MBR_NM
+			   ,MDTL.DTL_ADDR
+			   ,MDTL.REG_TYPE_CD
+			   ,MDTL.SHIP_LICENSE_STR_DT AS DTL_SHIP_LICENSE_STR_DT
+			   ,MDTL.SHIP_LICENSE_END_DT AS DTL_SHIP_LICENSE_END_DT
+			   ,MDTL.FSHLC_WORK_CD AS DTL_FSHLC_WORK_CD
+			   ,MDTL.BUSINESS_NUM AS DTL_BUSINESS_NUM
+			   ,MDTL.SHIP_LICENSE AS DTL_SHIP_LICENSE
+			   ,MDTL.FSHLC_APPLC AS DTL_FSHLC_APPLC
+			   ,MDTL.SHIP_CD AS DTL_SHIP_CD
+			   ,MDTL.SHIP_GRTG AS DTL_SHIP_GRTG
+			   ,MDTL.SHIP_PRLOAD AS DTL_SHIP_PRLOAD
+			   ,MDTL.SHIP_MAX_PSNGER AS DTL_SHIP_MAX_PSNGER
+			   ,MDTL.SHIP_MAX_CREW AS DTL_SHIP_MAX_CREW
+			   ,C4.CD_NM AS DTL_LICENSE_CD_NM
+			   ,MDTL.DTL_LICENSE_CD
+			   ,C3.CD_NM AS DTL_CD
+			   ,MDTL.DTL_SN
+			   ,MDTL.USE_AT
+			   ,CMPLT_ST
+			   ,t.*	
+			FROM MBR_TB AS t 
+			LEFT OUTER JOIN MBR_DTL_TB AS MDTL ON MDTL.MBR_ID = t.MBR_ID AND MDTL.USE_AT = 'Y'    
+			LEFT OUTER JOIN MBR_EDU_TRGT_TB AS E ON E.MBR_ID = t.MBR_ID AND E.USE_AT = 'Y' AND E.DEL_AT = 'N' AND E.TRGT_YEAR IS NOT NULL 
+			LEFT OUTER JOIN EDU_MBR_HSTRY_TB AS H ON H.MBR_ID = t.MBR_ID AND H.USE_ST = '1' AND H.DEL_ST = '0' 
+			LEFT JOIN EDU_CURRICULUM_TB AS C ON C.CRS_SN = H.CRS_SN 
+			LEFT JOIN all_code_set_tb AS C1 ON C1.CD_ID = MDTL.SIDO_CD 
+			LEFT JOIN all_code_set_tb AS C2 ON C2.CD_ID = MDTL.SIGNGU_CD 
+			LEFT JOIN all_code_set_tb AS C3 ON C3.CD_ID = MDTL.DTL_CD 
+			LEFT JOIN all_code_set_tb AS C4 ON C4.CD_ID = MDTL.DTL_LICENSE_CD 
+			WHERE   1=1
+			   AND t.MBR_LV_ID >= 10   
+			   AND t.MBR_ID IS NOT NULL
+			  
+				<!-- 가입대상 구분 -->
+				  <isEqual property="MBR_JOIN" compareValue="auto">
+				 	AND t.MBR_JOIN = #MBR_JOIN#
+				  </isEqual>
+				  <!-- End of 가입대상 구분 -->
+				
+				<!-- 낚시어선 신규,재개자,기존 구분 --> 
+				<isNotEmpty property="MBR_FSHRBT_TYPE" prepend="AND">
+					t.MBR_FSHRBT_TYPE = #MBR_FSHRBT_TYPE#
+				</isNotEmpty>
+				 <!-- End of  낚시어선 신규,재개자,기존 구분 -->
+				
+				<!-- 대상자 년도 지정 -->
+				 <isNotEmpty property="searchYear" prepend="AND">
+					( E.TRGT_YEAR = #searchYear# OR C.CRS_YEAR = #searchYear# )
+				</isNotEmpty>
+			   <!-- AND E.TRGT_YEAR = '2021' --> 
+			   <!-- AND C.CRS_YEAR = '2022' -->
+			   <!-- End of 대상자 년도 지정 -->
+			   
+			   <!-- 교육타입 구분 --> 
+			   <isNotEmpty property="TYPE_GB" prepend="AND">
+					C.TYPE_GB = #TYPE_GB#
+				</isNotEmpty>
+			   <!-- End of  교육타입 구분 --> 
+			   
+			   <!-- 교육신청 구분 --> 
+			   <isNotEmpty property="MBR_LRNNG_ST" prepend="AND">
+					H.LRNNG_ST = #MBR_LRNNG_ST#
+				</isNotEmpty>
+			   <!-- AND H.LRNNG_ST = '0' --> 
+			   <!-- End of  교육신청 구분 --> 
+			
+				<!-- 교육책임자 구분 -->
+				<isNotEmpty property="MBR_EDU_RSPNBER_TYPE" prepend="AND">
+					t.MBR_EDU_RSPNBER_TYPE = #MBR_EDU_RSPNBER_TYPE#
+				</isNotEmpty>
+				<!-- end of 교육책임자 구분 -->
+				
+			   <!-- 관리대상 구분 -->
+			   <isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<!-- 공단 등록건 -->
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						<!-- (t.MBR_POSITION_CD != 'PCD0007' AND MDTL.REG_TYPE_CD != 'PCD0007')  -->
+						(t.MBR_REG_TYPE_CD != 'PCD0003' OR t.MBR_REG_TYPE_CD IS NULL)            
+					</isEqual>   
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						<!-- (t.MBR_POSITION_CD = 'PCD0007' AND MDTL.REG_TYPE_CD = 'PCD0007')  -->
+						t.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+				</isNotEmpty>
+			   <!-- AND (
+			      	t.MBR_REG_TYPE_CD != 'PCD0003' 
+			      	OR t.MBR_REG_TYPE_CD IS NULL) -->
+			   <!-- End of 관리대상 구분 -->
+			   
+			   <!-- 지역(시도) 검색 -->
+			   <isNotEmpty property="MBR_SIDO_CD" prepend="AND">
+					C1.CD_ID = #MBR_SIDO_CD# 
+				</isNotEmpty>
+			   <!-- AND C1.CD_ID = 'CIDA00005' --> 
+			   <!-- End of 지역(시도) 검색 -->
+			   
+			   <!-- 지역(시군구) 검색 -->
+			   <isNotEmpty property="MBR_SIGNGU_CD" prepend="AND">
+					C2.CD_ID = #MBR_SIGNGU_CD#
+				</isNotEmpty>
+			   <!-- AND C2.CD_ID = 'CIDB00001' --> 
+			   <!-- End of 지역(시군구) 검색 -->
+			   
+			   <!-- 이름 검색 -->
+			   <isNotEmpty property="MBR_NM" prepend="AND">
+	               ( t.MBR_NM LIKE '%$MBR_NM$%' OR MDTL.MBR_NM LIKE '%$MBR_NM$%' OR t.MBR_NCNM LIKE '%$MBR_NM$%')
+	            </isNotEmpty>
+			   <!-- AND (
+			      t.MBR_NM LIKE '%가인석%' 
+			      OR MDTL.MBR_NM LIKE '%가인석%' 
+			      OR t.MBR_NCNM LIKE '%가인석%') --> 
+			   <!-- End of 이름 검색 -->
+			   
+	           <!-- 생년월일 검색시 -->
+			   <isNotEmpty property="MBR_BIRTH" prepend="AND">
+					t.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+			   </isNotEmpty>
+			   <!-- End of 생년월일 검색시 -->
+			   
+			   
+			   <!-- 주소 검색 -->
+			   <isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					(t.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR t.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+			   <!-- AND (
+			      t.MBR_ADDR1 LIKE '%충남%' 
+			      OR t.MBR_ADDR2 LIKE '%충남%'
+			   ) -->
+			   <!-- End of 주소 검색 -->
+			   
+			   <!-- 읍면동 검색 -->
+			   <isNotEmpty property="YMD_NM" prepend="AND">
+					MDTL.YMD_NM LIKE '%$YMD_NM$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.YMD_NM LIKE '%근흥면%' --> 
+			   <!-- End of 읍면동 검색 -->
+			   
+			   <!-- 연락처(일반) 검색 -->
+			   <isNotEmpty property="MBR_HP" prepend="AND">
+					REPLACE(t.MBR_HP,'-','') = REPLACE(#MBR_HP#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(t.MBR_HP, '-', '') = REPLACE('01024078549', '-', '') -->
+			   <!-- End of 연락처(일반) 검색 -->
+			   
+			   <!-- 연락처(휴대폰) 검색 -->
+			   <isNotEmpty property="MBR_TEL" prepend="AND">
+					REPLACE(t.MBR_TEL,'-','') = REPLACE(#MBR_TEL#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(t.MBR_TEL, '-', '') = REPLACE('04263807777', '-', '') -->
+			   <!-- End of 연락처(휴대폰) 검색 -->
+			   
+			   <!-- 어선명 검색 -->
+			   <isNotEmpty property="DTL_NM" prepend="AND">
+					MDTL.DTL_NM LIKE '%$DTL_NM$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_NM LIKE '%어선명%' --> 
+			   <!-- End of 어선명 검색 -->
+			   
+			    
+			   <!-- 신고번호(어선) / 허가(등록)번호(낚시터) 검색 -->
+			   <isNotEmpty property="REG_NUM_CD" prepend="AND">
+					MDTL.REG_NUM_CD = #REG_NUM_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.REG_NUM_CD = '1111111' --> 
+			   <!-- End of 신고번호(어선) / 허가(등록)번호(낚시터) 검색 -->
+			   
+			   <!-- 사업자번호 검색 -->
+			   <isNotEmpty property="BUSINESS_NUM" prepend="AND">
+					REPLACE(MDTL.BUSINESS_NUM,'-','') = REPLACE(#BUSINESS_NUM#,'-','')
+				</isNotEmpty>
+			   <!-- AND REPLACE(MDTL.BUSINESS_NUM, '-', '') = REPLACE('2222222222222', '-', '') --> 
+			   <!-- End of 사업자번호 검색 -->
+			   
+			   <!-- 라이센스 기간 검색(시작) -->
+			   <isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND">
+					<![CDATA[  
+						DATE_FORMAT(MDTL.SHIP_LICENSE_STR_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE(#SHIP_LICENSE_STR_DT#, '%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 00:00:00')
+					]]>
+				</isNotEmpty>
+			   <!-- AND DATE_FORMAT(MDTL.SHIP_LICENSE_STR_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE('2022-12-28','%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 00:00:00') --> 
+			   <!-- End of 라이센스 기간 검색(시작) -->
+			
+			   <!-- 라이센스 기간 검색(종료) -->
+			   	<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND">
+					<![CDATA[
+						DATE_FORMAT(MDTL.SHIP_LICENSE_END_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE(#SHIP_LICENSE_END_DT#, '%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 23:59:59')
+					]]>
+				</isNotEmpty>
+			   <!-- AND DATE_FORMAT(MDTL.SHIP_LICENSE_END_DT,'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(STR_TO_DATE('2022-12-28','%Y-%m-%d %H:%i:%s'),'%Y-%m-%d 23:59:59') --> 
+			   <!-- End of 라이센스 기간 검색(종료) -->
+			   
+			   <!-- 사업자구분코드 검색 -->
+			   <isNotEmpty property="DTL_LICENSE_CD" prepend="AND">
+					MDTL.DTL_LICENSE_CD = #DTL_LICENSE_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_LICENSE_CD = 'CIDL00001' --> 
+			   <!-- End of 사업자구분코드 검색 -->
+			   
+			   <!-- 낚시터업 구분 --> 
+			   <isNotEmpty property="FSHLC_WORK_CD" prepend="AND">
+					MDTL.FSHLC_WORK_CD = #FSHLC_WORK_CD#
+				</isNotEmpty>
+			   <!-- AND MDTL.FSHLC_WORK_CD = 'NSID00001' --> 
+			   <!-- End of 낚시터업 구분 --> 
+			   
+			   <!-- 소재지 명 검색 -->
+			   	<isNotEmpty property="DTL_ADDR" prepend="AND">
+					MDTL.DTL_ADDR LIKE '%$DTL_ADDR$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.DTL_ADDR LIKE '%소재지%' --> 
+			   <!-- End of 소재지 명 검색 -->
+			   
+			   <!-- 낚시터 적용수면 검색 -->
+			   <isNotEmpty property="FSHLC_APPLC" prepend="AND">
+					MDTL.FSHLC_APPLC LIKE '%$FSHLC_APPLC$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.FSHLC_APPLC LIKE '%적용수면%' --> 
+			   <!-- End of 낚시터 적용수면 검색 -->
+			
+			   <!-- 어선부가정보-어선번호 -->
+			   <isNotEmpty property="SHIP_CD" prepend="AND">
+					MDTL.SHIP_CD LIKE CONCAT('%',REPLACE(#SHIP_CD#,'-',''),'%')
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_CD LIKE CONCAT('%',REPLACE('33333333', '-', ''),'%') --> 
+			   <!-- End of 어선부가정보-어선번호 -->
+			   
+			   <!-- 어선부가정보-총톤수 -->
+			   <isNotEmpty property="SHIP_GRTG" prepend="AND">
+					MDTL.SHIP_GRTG LIKE '%$SHIP_GRTG$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_GRTG LIKE '%34444444444444444%' --> 
+			   <!-- End of 어선부가정보-총톤수 -->
+			   
+			   <!-- 어선부가정보-선적항 -->
+			   <isNotEmpty property="SHIP_PRLOAD" prepend="AND">
+					MDTL.SHIP_PRLOAD LIKE '%$SHIP_PRLOAD$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_PRLOAD LIKE '%55555%' --> 
+			   <!-- End of 어선부가정보-선적항 -->
+			   
+			   <!-- 어선부가정보-최대승객 -->
+			   <isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND">
+					MDTL.SHIP_MAX_PSNGER LIKE '%$SHIP_MAX_PSNGER$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_MAX_PSNGER LIKE '%666666%' --> 
+			   <!-- End of 어선부가정보-최대승객 -->
+			    
+			   <!-- 어선부가정보-최대선원 -->
+			   <isNotEmpty property="SHIP_MAX_CREW" prepend="AND">
+					MDTL.SHIP_MAX_CREW LIKE '%$SHIP_MAX_CREW$%'
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_MAX_CREW LIKE '%7777777%' --> 
+			   <!-- End of 어선부가정보-최대선원 -->
+			   
+			   <!-- 어선부가정보-해기사면허,낚시터부가정보-업구분 -->
+			   <isNotEmpty property="SHIP_LICENSE" prepend="AND">
+					MDTL.SHIP_LICENSE = #SHIP_LICENSE#
+				</isNotEmpty>
+			   <!-- AND MDTL.SHIP_LICENSE = '유' --> 
+			   <!-- End of 어선부가정보-해기사면허,낚시터부가정보-업구분 -->
+			   
+			   <!-- 검색어 조건 -->
+			   <isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+							(t.MBR_NM LIKE '%$searchKeyword$'
+							OR t.MBR_ID LIKE '%$searchKeyword$%' 
+							OR t.MBR_HP LIKE '%$searchKeyword$'
+							OR t.MBR_TEL LIKE '%$searchKeyword$%')
+						</isNotEmpty>
+					</isEqual>         
+				</isNotEmpty>
+			   <!-- AND (
+			      t.MBR_NM LIKE '%검색어' 
+			      OR t.MBR_ID LIKE '%검색어%' 
+			      OR t.MBR_HP LIKE '%검색어' 
+			      OR t.MBR_TEL LIKE '%검색어%'
+			   )  -->
+			   <!-- End of 검색어 조건 -->
+			   
+			GROUP BY t.MBR_ID
+			HAVING   1=1 
+			
+			   <!-- 교육대상구분 (낚시어선업자만 선택시) CIDN010300 조건문 -->
+			     <isNotEmpty property="MBR_TRGT_CD" >
+					<isEqual compareValue="CIDN010300" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'Y'
+			   			and DTL_H_YN = 'N'
+					</isEqual>
+					<isEqual compareValue="CIDN010200" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'N'
+			   			AND DTL_H_YN = 'Y'
+					</isEqual>
+					<isEqual compareValue="CIDN010400" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'Y' 
+			   			AND DTL_H_YN = 'Y' 
+					</isEqual>
+					<isEqual compareValue="CIDN010500" property="MBR_TRGT_CD">
+						AND DTL_S_YN = 'N' 
+			   			AND DTL_H_YN = 'N' 
+					</isEqual>
+				</isNotEmpty>
+			   <!-- AND DTL_S_YN = 'Y' --> 
+			   <!-- and DTL_H_YN = 'N' -->
+			   <!-- End of 교육대상구분 (낚시어선업자만 선택시) 조건문 -->
+			   
+			   <!-- 교육대상구분 (낚시터업자만 선택시) CIDN020300 조건문 -->
+			   <!-- AND DTL_S_YN = 'N' -->
+			   <!-- AND DTL_H_YN = 'Y' -->
+			   <!-- End of 교육대상구분 (낚시터업자만 선택시) 조건문 -->
+			      
+			   <!-- 교육대상구분 (낚시어선업자/낚시터업자 선택시) 조건문 -->
+			   <!-- AND DTL_S_YN = 'Y' -->
+			   <!-- AND DTL_H_YN = 'Y' -->
+			   <!-- End of 교육대상구분 (낚시어선업자/낚시터업자 선택시) 조건문 -->
+			   
+			   <!-- 교육대상구분 (상세정보없음 선택시) 조건문 -->
+			   <!-- AND DTL_S_YN = 'N' -->
+			   <!-- AND DTL_H_YN = 'N' -->
+			   <!-- End of 교육대상구분 (상세정보없음 선택시) 조건문 -->
+			   
+			   <!-- 회원 활성화,비활성화 조건에 따라 분기 조회(MBR_ST = DTL_YN) -->
+			   <!-- 회원상태 선택시(활성,비활성,전체) -->
+				<isNotEmpty property="MBR_ST" prepend="AND">
+				<!-- 전체 -->	
+					<isEqual compareValue="ALL" property="MBR_ST">
+						
+					</isEqual>
+				<!-- 활성 -->
+					<isEqual compareValue="Y" property="MBR_ST">
+						(t.MBR_ST = 'Y' AND DTL_YN = 'Y')
+					</isEqual>
+				<!-- 비활성 -->	
+					<isEqual compareValue="N" property="MBR_ST">
+						(t.MBR_ST = 'N' OR DTL_YN = 'N')
+					</isEqual>
+				</isNotEmpty>
+			   <!-- AND ( t.MBR_ST = 'Y' AND DTL_YN = 'Y') -->
+			   <!-- AND ( t.MBR_ST = 'N' OR DTL_YN = 'N') -->
+			   <!-- End of 회원 활성화,비활성화 조건에 따라 분기 조회 -->
+			   
+			   <!-- 교육이수여부 구분 -->
+				<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+					<isEqual compareValue="1" property="MBR_LRNNG_CMPLT_ST">
+						EDU_CMPLT_YN = 'Y'
+					</isEqual>
+					<isEqual compareValue="0" property="MBR_LRNNG_CMPLT_ST">
+						EDU_CMPLT_YN = 'N'
+					</isEqual>
+				</isNotEmpty>
+			   <!-- AND EDU_CMPLT_YN = 'Y' --> 
+			   <!-- AND EDU_CMPLT_YN = 'N' --> 
+			   <!-- End of 교육이수여부 구분 -->  
+			   
+			   <!--고광훈 추가 - 이수여부 -->
+			   <isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+						CMPLT_ST = #MBR_LRNNG_CMPLT_ST#
+			    </isNotEmpty>	   				   
+			   
+			   
+			ORDER BY t.MBR_NM ASC
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+					LIMIT #recordCountPerPage# OFFSET #firstIndex# 
+			</isNotEqual>
+    </select>
+   
+	<!-- 회원조회 : 교육센터-교육목록-수강자등록 -->
+	<select id="eduMember.get_edu_mbr_list_only_mbrhstry_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(*)
+			FROM (
+				SELECT COUNT(M.MBR_ID)  
+				FROM MBR_TB AS M
+				LEFT JOIN MBR_DTL_TB AS T ON T.MBR_ID = M.MBR_ID
+				LEFT JOIN MBR_EDU_TRGT_TB AS E  ON E.MBR_ID = M.MBR_ID AND E.TRGT_YEAR = #searchYear#
+				LEFT JOIN ALL_CODE_SET_TB AS SIDO ON SIDO.CD_ID = T.SIDO_CD
+				LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.SIGNGU_CD 
+				WHERE 1=1
+					<isNotEmpty property="MBR_LV_ID" prepend="AND">
+					M.MBR_LV_ID >= #MBR_LV_ID#
+					</isNotEmpty>
+					<isNotEmpty property="MBR_ST" prepend="AND">
+					M.MBR_ST = 'Y'
+					</isNotEmpty>
+					<isNotEmpty property="DTL_CD" prepend="AND">
+					T.DTL_CD >= #DTL_CD#
+					</isNotEmpty>	
+					<isNotEmpty property="searchUseYn">
+						<isEqual compareValue="Y" property="searchUseYn">
+							<isNotEmpty property="searchKeyword" prepend="AND">
+							( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR T.DTL_NM LIKE '%$searchKeyword$' OR T.DTL_NM LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+							</isNotEmpty>
+						</isEqual>			
+				  	</isNotEmpty>	
+				  	<isNotEmpty property="MBR_IDS">
+					  	<iterate property="MBR_IDS" prepend="AND M.MBR_ID NOT IN" open="(" close=")" conjunction="," >
+			            #MBR_IDS[]#
+			        	</iterate>
+					</isNotEmpty>
+					<isNotEmpty property="MBR_ADDED_IDS">
+					  	<iterate property="MBR_ADDED_IDS" prepend="AND M.MBR_ID NOT IN" open="(" close=")" conjunction="," >
+			            #MBR_ADDED_IDS[]#
+			        	</iterate>
+					</isNotEmpty>
+					AND E.TRGT_YEAR IS NOT NULL
+				GROUP BY M.MBR_ID
+				ORDER BY M.MBR_NM ASC	
+			) AS P
+	</select>
+	<select id="eduMember.get_edu_mbr_list_only_mbrhstry" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT M.MBR_BIRTH, M.MBR_HP, M.MBR_ADDR1, M.MBR_ADDR2, M.MBR_ST, M.MBR_ID, M.MBR_CD,
+					/*IF(T.MBR_NM IS NULL,M.MBR_NM,T.MBR_NM) AS MBR_NM,*/
+					M.MBR_NM,
+					T.DTL_CD,T.DTL_NM,T.REG_TYPE_CD,T.DTL_LICENSE_CD,T.SIDO_CD,T.SIGNGU_CD,T.YMD_NM,
+					T.DTL_ADDR,T.BUSINESS_NUM,T.REG_NUM_CD,T.FSHLC_APPLC,T.FSHLC_WORK_CD,T.SHIP_CD,T.SHIP_GRTG,T.SHIP_PRLOAD,T.SHIP_MAX_PSNGER,
+					T.SHIP_MAX_CREW,T.SHIP_LICENSE,T.SHIP_LICENSE_STR_DT,T.SHIP_LICENSE_END_DT,T.USE_AT,T.DEL_AT,T.HIDE_AT,T.REG_DT,
+					T.UPD_DT,T.REG_MBR_ID,T.UPD_MBR_ID,
+					SIDO.CD_NM AS SIDO_NM,
+					SIGNGU.CD_NM AS SIGNGU_NM
+			FROM MBR_TB AS M
+			LEFT JOIN MBR_DTL_TB AS T ON T.MBR_ID = M.MBR_ID
+			LEFT JOIN MBR_EDU_TRGT_TB AS E  ON E.MBR_ID = M.MBR_ID AND E.TRGT_YEAR = #searchYear#
+			LEFT JOIN ALL_CODE_SET_TB AS SIDO ON SIDO.CD_ID = T.SIDO_CD
+			LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.SIGNGU_CD 
+			WHERE 1=1
+				<isNotEmpty property="MBR_LV_ID" prepend="AND">
+				M.MBR_LV_ID >= #MBR_LV_ID#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ST" prepend="AND">
+				M.MBR_ST = 'Y'
+				</isNotEmpty>
+				<isNotEmpty property="DTL_CD" prepend="AND">
+				T.DTL_CD >= #DTL_CD#
+				</isNotEmpty>	
+				<isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+						( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR T.DTL_NM LIKE '%$searchKeyword$' OR T.DTL_NM LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+						</isNotEmpty>
+					</isEqual>			
+			  	</isNotEmpty>	
+			  	<isNotEmpty property="MBR_IDS">
+				  	<iterate property="MBR_IDS" prepend="AND M.MBR_ID NOT IN" open="(" close=")" conjunction="," >
+		            #MBR_IDS[]#
+		        	</iterate>
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ADDED_IDS">
+				  	<iterate property="MBR_ADDED_IDS" prepend="AND M.MBR_ID NOT IN" open="(" close=")" conjunction="," >
+		            #MBR_ADDED_IDS[]#
+		        	</iterate>
+				</isNotEmpty>
+				AND E.TRGT_YEAR IS NOT NULL
+			GROUP BY M.MBR_ID
+			ORDER BY M.MBR_NM ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex# 
+			</isNotEqual>
+	</select>
+	<!-- 회원조회 : 교육센터-교육대상자 -->
+	<select id="eduMember.get_edu_member_target_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(P.MBR_ID)  
+			FROM (
+				SELECT T.MBR_ID, T.MBR_REG_TYPE_CD, T.MBR_SIDO_CD, T.MBR_SIGNGU_CD, 
+				(	SELECT COUNT(*) 
+				    FROM MBR_EDU_TRGT_TB AS E
+				    WHERE E.MBR_ID = T.MBR_ID 
+				     	<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+						<isNotEmpty property="TRGT_YEAR" prepend="AND"> E.TRGT_YEAR = #TRGT_YEAR# </isNotEmpty>  
+						<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+						<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+						<isNotEmpty property="searchYear" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="TRGT_YEAR" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+				) AS TRGT_CNT ,
+				( 	SELECT COUNT(*) 
+					FROM MBR_DTL_TB AS MD 
+					WHERE MD.MBR_ID = T.MBR_ID
+						<isNotEmpty property="MBR_ST">  
+							<isNotEmpty property="USE_AT" prepend="AND"> MD.USE_AT = #MBR_ST# </isNotEmpty>
+				  		</isNotEmpty>
+						<!--  
+				  		<isNotEmpty property="DEL_AT" prepend="AND"> MD.DEL_AT = #DEL_AT# </isNotEmpty>
+				  		 -->
+				  		<!-- <isNotEmpty property="MBR_SIDO_CD" prepend="AND"> MD.SIDO_CD = #MBR_SIDO_CD# </isNotEmpty>
+						<isNotEmpty property="MBR_SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #MBR_SIGNGU_CD# </isNotEmpty> -->
+						<isNotEmpty property="SIDO_CD" prepend="AND"> MD.SIDO_CD = #SIDO_CD# </isNotEmpty>
+						<isNotEmpty property="SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #SIGNGU_CD# </isNotEmpty>
+						<isNotEmpty property="DTL_CD" prepend="AND"> MD.DTL_CD = #DTL_CD# </isNotEmpty>
+						<isNotEmpty property="YMD_NM" prepend="AND"> MD.YMD_NM LIKE '%$YMD_NM$%' </isNotEmpty>
+						<isNotEmpty property="DTL_NM" prepend="AND"> MD.DTL_NM LIKE '%$DTL_NM$%' </isNotEmpty>
+						<isNotEmpty property="BUSINESS_NUM" prepend="AND"> MD.BUSINESS_NUM LIKE CONCAT('%',REPLACE(#BUSINESS_NUM#,'-',''),'%') </isNotEmpty>
+						<isNotEmpty property="REG_NUM_CD" prepend="AND"> MD.REG_NUM_CD LIKE CONCAT('%',REPLACE(#REG_NUM_CD#,'-',''),'%') </isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_STR_DT >= CONCAT(#SHIP_LICENSE_STR_DT#,' 00:00:00') ]]></isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_END_DT <= CONCAT(#SHIP_LICENSE_END_DT#,' 23:59:59') ]]></isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE" prepend="AND"> MD.SHIP_LICENSE = #SHIP_LICENSE# </isNotEmpty>
+						<isNotEmpty property="DTL_ADDR" prepend="AND"> MD.DTL_ADDR LIKE '%$DTL_ADDR$%' </isNotEmpty>
+						<isNotEmpty property="FSHLC_APPLC" prepend="AND"> MD.FSHLC_APPLC LIKE '%$FSHLC_APPLC$%' </isNotEmpty>
+						<isNotEmpty property="FSHLC_WORK_CD" prepend="AND"> MD.FSHLC_WORK_CD = #FSHLC_WORK_CD# </isNotEmpty>
+						<isNotEmpty property="SHIP_CD" prepend="AND"> MD.SHIP_CD LIKE CONCAT('%',REPLACE(#SHIP_CD#,'-',''),'%')</isNotEmpty>
+						<isNotEmpty property="SHIP_GRTG" prepend="AND"> MD.SHIP_GRTG LIKE '%$SHIP_GRTG$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_PRLOAD" prepend="AND"> MD.SHIP_PRLOAD LIKE '%$SHIP_PRLOAD$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND"> MD.SHIP_MAX_PSNGER LIKE '%$SHIP_MAX_PSNGER$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_MAX_CREW" prepend="AND"> MD.SHIP_MAX_CREW LIKE '%$SHIP_MAX_CREW$%' </isNotEmpty>
+						<isNotEmpty property="DTL_LICENSE_CD" prepend="AND"> MD.DTL_LICENSE_CD = #DTL_LICENSE_CD# </isNotEmpty>
+				) AS DTL_CNT ,
+				(	
+					SELECT COUNT(*) 
+					FROM MBR_EDU_TRGT_TB AS E 
+					LEFT JOIN EDU_MBR_HSTRY_TB AS H ON H.HMBR_SN = E.HMBR_SN
+					WHERE E.MBR_ID = T.MBR_ID 
+						<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+						<isNotEmpty property="TRGT_YEAR" prepend="AND"> E.TRGT_YEAR = #TRGT_YEAR# </isNotEmpty>  
+						<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+						<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+						<isNotEmpty property="searchYear" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="TRGT_YEAR" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+							H.LRNNG_CMPLT_ST = '1'
+						</isNotEmpty>
+						<isNotEmpty property="MBR_LRNNG_ST" prepend="AND">
+							H.LRNNG_ST = #MBR_LRNNG_ST#
+						</isNotEmpty>
+				) AS MBR_HSTRY_CNT 	
+				FROM MBR_TB AS T 
+				WHERE 1 = 1 
+				<isNotEmpty property="MBR_ST" prepend="AND">
+					T.MBR_ST = #MBR_ST#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LV_ID" prepend="AND">
+					T.MBR_LV_ID >= #MBR_LV_ID#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID" prepend="AND">
+					T.MBR_ID = #MBR_ID#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_NM" prepend="AND">
+					T.MBR_NM LIKE '%$MBR_NM$%'
+				</isNotEmpty>
+				<isNotEmpty property="MBR_BIRTH" prepend="AND">
+					T.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					( T.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR T.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP" prepend="AND">
+					T.MBR_HP LIKE CONCAT('%',REPLACE(#MBR_HP#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_TEL" prepend="AND">
+					T.MBR_TEL LIKE CONCAT('%',REPLACE(#MBR_TEL#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+						( T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' OR T.MBR_HP LIKE '$searchKeyword$%' OR T.MBR_ID LIKE '%$searchKeyword$%' )
+						</isNotEmpty>
+					</isEqual>			
+			  	</isNotEmpty>
+			) AS P
+			WHERE 1=1
+				<isNotEmpty property="searchYear" prepend="AND">
+					<![CDATA[ P.TRGT_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="TRGT_YEAR" prepend="AND">
+					<![CDATA[ P.TRGT_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+					<isEqual property="MBR_LRNNG_CMPLT_ST" compareValue="1">
+						<![CDATA[ P.MBR_HSTRY_CNT > 0 ]]>
+					</isEqual>	
+					<isNotEqual property="MBR_LRNNG_CMPLT_ST" compareValue="1">
+						<![CDATA[ P.MBR_HSTRY_CNT <= 0 ]]>
+					</isNotEqual>					
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LRNNG_ST" prepend="AND">					
+					<![CDATA[ P.MBR_HSTRY_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						P.MBR_REG_TYPE_CD != 'PCD0003' 	 			
+					</isEqual>	
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						P.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+					
+					<!-- 두 조건다 비어 있는 경우에만 작동한다 -->
+					<isNotEmpty property="DTL_NM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="YMD_NM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="BUSINESS_NUM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="REG_NUM_CD" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isEmpty property="DTL_NM" > 
+					<isEmpty property="YMD_NM" >					
+					<isEmpty property="BUSINESS_NUM" >  
+					<isEmpty property="REG_NUM_CD" >  
+					<isEmpty property="SHIP_LICENSE_STR_DT" >
+					<isEmpty property="SHIP_LICENSE_END_DT" >
+					<isEmpty property="SHIP_LICENSE" >
+					<isEmpty property="DTL_ADDR" >
+					<isEmpty property="FSHLC_APPLC" >
+					<isEmpty property="FSHLC_WORK_CD" >
+					<isEmpty property="SHIP_CD" >
+					<isEmpty property="SHIP_GRTG" >
+					<isEmpty property="SHIP_PRLOAD" >
+					<isEmpty property="SHIP_MAX_PSNGER" >
+					<isEmpty property="SHIP_MAX_CREW" >
+					<isEmpty property="DTL_LICENSE_CD" >
+							<!-- 처리부 -->
+							<isNotEmpty property="MBR_SIDO_CD" > AND (( </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > AND (( </isEmpty></isNotEmpty>
+								<isNotEmpty property="MBR_SIDO_CD" >
+									P.MBR_SIDO_CD = #MBR_SIDO_CD#
+								</isNotEmpty>
+								<isNotEmpty property="MBR_SIGNGU_CD" >
+									<isNotEmpty property="MBR_SIDO_CD" > AND </isNotEmpty>
+									P.MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+								</isNotEmpty>
+							<isNotEmpty property="MBR_SIDO_CD" > ) </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > ) </isEmpty></isNotEmpty>
+								<isNotEmpty property="SIDO_CD" prepend="OR"> 
+									<![CDATA[ P.DTL_CNT > 0 ]]>
+								</isNotEmpty>
+								<isNotEmpty property="SIGNGU_CD"> 
+									<isEmpty property="SIDO_CD" prepend="OR"> 
+										<![CDATA[ P.DTL_CNT > 0 ]]>
+									</isEmpty>
+								</isNotEmpty>
+								<isNotEmpty property="DTL_CD" > 
+									<isEmpty property="SIDO_CD" > 
+										<isEmpty property="SIGNGU_CD" prepend="AND"> 
+											<![CDATA[ P.DTL_CNT > 0 ]]>
+										</isEmpty>
+									</isEmpty>
+								</isNotEmpty>
+							<isNotEmpty property="MBR_SIDO_CD" > ) </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > ) </isEmpty></isNotEmpty> 	
+							<!-- 처리부  -->
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					<!-- 두 조건다 비어 있는 경우에만 작동한다  -->
+					
+				</isNotEmpty>	
+				<isEmpty property="MBR_REG_TYPE_CD"> 
+					<isNotEmpty property="SIDO_CD" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SIGNGU_CD"> 
+						<isEmpty property="SIDO_CD" prepend="AND"> 
+							<![CDATA[ P.DTL_CNT > 0 ]]>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_CD" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD" prepend="AND"> 
+								<![CDATA[ P.DTL_CNT > 0 ]]>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="YMD_NM" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD" prepend="AND"> 
+									<![CDATA[ P.DTL_CNT > 0 ]]>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_NM" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD"> 
+									<isEmpty property="YMD_NM" prepend="AND"> 
+										<![CDATA[ P.DTL_CNT > 0 ]]>
+									</isEmpty>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="REG_NUM_CD" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD"> 
+									<isEmpty property="YMD_NM" > 
+										<isEmpty property="DTL_NM" prepend="AND"> 
+											<![CDATA[ P.DTL_CNT > 0 ]]>
+										</isEmpty>
+									</isEmpty>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="BUSINESS_NUM" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_ADDR" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="FSHLC_APPLC" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="FSHLC_WORK_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_GRTG" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_PRLOAD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_MAX_CREW" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_LICENSE_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+				</isEmpty>	
+	</select>
+	<select id="eduMember.get_edu_member_target_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT P.* 
+			FROM (
+				SELECT T.* ,
+				(	SELECT COUNT(*) 
+				    FROM MBR_EDU_TRGT_TB AS E
+				    WHERE E.MBR_ID = T.MBR_ID 
+				     	<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+						<isNotEmpty property="TRGT_YEAR" prepend="AND"> E.TRGT_YEAR = #TRGT_YEAR# </isNotEmpty>  
+						<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+						<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+						<isNotEmpty property="searchYear" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="TRGT_YEAR" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+				) AS TRGT_CNT ,
+				( 	SELECT COUNT(*) 
+					FROM MBR_DTL_TB AS MD 
+					WHERE MD.MBR_ID = T.MBR_ID
+						<isNotEmpty property="MBR_ST">  
+							<isNotEmpty property="USE_AT" prepend="AND"> MD.USE_AT = #MBR_ST# </isNotEmpty>
+				  		</isNotEmpty>
+				  		<!-- <isNotEmpty property="DEL_AT" prepend="AND"> MD.DEL_AT = #DEL_AT# </isNotEmpty>  -->
+				  	 	<!-- <isNotEmpty property="MBR_SIDO_CD" prepend="AND"> MD.SIDO_CD = #MBR_SIDO_CD# </isNotEmpty>
+						<isNotEmpty property="MBR_SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #MBR_SIGNGU_CD# </isNotEmpty> -->
+						<isNotEmpty property="SIDO_CD" prepend="AND"> MD.SIDO_CD = #SIDO_CD# </isNotEmpty>
+						<isNotEmpty property="SIGNGU_CD" prepend="AND"> MD.SIGNGU_CD = #SIGNGU_CD# </isNotEmpty>
+						<isNotEmpty property="DTL_CD" prepend="AND"> MD.DTL_CD = #DTL_CD# </isNotEmpty>
+						<isNotEmpty property="YMD_NM" prepend="AND"> MD.YMD_NM LIKE '%$YMD_NM$%' </isNotEmpty>
+						<isNotEmpty property="DTL_NM" prepend="AND"> MD.DTL_NM LIKE '%$DTL_NM$%' </isNotEmpty>
+						<isNotEmpty property="BUSINESS_NUM" prepend="AND"> MD.BUSINESS_NUM LIKE CONCAT('%',REPLACE(#BUSINESS_NUM#,'-',''),'%') </isNotEmpty>
+						<isNotEmpty property="REG_NUM_CD" prepend="AND"> MD.REG_NUM_CD LIKE CONCAT('%',REPLACE(#REG_NUM_CD#,'-',''),'%') </isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_STR_DT >= CONCAT(#SHIP_LICENSE_STR_DT#,' 00:00:00') ]]></isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND"><![CDATA[ MD.SHIP_LICENSE_END_DT <= CONCAT(#SHIP_LICENSE_END_DT#,' 23:59:59') ]]></isNotEmpty>
+						<isNotEmpty property="SHIP_LICENSE" prepend="AND"> MD.SHIP_LICENSE = #SHIP_LICENSE# </isNotEmpty>
+						<isNotEmpty property="DTL_ADDR" prepend="AND"> MD.DTL_ADDR LIKE '%$DTL_ADDR$%' </isNotEmpty>
+						<isNotEmpty property="FSHLC_APPLC" prepend="AND"> MD.FSHLC_APPLC LIKE '%$FSHLC_APPLC$%' </isNotEmpty>
+						<isNotEmpty property="FSHLC_WORK_CD" prepend="AND"> MD.FSHLC_WORK_CD = #FSHLC_WORK_CD# </isNotEmpty>
+						<isNotEmpty property="SHIP_CD" prepend="AND"> MD.SHIP_CD LIKE CONCAT('%',REPLACE(#SHIP_CD#,'-',''),'%') </isNotEmpty>
+						<isNotEmpty property="SHIP_GRTG" prepend="AND"> MD.SHIP_GRTG LIKE '%$SHIP_GRTG$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_PRLOAD" prepend="AND"> MD.SHIP_PRLOAD LIKE '%$SHIP_PRLOAD$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND"> MD.SHIP_MAX_PSNGER LIKE '%$SHIP_MAX_PSNGER$%' </isNotEmpty>
+						<isNotEmpty property="SHIP_MAX_CREW" prepend="AND"> MD.SHIP_MAX_CREW LIKE '%$SHIP_MAX_CREW$%' </isNotEmpty>
+						<isNotEmpty property="DTL_LICENSE_CD" prepend="AND"> MD.DTL_LICENSE_CD = #DTL_LICENSE_CD# </isNotEmpty>
+				) AS DTL_CNT ,
+				(	
+					SELECT COUNT(*) 
+					FROM MBR_EDU_TRGT_TB AS E 
+					LEFT JOIN EDU_MBR_HSTRY_TB AS H ON H.HMBR_SN = E.HMBR_SN
+					WHERE E.MBR_ID = T.MBR_ID 
+						<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+						<isNotEmpty property="TRGT_YEAR" prepend="AND"> E.TRGT_YEAR = #TRGT_YEAR# </isNotEmpty>  
+						<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+						<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+						<isNotEmpty property="searchYear" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="TRGT_YEAR" prepend="AND">
+							E.TRGT_YEAR IS NOT NULL
+						</isNotEmpty>
+						<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+							H.LRNNG_CMPLT_ST = '1'
+						</isNotEmpty>
+						<isNotEmpty property="MBR_LRNNG_ST" prepend="AND">
+							H.LRNNG_ST = #MBR_LRNNG_ST#
+						</isNotEmpty>
+				) AS MBR_HSTRY_CNT 				
+				FROM MBR_TB AS T
+				WHERE 1 = 1 
+				<isNotEmpty property="MBR_ST" prepend="AND">
+					T.MBR_ST = #MBR_ST#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LV_ID" prepend="AND">
+					T.MBR_LV_ID >= #MBR_LV_ID#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID" prepend="AND">
+					T.MBR_ID = #MBR_ID#
+				</isNotEmpty>
+				<isNotEmpty property="MBR_NM" prepend="AND">
+					T.MBR_NM LIKE '%$MBR_NM$%'
+				</isNotEmpty>
+				<isNotEmpty property="MBR_BIRTH" prepend="AND">
+					T.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ADDR_MERGE" prepend="AND">
+					( T.MBR_ADDR1 LIKE '%$MBR_ADDR_MERGE$%' OR T.MBR_ADDR2 LIKE '%$MBR_ADDR_MERGE$%' )
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP" prepend="AND">
+					T.MBR_HP LIKE CONCAT('%',REPLACE(#MBR_HP#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="MBR_TEL" prepend="AND">
+					T.MBR_TEL LIKE CONCAT('%',REPLACE(#MBR_TEL#,'-',''),'%')
+				</isNotEmpty>
+				<isNotEmpty property="searchUseYn">
+					<isEqual compareValue="Y" property="searchUseYn">
+						<isNotEmpty property="searchKeyword" prepend="AND">
+						( T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' OR T.MBR_HP LIKE '$searchKeyword$%' OR T.MBR_ID LIKE '%$searchKeyword$%' )
+						</isNotEmpty>
+					</isEqual>			
+			  	</isNotEmpty>
+				ORDER BY T.MBR_NM ASC  
+			) AS P
+			WHERE 1=1
+				<isNotEmpty property="searchYear" prepend="AND">
+					<![CDATA[ P.TRGT_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="TRGT_YEAR" prepend="AND">
+					<![CDATA[ P.TRGT_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LRNNG_CMPLT_ST" prepend="AND">
+					<isEqual property="MBR_LRNNG_CMPLT_ST" compareValue="1">
+						<![CDATA[ P.MBR_HSTRY_CNT > 0 ]]>
+					</isEqual>	
+					<isNotEqual property="MBR_LRNNG_CMPLT_ST" compareValue="1">
+						<![CDATA[ P.MBR_HSTRY_CNT <= 0 ]]>
+					</isNotEqual>					
+				</isNotEmpty>
+				<isNotEmpty property="MBR_LRNNG_ST" prepend="AND">					
+					<![CDATA[ P.MBR_HSTRY_CNT > 0 ]]>
+				</isNotEmpty>
+				<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<isEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						P.MBR_REG_TYPE_CD != 'PCD0003' 	 			
+					</isEqual>	
+					<isNotEqual property="MBR_REG_TYPE_CD" compareValue="1">
+						P.MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD# 
+					</isNotEqual>
+					
+					<!-- 두 조건다 비어 있는 경우에만 작동한다 -->
+					<isNotEmpty property="DTL_NM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="YMD_NM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="BUSINESS_NUM" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="REG_NUM_CD" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isEmpty property="DTL_NM" > 
+					<isEmpty property="YMD_NM" >
+					<isEmpty property="BUSINESS_NUM" >  
+					<isEmpty property="REG_NUM_CD" >  
+					<isEmpty property="SHIP_LICENSE_STR_DT" >
+					<isEmpty property="SHIP_LICENSE_END_DT" >
+					<isEmpty property="SHIP_LICENSE" >
+					<isEmpty property="DTL_ADDR" >
+					<isEmpty property="FSHLC_APPLC" >
+					<isEmpty property="FSHLC_WORK_CD" >
+					<isEmpty property="SHIP_CD" >
+					<isEmpty property="SHIP_GRTG" >
+					<isEmpty property="SHIP_PRLOAD" >
+					<isEmpty property="SHIP_MAX_PSNGER" >
+					<isEmpty property="SHIP_MAX_CREW" >
+					<isEmpty property="DTL_LICENSE_CD" >
+							<!-- 처리부 -->
+							<isNotEmpty property="MBR_SIDO_CD" > AND (( </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > AND (( </isEmpty></isNotEmpty>
+								<isNotEmpty property="MBR_SIDO_CD" >
+									P.MBR_SIDO_CD = #MBR_SIDO_CD#
+								</isNotEmpty>
+								<isNotEmpty property="MBR_SIGNGU_CD" >
+									<isNotEmpty property="MBR_SIDO_CD" > AND </isNotEmpty>
+									P.MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+								</isNotEmpty>
+							<isNotEmpty property="MBR_SIDO_CD" > ) </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > ) </isEmpty></isNotEmpty>
+								<isNotEmpty property="SIDO_CD" prepend="OR"> 
+									<![CDATA[ P.DTL_CNT > 0 ]]>
+								</isNotEmpty>
+								<isNotEmpty property="SIGNGU_CD"> 
+									<isEmpty property="SIDO_CD" prepend="OR"> 
+										<![CDATA[ P.DTL_CNT > 0 ]]>
+									</isEmpty>
+								</isNotEmpty>
+								<isNotEmpty property="DTL_CD" > 
+									<isEmpty property="SIDO_CD" > 
+										<isEmpty property="SIGNGU_CD" prepend="OR"> 
+											<![CDATA[ P.DTL_CNT > 0 ]]>
+										</isEmpty>
+									</isEmpty>
+								</isNotEmpty>
+							<isNotEmpty property="MBR_SIDO_CD" > ) </isNotEmpty>
+							<isNotEmpty property="MBR_SIGNGU_CD" ><isEmpty property="MBR_SIDO_CD" > ) </isEmpty></isNotEmpty> 	
+							<!-- 처리부  -->
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					</isEmpty>
+					<!-- 두 조건다 비어 있는 경우에만 작동한다  -->
+					
+				</isNotEmpty>		
+				<isEmpty property="MBR_REG_TYPE_CD"> 
+					<isNotEmpty property="SIDO_CD" prepend="AND"> 
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SIGNGU_CD"> 
+						<isEmpty property="SIDO_CD" prepend="AND"> 
+							<![CDATA[ P.DTL_CNT > 0 ]]>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_CD" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD" prepend="AND"> 
+								<![CDATA[ P.DTL_CNT > 0 ]]>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="YMD_NM" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD" prepend="AND"> 
+									<![CDATA[ P.DTL_CNT > 0 ]]>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_NM" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD"> 
+									<isEmpty property="YMD_NM" prepend="AND"> 
+										<![CDATA[ P.DTL_CNT > 0 ]]>
+									</isEmpty>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="REG_NUM_CD" > 
+						<isEmpty property="SIDO_CD" > 
+							<isEmpty property="SIGNGU_CD"> 
+								<isEmpty property="DTL_CD"> 
+									<isEmpty property="YMD_NM" > 
+										<isEmpty property="DTL_NM" prepend="AND"> 
+											<![CDATA[ P.DTL_CNT > 0 ]]>
+										</isEmpty>
+									</isEmpty>
+								</isEmpty>
+							</isEmpty>
+						</isEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="BUSINESS_NUM" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE_STR_DT" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE_END_DT" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_LICENSE" prepend="AND"> 
+						 <![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_ADDR" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="FSHLC_APPLC" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="FSHLC_WORK_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_GRTG" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_PRLOAD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_MAX_PSNGER" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="SHIP_MAX_CREW" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+					<isNotEmpty property="DTL_LICENSE_CD" prepend="AND">
+						<![CDATA[ P.DTL_CNT > 0 ]]>
+					</isNotEmpty>
+				</isEmpty>		
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>		
+	</select>
+	<!-- 회원조회 : 교육센터-회원관리-회원목록 -->
+	<select id="get_edu_member_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(T.MBR_ID)
+			FROM MBR_TB AS T
+			WHERE 1=1 
+			<isNotEmpty property="MBR_LV_ID">
+				<isEqual compareValue="1" property="MBR_LV_ID">
+				
+				</isEqual>
+				<isEqual compareValue="2" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 2
+				</isEqual>
+				<isEqual compareValue="3" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 3
+				</isEqual>
+				<isEqual compareValue="4" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 4
+				</isEqual>
+				<isEqual compareValue="10" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 10
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' OR T.MBR_HP LIKE '$searchKeyword$%' OR T.MBR_ID LIKE '%$searchKeyword$%' )
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>		
+	</select>
+	<select id="get_edu_member_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT 
+				IFNULL(
+				(SELECT 
+				COUNT(T2.HMBR_SN) 
+				FROM EDU_MBR_HSTRY_TB AS T2 
+				WHERE T2.MBR_ID = T.MBR_ID
+				AND T2.USE_ST = '1'
+				AND T2.DEL_ST = '0'
+				),0
+				) AS HMBR_CNT,
+			T.* 
+			FROM MBR_TB AS T
+			WHERE 1=1 
+			<isNotEmpty property="MBR_LV_ID">
+				<isEqual compareValue="1" property="MBR_LV_ID">
+				
+				</isEqual>
+				<isEqual compareValue="2" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 2
+				</isEqual>
+				<isEqual compareValue="3" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 3
+				</isEqual>
+				<isEqual compareValue="4" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 4
+				</isEqual>
+				<isEqual compareValue="10" property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= 10
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' OR T.MBR_HP LIKE '$searchKeyword$%' OR T.MBR_ID LIKE '%$searchKeyword$%' )
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>
+			ORDER BY T.MBR_ST ASC, T.MBR_NM ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+	<!-- //회원조회 : 교육센터-회원관리-회원목록 -->
+	<!-- 관리자회원조회 : 교육센터-관리자회원관리-회원목록 -->
+	<select id="eduMember.get_edu_member_master_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(T.MBR_ID)
+			FROM MBR_TB AS T
+			WHERE 1=1 
+				AND ( T.MBR_LV_ID = 1 OR T.MBR_LV_ID = 2 OR T.MBR_LV_ID = 3 OR T.MBR_LV_ID = 4 OR T.MBR_LV_ID = 5)
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD" prepend="AND">
+				MBR_POSITION_CD = #MBR_POSITION_CD#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_TRGT_CD" prepend="AND">
+				MBR_TRGT_CD = #MBR_TRGT_CD#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_EDU_INS_CD" prepend="AND">
+				MBR_EDU_INS_CD = #MBR_EDU_INS_CD#
+			</isNotEmpty>	
+			<isNotEmpty property="MBR_SIDO_CD" prepend="AND">
+				MBR_SIDO_CD = #MBR_SIDO_CD#
+			</isNotEmpty>	
+			<isNotEmpty property="MBR_SIGNGU_CD" prepend="AND">
+				MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+			</isNotEmpty>	
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( 	
+						T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' 
+						OR T.MBR_HP LIKE '$searchKeyword$%' 
+						OR T.MBR_TEL LIKE '$searchKeyword$%' 
+						OR T.MBR_ID LIKE '%$searchKeyword$%'
+						OR T.MBR_NCNM LIKE '%$searchKeyword$%'
+						OR T.MBR_PSITN_NM LIKE '%$searchKeyword$%'
+					 )
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>		
+	</select>
+	<select id="eduMember.get_edu_member_master_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT 
+				IFNULL(
+				(SELECT 
+				COUNT(T2.HMBR_SN) 
+				FROM EDU_MBR_HSTRY_TB AS T2 
+				WHERE T2.MBR_ID = T.MBR_ID
+				AND T2.USE_ST = '1'
+				AND T2.DEL_ST = '0'
+				),0
+				) AS HMBR_CNT,
+				T.* ,
+				SIGNGU.CD_NM AS SIGNGU_NM
+			FROM MBR_TB AS T
+			LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.MBR_SIGNGU_CD
+			WHERE 1=1 
+				AND ( T.MBR_LV_ID = 1 OR T.MBR_LV_ID = 2 OR T.MBR_LV_ID = 3 OR T.MBR_LV_ID = 4 OR T.MBR_LV_ID = 5)
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD" prepend="AND">
+				MBR_POSITION_CD = #MBR_POSITION_CD#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_TRGT_CD" prepend="AND">
+				MBR_TRGT_CD = #MBR_TRGT_CD#
+			</isNotEmpty>		
+			<isNotEmpty property="MBR_EDU_INS_CD" prepend="AND">
+				MBR_EDU_INS_CD = #MBR_EDU_INS_CD#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_SIDO_CD" prepend="AND">
+				MBR_SIDO_CD = #MBR_SIDO_CD#
+			</isNotEmpty>	
+			<isNotEmpty property="MBR_SIGNGU_CD" prepend="AND">
+				MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+			</isNotEmpty>
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( 	
+						T.MBR_NM LIKE '%$searchKeyword$' OR T.MBR_NM LIKE '%$searchKeyword$%' 
+						OR T.MBR_HP LIKE '$searchKeyword$%' 
+						OR T.MBR_TEL LIKE '$searchKeyword$%' 
+						OR T.MBR_ID LIKE '%$searchKeyword$%'
+						OR T.MBR_NCNM LIKE '%$searchKeyword$%'
+						OR T.MBR_PSITN_NM LIKE '%$searchKeyword$%'
+					 )
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>
+			<!-- ORDER BY CASE 
+				WHEN T.MBR_ST = 'R' THEN '1'
+				WHEN T.MBR_ST = 'F' THEN '2'
+				WHEN T.MBR_MOD_DT THEN '3'
+				WHEN T.MBR_ST = 'Y' THEN '4'
+				ELSE '5' 
+				END ASC, T.MBR_NM ASC -->
+			<!-- ORDER BY CASE 
+				WHEN T.MBR_ST = 'R' THEN NOW()
+				WHEN T.MBR_ST = 'F' THEN NOW()
+				WHEN T.MBR_MOD_DT IS NULL THEN NOW()
+				WHEN T.MBR_ST = 'N' THEN NULL  
+				END DESC,T.MBR_MOD_DT DESC,T.MBR_NM ASC -->  
+				ORDER BY 
+					CASE 
+						WHEN T.MBR_ST = 'R' THEN '1' <!-- 승인대기 -->
+						WHEN T.MBR_ST = 'Y' THEN '2' <!-- 활성화 -->
+						WHEN T.MBR_ST = 'N' THEN '3' <!-- 비활성화 -->
+						WHEN T.MBR_ST = 'F' THEN '4' <!-- 승인거부 -->
+						ELSE '5' 
+					END ASC,
+				T.MBR_REG_DT DESC,T.MBR_NM ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+	
+	<select id="get_edu_member_master_info" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+		SELECT T.*
+		FROM MBR_TB AS T
+		LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.MBR_SIGNGU_CD
+		WHERE 1 = 1 
+		AND T.MBR_ID = #MBR_ID#
+		AND T.MBR_HP = #MBR_HP#
+	</select>
+	
+	<!-- //관리자회원조회 : 교육센터-관리자회원관리-회원목록 -->
+	<insert id="set_edu_member_reg" parameterClass="eduMemberVO">
+		INSERT INTO MBR_TB (
+			MBR_ID,
+			MBR_CD,
+			MBR_PWD,
+			MBR_NM,
+			MBR_NCNM,
+			MBR_TEL,
+			MBR_HP,
+			MBR_EMAIL,
+			MBR_ADDR1,
+			MBR_ADDR2,
+			<isNotEmpty property="MBR_ZIPCD">MBR_ZIPCD,</isNotEmpty>
+			MBR_REG_DT,
+			MBR_TYPE_CD,
+			MBR_BIRTH,
+			<isNotEmpty property="MBR_JOIN">MBR_JOIN,</isNotEmpty>
+			MBR_PSITN_NM,
+			MBR_SIDO_CD,
+			MBR_SIGNGU_CD,
+			MBR_POSITION_CD,
+			MBR_EDU_INS_CD,
+			MBR_TRGT_CD,
+			<isNotEmpty property="MBR_EDU_RSPNBER_TYPE">MBR_EDU_RSPNBER_TYPE,</isNotEmpty>
+			<isNotEmpty property="MBR_LV_ID">MBR_LV_ID,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_1_ST">MBR_GRP_1_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST">MBR_GRP_2_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST">MBR_GRP_3_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST">MBR_GRP_4_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_REG_TYPE_CD">MBR_REG_TYPE_CD,</isNotEmpty>
+			<isNotEmpty property="MBR_ST">MBR_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_INDVDL_INFO_ST">MBR_INDVDL_INFO_ST,</isNotEmpty>
+			<isNotEmpty property="CONECT_POSBL_IP">CONECT_POSBL_IP,</isNotEmpty>
+			<isNotEmpty property="CONECT_POSBL_IP_USE_YN">CONECT_POSBL_IP_USE_YN,</isNotEmpty>
+			PARNTS_MBR_NM,
+			PARNTS_MBR_HP,
+			PARNTS_MBR_BIRTH,
+			PARNTS_MBR_RELATIONSHIP,
+			<isNotEmpty property="UNDER_AGE_14_ST">UNDER_AGE_14_ST,</isNotEmpty>
+			MBR_DSCRP,
+			REG_MBR_ID,
+			UPD_MBR_ID,
+			MBR_PURPS,
+			<isNotEmpty property="MBR_PREDCESR">MBR_PREDCESR,</isNotEmpty>
+			MBR_USG_DT,
+			<isNotEmpty property="MBR_PLEDGE_ST">MBR_PLEDGE_ST,</isNotEmpty>
+			<isNotEmpty property="MBR_FSHRBT_TYPE">MBR_FSHRBT_TYPE,</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				GOV_MOD_DT,
+			</isNotEmpty>
+			MBR_INDVDL_INFO_DT,
+			MBR_PWD_ST,
+			MBR_PWD_DT
+		) VALUES (
+			#MBR_ID#,
+			#MBR_ID#,
+			#MBR_PWD#,
+			#MBR_NM#,
+			#MBR_NCNM#,
+			REPLACE(#MBR_TEL#,'-',''),
+			REPLACE(#MBR_HP#,'-',''),
+			#MBR_EMAIL#,
+			#MBR_ADDR1#,
+			#MBR_ADDR2#,
+			<isNotEmpty property="MBR_ZIPCD">#MBR_ZIPCD#,</isNotEmpty>
+			NOW(),
+			#MBR_TYPE_CD#,
+			REPLACE(#MBR_BIRTH#,'-',''),
+			<isNotEmpty property="MBR_JOIN">#MBR_JOIN#,</isNotEmpty>
+			#MBR_PSITN_NM#,
+			#MBR_SIDO_CD#,
+			#MBR_SIGNGU_CD#,
+			#MBR_POSITION_CD#,
+			#MBR_EDU_INS_CD#,
+			#MBR_TRGT_CD#,
+			<isNotEmpty property="MBR_EDU_RSPNBER_TYPE">#MBR_EDU_RSPNBER_TYPE#,</isNotEmpty>
+			<isNotEmpty property="MBR_LV_ID">#MBR_LV_ID#,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_1_ST">#MBR_GRP_1_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST">#MBR_GRP_2_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST">#MBR_GRP_3_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST">#MBR_GRP_4_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_REG_TYPE_CD">#MBR_REG_TYPE_CD#,</isNotEmpty>
+			<isNotEmpty property="MBR_ST">#MBR_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_INDVDL_INFO_ST">#MBR_INDVDL_INFO_ST#,</isNotEmpty>
+			<isNotEmpty property="CONECT_POSBL_IP">#CONECT_POSBL_IP#,</isNotEmpty>
+			<isNotEmpty property="CONECT_POSBL_IP_USE_YN">#CONECT_POSBL_IP_USE_YN#,</isNotEmpty>
+			#PARNTS_MBR_NM#,
+			#PARNTS_MBR_HP#,
+			#PARNTS_MBR_BIRTH#,
+			#PARNTS_MBR_RELATIONSHIP#,
+			<isNotEmpty property="UNDER_AGE_14_ST">#UNDER_AGE_14_ST#,</isNotEmpty>
+			#MBR_DSCRP#,
+			#REG_MBR_ID#,
+			#UPD_MBR_ID#,
+			#MBR_PURPS#,
+			<isNotEmpty property="MBR_PREDCESR">#MBR_PREDCESR#,</isNotEmpty>
+			#MBR_USG_DT#,
+			<isNotEmpty property="MBR_PLEDGE_ST">#MBR_PLEDGE_ST#,</isNotEmpty>
+			<isNotEmpty property="MBR_FSHRBT_TYPE">#MBR_FSHRBT_TYPE#,</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				NOW(),
+			</isNotEmpty>
+			<isNotEmpty property="MBR_INDVDL_INFO_DT">
+				#MBR_INDVDL_INFO_DT#,	
+			</isNotEmpty>
+			<isEmpty property="MBR_INDVDL_INFO_DT">
+				NOW(),
+			</isEmpty>
+			0,
+			NOW()
+		)
+		<!-- 
+		<selectKey keyProperty="HMBR_SN" resultClass="String">
+        SELECT LAST_INSERT_ID()
+   		</selectKey>
+   		 -->
+	</insert>
+	<update id="eduMember.set_edu_member_master_auth_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_TB
+		SET MBR_MOD_DT=NOW()
+		    ,UPD_MBR_ID=#UPD_MBR_ID#
+		    <isNotEmpty property="MBR_LV_ID" prepend=",">MBR_LV_ID=#MBR_LV_ID#</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_1_ST" prepend=",">MBR_GRP_1_ST=#MBR_GRP_1_ST#</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_2_ST" prepend=",">MBR_GRP_2_ST=#MBR_GRP_2_ST#</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_3_ST" prepend=",">MBR_GRP_3_ST=#MBR_GRP_3_ST#</isNotEmpty>
+			<isNotEmpty property="MBR_GRP_4_ST" prepend=",">MBR_GRP_4_ST=#MBR_GRP_4_ST#</isNotEmpty>
+			<isNotEmpty property="MBR_USG_DT" prepend=",">MBR_USG_DT=#MBR_USG_DT#</isNotEmpty>
+		WHERE MBR_ID = #MBR_ID#		
+	</update>
+	<update id="eduMember.set_edu_member_trnsfer" parameterClass="eduMemberVO">
+		UPDATE MBR_TB
+		SET MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD#
+		    ,MBR_MOD_DT=NOW()
+		    ,UPD_MBR_ID=#UPD_MBR_ID# 
+		WHERE MBR_ID = #MBR_ID#		
+	</update>
+	<update id="set_edu_member_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_TB 
+		SET 
+			<isNotEmpty property="MBR_DSCRP">
+				MBR_DSCRP = #MBR_DSCRP#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_PWD">
+				MBR_PWD = #MBR_PWD#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_NM">
+				MBR_NM = #MBR_NM#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_NCNM">
+				MBR_NCNM = #MBR_NCNM#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_TEL">
+				MBR_TEL = REPLACE(#MBR_TEL#,'-',''),
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HP">
+				MBR_HP = REPLACE(#MBR_HP#,'-',''),
+			</isNotEmpty>
+			<isNotEmpty property="MBR_EMAIL">
+				MBR_EMAIL = #MBR_EMAIL#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ADDR1">
+				MBR_ADDR1 = #MBR_ADDR1#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ADDR2">
+				MBR_ADDR2 = #MBR_ADDR2#,
+			</isNotEmpty>
+			<isEqual property="MBR_ADDR2_UPD_YN" compareValue="Y">
+				<isEmpty property="MBR_ADDR2">
+					MBR_ADDR2 = #MBR_ADDR2#,
+				</isEmpty>
+			</isEqual>
+			<isNotEmpty property="MBR_ZIPCD">
+				MBR_ZIPCD = #MBR_ZIPCD#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_LAST_CON_TM">
+				MBR_LAST_CON_TM = #MBR_LAST_CON_TM#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_LAST_CON_IPADDR">
+				MBR_LAST_CON_IPADDR = #MBR_LAST_CON_IPADDR#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD">
+				MBR_POSITION_CD = #MBR_POSITION_CD#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_TYPE_CD">
+				MBR_TYPE_CD = #MBR_TYPE_CD#,
+			</isNotEmpty>	
+			<isNotEmpty property="MBR_BIRTH">
+				MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-',''),
+			</isNotEmpty>
+			<isNotEmpty property="MBR_SEX">
+				MBR_SEX = #MBR_SEX#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HOPE_ZONE">
+				MBR_HOPE_ZONE = #MBR_HOPE_ZONE#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HOPE_BUSINESS">
+				MBR_HOPE_BUSINESS = #MBR_HOPE_BUSINESS#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ST">
+				MBR_ST = #MBR_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HMBR_ONLINE_SN">
+				MBR_HMBR_ONLINE_SN = #MBR_HMBR_ONLINE_SN#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HMBR_ONLINE_ST">
+				MBR_HMBR_ONLINE_ST = #MBR_HMBR_ONLINE_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_PSITN_NM">
+				MBR_PSITN_NM = #MBR_PSITN_NM#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_POSITION_CD">
+				MBR_EDU_INS_CD = #MBR_EDU_INS_CD#,
+				MBR_TRGT_CD = #MBR_TRGT_CD#,
+				MBR_SIDO_CD = #MBR_SIDO_CD#,
+				MBR_SIGNGU_CD = #MBR_SIGNGU_CD#,
+			</isNotEmpty>		
+			<isNotEmpty property="MBR_PWD_CLEAR">
+				<isEqual property="MBR_PWD_CLEAR" compareValue="Y">
+				MBR_PWD = NULL,
+				MBR_PWD_ST = '2',
+				</isEqual>
+			</isNotEmpty>	
+			<isNotEmpty property="MBR_REG_TYPE_CD">
+				MBR_REG_TYPE_CD = #MBR_REG_TYPE_CD#,
+				MBR_SIDO_CD = #MBR_SIDO_CD#,
+				MBR_SIGNGU_CD = #MBR_SIGNGU_CD#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_FSHRBT_TYPE">
+				MBR_FSHRBT_TYPE = #MBR_FSHRBT_TYPE#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_EDU_RSPNBER_TYPE">
+				MBR_EDU_RSPNBER_TYPE = #MBR_EDU_RSPNBER_TYPE#,
+			</isNotEmpty>
+			<isNotEmpty property="MBR_PLEDGE_ST">
+				MBR_PLEDGE_ST = #MBR_PLEDGE_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				GOV_MOD_DT = NOW(),
+			</isNotEmpty>			
+			<isNotEmpty property="MBR_INDVDL_INFO_DT">
+				MBR_INDVDL_INFO_DT = #MBR_INDVDL_INFO_DT#,
+			</isNotEmpty>
+			<isEmpty property="MBR_INDVDL_INFO_DT">
+				MBR_INDVDL_INFO_DT = NULL,
+			</isEmpty>
+				CONECT_POSBL_IP = #CONECT_POSBL_IP#,
+			<isNotEmpty property="CONECT_POSBL_IP_USE_YN">
+				CONECT_POSBL_IP_USE_YN = #CONECT_POSBL_IP_USE_YN#,
+			</isNotEmpty>
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			MBR_MOD_DT=NOW()
+		WHERE 1=1 
+			AND MBR_ID = #MBR_ID#
+	</update>
+	<select id="get_edu_member_info" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT T.* 
+			FROM MBR_TB AS T
+			WHERE 1=1 
+			AND T.MBR_ID = #MBR_ID#
+	</select>
+	<update id="del_edu_member" parameterClass="eduMemberVO">
+		UPDATE MBR_TB 
+		SET MBR_ST='N',
+			MBR_MOD_DT=NOW()
+		WHERE 1=1 
+			AND MBR_ID = #MBR_ID#
+	</update>
+	<delete id="remove_edu_member" parameterClass="eduMemberVO">
+		<isNotEmpty property="MBR_ID">	
+			DELETE 
+			FROM MBR_TB
+			WHERE 1=1 AND MBR_ID = #MBR_ID#
+		</isNotEmpty>
+	</delete>
+	
+	
+	
+	<delete id="remove_edu_member_dtl" parameterClass="eduMemberVO">
+		<isNotEmpty property="MBR_ID">	
+			DELETE 
+			FROM MBR_DTL_TB
+			WHERE 1=1 AND MBR_ID = #MBR_ID#
+			<isNotEmpty property="DTL_SN" prepend="AND">	
+				DTL_SN = #DTL_SN#
+			</isNotEmpty>
+		</isNotEmpty>
+	</delete>
+	<update id="set_edu_member_dtl_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_DTL_TB SET
+			MBR_NM = #MBR_NM#,
+			DTL_CD = #DTL_CD#,
+			DTL_NM = #DTL_NM#,
+			REG_TYPE_CD = #REG_TYPE_CD#,
+			DTL_LICENSE_CD = #DTL_LICENSE_CD#,
+			SIDO_CD = #SIDO_CD#,
+			SIGNGU_CD = #SIGNGU_CD#,
+			YMD_NM = #YMD_NM#,
+			DTL_ADDR = #DTL_ADDR#,
+			BUSINESS_NUM = REPLACE(#BUSINESS_NUM#,'-',''),
+			REG_NUM_CD = REPLACE(#REG_NUM_CD#,'-',''),
+			FSHLC_APPLC = #FSHLC_APPLC#,
+			FSHLC_WORK_CD = #FSHLC_WORK_CD#,
+			SHIP_CD = REPLACE(#SHIP_CD#,'-',''),
+			SHIP_GRTG = #SHIP_GRTG#,
+			SHIP_PRLOAD = #SHIP_PRLOAD#,
+			SHIP_MAX_PSNGER = #SHIP_MAX_PSNGER#,
+			SHIP_MAX_CREW = #SHIP_MAX_CREW#,
+			SHIP_LICENSE = #SHIP_LICENSE#,
+			<isNotEmpty property="SHIP_LICENSE_STR_DT">SHIP_LICENSE_STR_DT = CONCAT(#SHIP_LICENSE_STR_DT#,' 00:00:00'),</isNotEmpty>
+			<isEmpty property="SHIP_LICENSE_STR_DT">SHIP_LICENSE_STR_DT = NULL,</isEmpty>
+			<isNotEmpty property="SHIP_LICENSE_END_DT">SHIP_LICENSE_END_DT = CONCAT(#SHIP_LICENSE_END_DT#,' 23:59:59'),</isNotEmpty>
+			<isEmpty property="SHIP_LICENSE_END_DT">SHIP_LICENSE_END_DT = NULL,</isEmpty>
+			<isNotEmpty property="USE_AT">
+				<isEqual property="USE_AT" compareValue="Y">USE_AT = 'Y',DEL_AT = 'N',</isEqual>
+				<isNotEqual property="USE_AT" compareValue="Y">USE_AT = 'N',DEL_AT = 'Y',</isNotEqual>				
+			</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				GOV_MOD_DT = NOW(),
+			</isNotEmpty>
+			<isNotEmpty property="SIDO_CD_CHG_DT">
+				SIDO_CD_CHG_DT = NOW(),
+			</isNotEmpty>
+			UPD_DT = NOW(),
+			UPD_MBR_ID = #UPD_MBR_ID#					
+		WHERE DTL_SN = #DTL_SN# AND MBR_ID = #MBR_ID#
+	</update>
+	<insert id="set_edu_member_dtl_reg" parameterClass="eduMemberVO">
+		INSERT INTO MBR_DTL_TB (
+			MBR_CD,            
+			MBR_ID,
+			MBR_NM,
+			DTL_CD,
+			DTL_NM,
+			REG_TYPE_CD,
+			DTL_LICENSE_CD,
+			SIDO_CD,
+			SIGNGU_CD,
+			YMD_NM,
+			DTL_ADDR,
+			BUSINESS_NUM,
+			REG_NUM_CD,
+			FSHLC_APPLC,
+			FSHLC_WORK_CD,
+			SHIP_CD,
+			SHIP_GRTG,
+			SHIP_PRLOAD,
+			SHIP_MAX_PSNGER,
+			SHIP_MAX_CREW,
+			SHIP_LICENSE,
+			<isNotEmpty property="SHIP_LICENSE_STR_DT">SHIP_LICENSE_STR_DT,</isNotEmpty>
+			<isNotEmpty property="SHIP_LICENSE_END_DT">SHIP_LICENSE_END_DT,</isNotEmpty>
+			<isNotEmpty property="USE_AT">USE_AT,</isNotEmpty>
+			<isNotEmpty property="DEL_AT">DEL_AT,</isNotEmpty>
+			<isNotEmpty property="HIDE_AT">HIDE_AT,</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				GOV_MOD_DT,
+			</isNotEmpty>
+			REG_DT,
+			UPD_DT,
+			REG_MBR_ID,
+			UPD_MBR_ID						
+		) VALUES (
+			#MBR_CD#,
+			#MBR_ID#,
+			#MBR_NM#,
+			#DTL_CD#,
+			#DTL_NM#,
+			#REG_TYPE_CD#,
+			#DTL_LICENSE_CD#,
+			#SIDO_CD#,
+			#SIGNGU_CD#,
+			#YMD_NM#,
+			#DTL_ADDR#,
+			REPLACE(#BUSINESS_NUM#,'-',''),
+			REPLACE(#REG_NUM_CD#,'-',''),
+			#FSHLC_APPLC#,
+			#FSHLC_WORK_CD#,
+			REPLACE(#SHIP_CD#,'-',''),
+			#SHIP_GRTG#,
+			#SHIP_PRLOAD#,
+			#SHIP_MAX_PSNGER#,
+			#SHIP_MAX_CREW#,
+			#SHIP_LICENSE#,
+			<isNotEmpty property="SHIP_LICENSE_STR_DT">CONCAT(#SHIP_LICENSE_STR_DT#,' 00:00:00'),</isNotEmpty>
+			<isNotEmpty property="SHIP_LICENSE_END_DT">CONCAT(#SHIP_LICENSE_END_DT#,' 23:59:59'),</isNotEmpty>
+			<isNotEmpty property="USE_AT">#USE_AT#,</isNotEmpty>
+			<isNotEmpty property="DEL_AT">#DEL_AT#,</isNotEmpty>
+			<isNotEmpty property="HIDE_AT">#HIDE_AT#,</isNotEmpty>
+			<isNotEmpty property="GOV_MOD_DT">
+				NOW(),
+			</isNotEmpty>
+			NOW(),
+			NOW(),
+			#REG_MBR_ID#,
+			#UPD_MBR_ID#					
+		)	
+		<!-- 
+		<selectKey keyProperty="HMBR_SN" resultClass="String">
+        SELECT LAST_INSERT_ID()
+   		</selectKey>
+   		 -->
+	</insert>
+	<select id="eduMember.get_is_member_dtl" parameterClass="eduMemberVO" resultClass="int">
+		SELECT COUNT(MBR_ID) as is_id_cnt FROM MBR_DTL_TB WHERE MBR_ID=#MBR_ID#
+	</select>
+	
+	
+	
+	
+	<!-- 해당회원의 상세정보 가져오기 -->
+	<select id="eduMember.get_edu_member_dtl_info" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+		SELECT T.*, M.MBR_BIRTH, M.MBR_HP, M.MBR_ADDR1, M.MBR_ZIPCD, M.MBR_EDU_RSPNBER_TYPE 
+		FROM MBR_DTL_TB AS T
+		LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+		WHERE T.DTL_SN = #DTL_SN#
+		<isNotEmpty property="MBR_ID">
+			AND M.MBR_ID = #MBR_ID#			
+		</isNotEmpty>
+	</select>
+	<!-- // 해당회원의 상세정보 가져오기 -->
+	<!-- 해당회원의 상세정보 모두 가져오기 -->
+	<select id="eduMember.get_edu_member_dtl_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT  T.*, 
+			IF(C1.CD_NM IS NULL,'',C1.CD_NM) AS SIDO_CD_NM, 
+			IF(C2.CD_NM IS NULL,'',C2.CD_NM) AS SIGNGU_CD_NM, 
+			IF(C3.CD_NM IS NULL,'',C3.CD_NM) AS DTL_LICENSE_CD_NM,
+			IF(M.MBR_EDU_RSPNBER_TYPE IS NULL,'',M.MBR_EDU_RSPNBER_TYPE) AS MBR_EDU_RSPNBER_TYPE,
+			IF(M.MBR_FSHRBT_TYPE IS NULL, '', M.MBR_FSHRBT_TYPE) AS MBR_FSHRBT_TYPE
+			FROM MBR_DTL_TB AS T
+			LEFT JOIN all_code_set_tb AS C1 ON C1.CD_ID = T.SIDO_CD
+			LEFT JOIN all_code_set_tb AS C2 ON C2.CD_ID = T.SIGNGU_CD
+			LEFT JOIN all_code_set_tb AS C3 ON C3.CD_ID = T.DTL_LICENSE_CD
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+			WHERE 1=1 
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="USE_AT">	
+				AND T.USE_AT = #USE_AT#
+			</isNotEmpty>
+			<isNotEmpty property="HIDE_AT">	
+				AND T.HIDE_AT = #HIDE_AT#
+			</isNotEmpty>
+			<isNotEmpty property="DTL_CD">
+				<isEqual property="DTL_CD" compareValue="CIDN010400" >
+					T.DTL_CD = ('CIDN010200' OR 'CIDN010300')
+				</isEqual>
+			</isNotEmpty>
+	</select>
+	<select id="eduMember.get_edu_member_dtl_all_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT T.*,
+				C1.CD_NM AS SIDO_CD_NM, 
+				C2.CD_NM AS SIGNGU_CD_NM,
+				C3.CD_NM AS DTL_CD_NM  
+			FROM MBR_DTL_TB AS T 
+			LEFT JOIN all_code_set_tb AS C1 ON C1.CD_ID = T.SIDO_CD
+			LEFT JOIN all_code_set_tb AS C2 ON C2.CD_ID = T.SIGNGU_CD
+			LEFT JOIN all_code_set_tb AS C3 ON C3.CD_ID = T.DTL_CD
+			WHERE 1=1 
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="DTL_CD">
+				
+			</isNotEmpty>
+			ORDER BY T.REG_DT DESC
+	</select>
+	<!--// 해당회원의 상세정보 모두 가져오기 -->
+	<!-- 중복회원검증리스트(이름,생년월일,연락처 등) -->
+	<select id="eduMember.get_edu_member_check_overlap_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+		SELECT T.* 
+		FROM (
+			SELECT '1' AS overlapType, (SELECT COUNT(MD.MBR_ID) FROM MBR_DTL_TB AS MD WHERE MD.MBR_ID = M.MBR_ID AND MD.USE_AT = 'Y' ) AS DTL_CNT, M.*
+			FROM MBR_TB AS M
+			WHERE M.MBR_LV_ID = '10' AND M.MBR_NM LIKE '%$MBR_NM$%'  AND M.MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','') 
+			UNION
+			SELECT '2' AS overlapType, (SELECT COUNT(MD.MBR_ID) FROM MBR_DTL_TB AS MD WHERE MD.MBR_ID = M.MBR_ID AND MD.USE_AT = 'Y' ) AS DTL_CNT, M.* 
+			FROM MBR_TB AS M
+			WHERE M.MBR_LV_ID = '10' AND M.MBR_NM LIKE '%$MBR_NM$%' 
+			UNION
+			SELECT '3' AS overlapType, (SELECT COUNT(MD.MBR_ID) FROM MBR_DTL_TB AS MD WHERE MD.MBR_ID = M.MBR_ID AND MD.USE_AT = 'Y' ) AS DTL_CNT, M.* 
+			FROM MBR_TB AS M
+			WHERE M.MBR_LV_ID = '10' AND M.MBR_BIRTH LIKE CONCAT('%',REPLACE(#MBR_BIRTH#,'-',''),'%') 
+			UNION
+			SELECT '4' AS overlapType, (SELECT COUNT(MD.MBR_ID) FROM MBR_DTL_TB AS MD WHERE MD.MBR_ID = M.MBR_ID AND MD.USE_AT = 'Y') AS DTL_SN_CNT, M.* 
+			FROM MBR_TB AS M
+			WHERE M.MBR_LV_ID = '10' AND M.MBR_HP LIKE CONCAT('%',REPLACE(#MBR_HP#,'-',''),'%') 
+		) AS T
+		GROUP BY T.MBR_ID
+		ORDER BY T.overlapType ASC
+	</select>
+	<!-- //중복회원검증리스트(이름,생년월일,연락처 등) -->
+	<!-- 중복회원검증리스트(이름,생년월일,연락처 등) -->
+	<select id="eduMember.get_edu_member_check_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+		SELECT T.* 
+		FROM MBR_TB AS T
+		WHERE MBR_NM = #MBR_NM#
+		AND MBR_HP = REPLACE(#MBR_HP#,'-','')
+		AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+		AND MBR_LV_ID = 10
+	</select>
+	<!-- //중복회원검증리스트(이름,생년월일,연락처 등) -->
+	<!-- 교육센터-교육대상자-추가가능회원목록 -->
+	<select id="eduMember.get_edu_member_target_add_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(*) 
+			FROM (
+				SELECT COUNT(P.MBR_ID) 
+				FROM (
+					SELECT M.MBR_ID, M.MBR_REG_TYPE_CD, (
+							SELECT COUNT(E.MBR_ID) 
+							FROM MBR_EDU_TRGT_TB AS E 
+							WHERE E.MBR_ID = M.MBR_ID
+							<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+						  	<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+						  	<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+						) AS cnt
+					FROM MBR_TB AS M
+					LEFT JOIN MBR_DTL_TB AS T ON T.MBR_ID = M.MBR_ID 
+					WHERE 1=1
+							<isNotEmpty property="MBR_LV_ID" prepend="AND">
+							M.MBR_LV_ID >= #MBR_LV_ID#
+							</isNotEmpty>
+							<isNotEmpty property="MBR_ST" prepend="AND">
+							M.MBR_ST = 'Y'
+							</isNotEmpty>
+							<isNotEmpty property="DTL_CD" prepend="AND">
+							T.DTL_CD >= #DTL_CD#
+							</isNotEmpty>
+							<isNotEmpty property="searchUseYn">
+								<isEqual compareValue="Y" property="searchUseYn">
+									<isNotEmpty property="searchKeyword" prepend="AND">
+									( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR T.DTL_NM LIKE '%$searchKeyword$' OR T.DTL_NM LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+									</isNotEmpty>
+								</isEqual>			
+						  	</isNotEmpty>				
+					ORDER BY T.REG_DT DESC
+				) AS P
+				WHERE 1=1
+				<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					( <![CDATA[ P.cnt < 1 ]]> OR P.MBR_REG_TYPE_CD != #MBR_REG_TYPE_CD# )
+				</isNotEmpty>
+				<isEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<![CDATA[ P.cnt < 1 ]]>
+				</isEmpty>
+				GROUP BY P.MBR_ID
+			) AS Parent
+	</select>
+	<select id="eduMember.get_edu_member_target_add_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT P.* 
+			FROM (
+				SELECT M.MBR_BIRTH, M.MBR_HP, M.MBR_ADDR1, M.MBR_ADDR2, M.MBR_ST, M.MBR_ID, M.MBR_CD, (
+						SELECT COUNT(E.MBR_ID) 
+						FROM MBR_EDU_TRGT_TB AS E 
+						WHERE E.MBR_ID = M.MBR_ID
+						<isNotEmpty property="searchYear" prepend="AND"> E.TRGT_YEAR = #searchYear# </isNotEmpty>  
+					  	<isNotEmpty property="USE_AT" prepend="AND"> E.USE_AT = #USE_AT# </isNotEmpty>
+					  	<isNotEmpty property="DEL_AT" prepend="AND"> E.DEL_AT = #DEL_AT# </isNotEmpty>
+					) AS cnt, IF(T.MBR_NM IS NULL,M.MBR_NM,T.MBR_NM) AS MBR_NM, M.MBR_REG_TYPE_CD,
+					T.DTL_CD,T.DTL_NM,T.REG_TYPE_CD,T.DTL_LICENSE_CD,T.SIDO_CD,T.SIGNGU_CD,T.YMD_NM,
+					T.DTL_ADDR,T.BUSINESS_NUM,T.REG_NUM_CD,T.FSHLC_APPLC,T.FSHLC_WORK_CD,T.SHIP_CD,T.SHIP_GRTG,T.SHIP_PRLOAD,T.SHIP_MAX_PSNGER,
+					T.SHIP_MAX_CREW,T.SHIP_LICENSE,T.SHIP_LICENSE_STR_DT,T.SHIP_LICENSE_END_DT,T.USE_AT,T.DEL_AT,T.HIDE_AT,T.REG_DT,
+					T.UPD_DT,T.REG_MBR_ID,T.UPD_MBR_ID,
+					SIDO.CD_NM AS SIDO_NM,
+					SIGNGU.CD_NM AS SIGNGU_NM
+				FROM MBR_TB AS M
+				LEFT JOIN MBR_DTL_TB AS T ON T.MBR_ID = M.MBR_ID
+				LEFT JOIN ALL_CODE_SET_TB AS SIDO ON SIDO.CD_ID = T.SIDO_CD
+    			LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.SIGNGU_CD 
+				WHERE 1=1
+						<isNotEmpty property="MBR_LV_ID" prepend="AND">
+						M.MBR_LV_ID >= #MBR_LV_ID#
+						</isNotEmpty>
+						<isNotEmpty property="MBR_ST" prepend="AND">
+						M.MBR_ST = 'Y'
+						</isNotEmpty>
+						<isNotEmpty property="DTL_CD" prepend="AND">
+						T.DTL_CD >= #DTL_CD#
+						</isNotEmpty>	
+						<isNotEmpty property="searchUseYn">
+							<isEqual compareValue="Y" property="searchUseYn">
+								<isNotEmpty property="searchKeyword" prepend="AND">
+								( M.MBR_BIRTH LIKE '%$searchKeyword$%' OR T.DTL_NM LIKE '%$searchKeyword$' OR T.DTL_NM LIKE '%$searchKeyword$%' OR M.MBR_NM LIKE '%$searchKeyword$' OR M.MBR_NM LIKE '%$searchKeyword$%' OR M.MBR_HP LIKE '$searchKeyword$%' OR M.MBR_ID LIKE '%$searchKeyword$%' )
+								</isNotEmpty>
+							</isEqual>			
+					  	</isNotEmpty>				
+				ORDER BY T.REG_DT DESC
+			) AS P
+			WHERE 1=1
+			<isNotEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					( <![CDATA[ P.cnt < 1 ]]> OR P.MBR_REG_TYPE_CD != #MBR_REG_TYPE_CD# )
+				</isNotEmpty>
+				<isEmpty property="MBR_REG_TYPE_CD" prepend="AND">
+					<![CDATA[ P.cnt < 1 ]]>
+				</isEmpty>
+			GROUP BY P.MBR_ID
+			ORDER BY P.MBR_NM ASC
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>					
+	</select>
+	<!-- //교육센터-교육대상자-추가가능회원목록 -->
+	<insert id="eduMember.set_edu_member_target_reg" parameterClass="eduMemberVO">
+		INSERT INTO MBR_EDU_TRGT_TB (
+			MBR_CD      
+			,MBR_ID
+			,MBR_NM
+			,TRGT_YEAR
+			,REG_TYPE_CD
+			<isNotEmpty property="CMPLT_ST" prepend=",">CMPLT_ST</isNotEmpty>
+			<isNotEmpty property="CMPLT_DT" prepend=",">CMPLT_DT</isNotEmpty>
+			<isNotEmpty property="CMPLT_MBR_ID" prepend=",">CMPLT_MBR_ID</isNotEmpty>
+			<isNotEmpty property="CRS_SN" prepend=",">CRS_SN</isNotEmpty>
+			<isNotEmpty property="HMBR_SN" prepend=",">HMBR_SN</isNotEmpty>
+			<isNotEmpty property="USE_AT" prepend=",">USE_AT</isNotEmpty>
+			<isNotEmpty property="DEL_AT" prepend=",">DEL_AT</isNotEmpty>
+			<isNotEmpty property="HIDE_AT" prepend=",">HIDE_AT</isNotEmpty>
+			,REG_DT
+			,UPD_DT
+			,REG_MBR_ID
+			,UPD_MBR_ID
+		) VALUES (
+			#MBR_CD#
+			,#MBR_ID#
+			,#MBR_NM#
+			,#TRGT_YEAR#
+			,#REG_TYPE_CD#
+			<isNotEmpty property="CMPLT_ST" prepend=",">#CMPLT_ST#</isNotEmpty>
+			<isNotEmpty property="CMPLT_DT" prepend=",">#CMPLT_DT#</isNotEmpty>
+			<isNotEmpty property="CMPLT_MBR_ID" prepend=",">#CMPLT_MBR_ID#</isNotEmpty>
+			<isNotEmpty property="CRS_SN" prepend=",">#CRS_SN#</isNotEmpty>
+			<isNotEmpty property="HMBR_SN" prepend=",">#HMBR_SN#</isNotEmpty>
+			<isNotEmpty property="USE_AT" prepend=",">#USE_AT#</isNotEmpty>
+			<isNotEmpty property="DEL_AT" prepend=",">#DEL_AT#</isNotEmpty>
+			<isNotEmpty property="HIDE_AT" prepend=",">#HIDE_AT#</isNotEmpty>
+			,NOW()
+			,NOW()
+			,#REG_MBR_ID#
+			,#UPD_MBR_ID#						
+		)				
+	</insert>
+	<delete id="eduMember.remove_edu_member_target" parameterClass="eduMemberVO">
+		<isNotEmpty property="MBR_ID">	
+			DELETE 
+			FROM MBR_EDU_TRGT_TB 
+			WHERE 1=1 AND MBR_ID = #MBR_ID# 
+			<isNotEmpty property="TRGT_YEAR" prepend="AND">
+			TRGT_YEAR = #TRGT_YEAR# 
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN" prepend="AND">
+			CRS_SN = #CRS_SN# 
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_SN" prepend="AND">
+			HMBR_SN = #HMBR_SN# 
+			</isNotEmpty>
+		</isNotEmpty>
+	</delete>
+	<update id="eduMember.set_edu_member_target_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_EDU_TRGT_TB SET
+			CRS_SN = #CRS_SN#,
+			HMBR_SN = #HMBR_SN#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			<isNotEmpty property="MBR_NM">
+			MBR_NM = #MBR_NM#,
+			</isNotEmpty>
+			<isNotEmpty property="CMPLT_ST">
+				<isEqual property="CMPLT_ST" compareValue="1">  
+				CMPLT_ST = '1',CMPLT_DT = NOW(),CMPLT_MBR_ID = #CMPLT_MBR_ID#,
+				</isEqual>
+				<isNotEqual property="CMPLT_ST" compareValue="1">  
+				CMPLT_ST = #CMPLT_ST#,CMPLT_DT = NULL,CMPLT_MBR_ID = NULL,
+				</isNotEqual>
+			</isNotEmpty>
+			UPD_DT = NOW()
+		WHERE 1=1 AND MBR_ID = #MBR_ID# 
+			<isNotEmpty property="CRS_SN_NOT_NULL" prepend="AND">
+			CRS_SN = #CRS_SN# 
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN_NULL" prepend="AND">
+			( CRS_SN = '' OR CRS_SN IS NULL )
+			</isNotEmpty>
+			<isNotEmpty property="TRGT_YEAR" prepend="AND">
+			TRGT_YEAR = #TRGT_YEAR# 
+			</isNotEmpty>
+			<isEmpty property="TRGT_YEAR" prepend="AND">
+				<isNotEmpty property="HMBR_SN_NULL" >
+				( HMBR_SN = '' OR HMBR_SN IS NULL )
+				</isNotEmpty>
+				<isEmpty property="HMBR_SN_NULL" >
+				HMBR_SN = #HMBR_SN# 
+				</isEmpty>
+			</isEmpty>
+	</update>
+	<select id="eduMember.get_edu_member_target_all_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT 	ECT.CRS_NM, ECT.TYPE_GB,
+					EMHT.LRNNG_ST AS MBR_LRNNG_ST, EMHT.LRNNG_CMPLT_ST AS MBR_LRNNG_CMPLT_ST, EMHT.LRNNG_PRGRS, EMHT.LRNNG_CMPLT_DT, 
+					C.CD_NM AS CRS_GRP_NM, E.CAT_INS_NM,ECT.CRS_STR_DT,ECT.CRS_END_DT,ECT.CRS_PLACE,ECT.CRS_ADDR,ECT.CRS_MBR_CD AS MBR_TRGT_CD,
+					T.*,
+					CRTF.CRTF_SN
+			FROM MBR_EDU_TRGT_TB AS T
+			LEFT JOIN EDU_CURRICULUM_TB AS ECT ON ECT.CRS_SN = T.CRS_SN
+			LEFT JOIN EDU_MBR_HSTRY_TB AS EMHT ON EMHT.HMBR_SN = T.HMBR_SN
+			LEFT JOIN ALL_CODE_SET_TB AS C ON C.CD_ID = ECT.CRS_GRP_CD
+			LEFT JOIN EDU_CAT_INS_INF_TB AS E ON E.CAT_INS_SN = ECT.CAT_INS_SN
+			LEFT JOIN EDU_CRTF_TB AS CRTF ON CRTF.HMBR_SN = T.HMBR_SN
+			WHERE 1=1 
+			<isNotEmpty property="USE_AT">	
+				AND T.USE_AT = #USE_AT#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">	
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="searchYear">	
+				AND T.TRGT_YEAR = #searchYear#
+			</isNotEmpty>
+			<isNotEmpty property="TRGT_YEAR">	
+				AND T.TRGT_YEAR = #TRGT_YEAR#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN">	
+				AND T.CRS_SN = #CRS_SN#
+			</isNotEmpty>
+			<isNotEmpty property="HMBR_SN">	
+				AND T.HMBR_SN = #HMBR_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_SN_NULL">
+				AND ( T.CRS_SN IS NULL OR T.CRS_SN = '' ) 
+			</isNotEmpty>
+			ORDER BY T.TRGT_YEAR DESC
+	</select>
+	<update id="eduMember.set_edu_member_memo_mod" parameterClass="eduMemberVO">
+		<isNotEmpty property="MBR_ID">
+		UPDATE MBR_TB 
+		SET MBR_DSCRP = #MBR_DSCRP#,
+			MBR_MOD_DT = NOW()
+		WHERE MBR_ID = #MBR_ID#
+		</isNotEmpty>
+	</update>
+	
+	<select id="get_edu_member_author_log_list" parameterClass="logAdmAuthVO" resultClass="logAdmAuthVO">
+		SELECT *
+		FROM LOG_ADM_AUTH_TB
+		WHERE 1 = 1
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			( REQST_NM LIKE '%$searchKeyword$%' OR CONFM_NM LIKE '%$searchKeyword$%' OR MBR_MSG LIKE '%$searchKeyword$%' OR CONFM_CN LIKE '%$searchKeyword$%' OR REQST_CN LIKE '%$searchKeyword$%')
+		</isNotEmpty>
+		<isNotEmpty property="searchStrDate" prepend="AND">
+			<![CDATA[ 
+			STR_TO_DATE(CONCAT(#searchStrDate#,' 00:00:00'),'%Y-%m-%d %H:%i:%s') <= REG_DT 
+			]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchEndDate" prepend="AND">
+			<![CDATA[ 
+			STR_TO_DATE(CONCAT(#searchEndDate#,' 23:59:59'),'%Y-%m-%d %H:%i:%s') >= REG_DT
+			]]>
+		</isNotEmpty>
+		ORDER BY REG_DT DESC
+		<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex#
+		</isNotEqual>
+	</select>
+	<select id="get_edu_member_author_log_list_totcnt" resultClass="int">
+		SELECT COUNT(*)
+		FROM LOG_ADM_AUTH_TB
+		WHERE 1 = 1
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			( REQST_NM LIKE '%$searchKeyword$%' OR CONFM_NM LIKE '%$searchKeyword$%' OR MBR_MSG LIKE '%$searchKeyword$%' OR CONFM_CN LIKE '%$searchKeyword$%' OR REQST_CN LIKE '%$searchKeyword$%')
+		</isNotEmpty>
+		<isNotEmpty property="searchStrDate" prepend="AND">
+			<![CDATA[ 
+			STR_TO_DATE(CONCAT(#searchStrDate#,' 00:00:00'),'%Y-%m-%d %H:%i:%s') <= REG_DT 
+			]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchEndDate" prepend="AND">
+			<![CDATA[ 
+			STR_TO_DATE(CONCAT(#searchEndDate#,' 23:59:59'),'%Y-%m-%d %H:%i:%s') >= REG_DT
+			]]>
+		</isNotEmpty>
+	</select>
+	<insert id="set_edu_member_author_log" parameterClass="logAdmAuthVO">
+		INSERT INTO LOG_ADM_AUTH_TB (
+			REG_DT,
+			REQST_NM,
+			REQST_DT,
+			<isNotEmpty property="REQST_CN">
+				REQST_CN,
+			</isNotEmpty>
+			CONFM_NM,
+			CONFM_CN,
+			CONFM_TYPE,
+			CONFM_DT,
+			MBR_MSG,
+			MBR_LV,
+			AUTHOR_NM,
+			AUTHOR_CN
+			<isNotEmpty property="MBR_USG_DT">
+			,MBR_USG_DT
+			</isNotEmpty>
+		) VALUES (
+			NOW(),
+			#REQST_NM#,
+			NOW(),
+			<isNotEmpty property="REQST_CN">
+				#REQST_CN#,
+			</isNotEmpty>
+			#CONFM_NM#,
+			#CONFM_CN#,
+			#CONFM_TYPE#,
+			NOW(),
+			#MBR_MSG#,
+			#MBR_LV#,
+			#AUTHOR_NM#,
+			#AUTHOR_CN#
+			<isNotEmpty property="MBR_USG_DT">
+			,#MBR_USG_DT#
+			</isNotEmpty>
+		)
+	</insert>
+	
+	<select id="get_edu_member_dtl_excel_compare" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+		SELECT 
+			T.*, 
+			TRIM(M.MBR_BIRTH) AS MBR_BIRTH, 
+			TRIM(M.MBR_HP) AS MBR_HP,
+			TRIM(M.MBR_TEL) AS MBR_TEL, 
+			TRIM(M.MBR_ADDR1) AS MBR_ADDR1,
+			TRIM(M.MBR_ZIPCD) AS MBR_ZIPCD,
+			TRIM(M.MBR_EDU_RSPNBER_TYPE) AS MBR_EDU_RSPNBER_TYPE,
+			TRIM(SIDO.CD_NM) AS SIDO_NM,
+	  		TRIM(SIGNGU.CD_NM) AS SIGNGU_NM,
+	  		TRIM(C.CD_NM) AS DTL_LICENSE_NM
+		FROM MBR_DTL_TB AS T 
+		LEFT JOIN ALL_CODE_SET_TB AS SIDO ON SIDO.CD_ID = T.SIDO_CD
+	  	LEFT JOIN ALL_CODE_SET_TB AS SIGNGU ON SIGNGU.CD_ID = T.SIGNGU_CD 
+	  	LEFT JOIN ALL_CODE_SET_TB AS C on C.CD_ID = T.DTL_LICENSE_CD
+		LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.MBR_ID
+		WHERE 1 = 1
+			AND T.USE_AT = 'Y'
+			AND T.DEL_AT = 'N'
+			AND M.MBR_ST = 'Y'
+			AND (
+				(T.MBR_NM LIKE '%$MBR_NM$%' AND M.MBR_BIRTH = #MBR_BIRTH# ) 
+				OR (T.MBR_NM LIKE '%$MBR_NM$%' AND T.DTL_NM = #DTL_NM# )
+				OR (M.MBR_BIRTH = #MBR_BIRTH# AND T.DTL_NM = #DTL_NM# ) 
+				OR (M.MBR_HP = #MBR_HP#)
+				) 
+			<isNotEmpty property="REG_TYPE_CD" prepend="AND"> T.REG_TYPE_CD = #REG_TYPE_CD#</isNotEmpty>
+			<isNotEmpty property="MBR_SIDO_CD" prepend="AND"> T.SIDO_CD = #SIDO_CD#</isNotEmpty>
+			<isNotEmpty property="MBR_SIGNGU_CD" prepend="AND"> T.SIGNGU_CD = #SIGNGU_CD#</isNotEmpty>
+			<isNotEmpty property="MBR_ST" prepend="AND"> M.MBR_ST = #MBR_ST#</isNotEmpty>
+			<isNotEmpty property="DTL_CD" prepend="AND"> T.DTL_CD = #DTL_CD#</isNotEmpty>
+	</select>
+	<insert id="set_edu_excel_upload_reg" parameterClass="eduExcelUploadVO">
+		INSERT INTO EDU_EXCEL_UPLOAD_TB (
+			EU_SN,
+			ORIGNL_FILE_NM,
+			REG_MBR_ID,
+			REG_DT,
+			EU_DTL_ST
+		) VALUES (
+			#EU_SN#,
+			#ORIGNL_FILE_NM#,
+			#REG_MBR_ID#,
+			NOW(),
+			#EU_DTL_ST#
+		) 
+	</insert>
+	
+	<insert id="set_edu_excel_upload_dtl_reg" parameterClass="eduExcelUploadVO">
+		INSERT INTO EDU_EXCEL_UPLOAD_DTL_TB (
+			EU_SN
+			,SIDO_NM
+			,SIGNGU_NM
+			<isNotEmpty property="REG_NUM_CD">
+			,REG_NUM_CD
+			</isNotEmpty>
+			<isNotEmpty property="SHIP_CD">
+			,SHIP_CD
+			</isNotEmpty>
+			<isNotEmpty property="DTL_NM">
+			,DTL_NM
+			</isNotEmpty>
+			<isNotEmpty property="DTL_SN">
+			,DTL_SN
+			</isNotEmpty>
+			<isNotEmpty property="DTL_CD">
+			,DTL_CD
+			</isNotEmpty>
+			<isNotEmpty property="DTL_LICENSE_NM">
+			,DTL_LICENSE_NM
+			</isNotEmpty>
+			<isNotEmpty property="SHIP_LICENSE">
+			,SHIP_LICENSE
+			</isNotEmpty>
+			<isNotEmpty property="CHANGE_INFO">
+			,CHANGE_INFO
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">
+			,MBR_ID
+			</isNotEmpty>
+			,MBR_NM
+			,MBR_BIRTH
+			,MBR_HP
+			,MBR_ADDR
+			<isNotEmpty property="MBR_TEL">
+			,MBR_TEL
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ZIPCD">
+			,MBR_ZIPCD
+			</isNotEmpty>
+			<isNotEmpty property="MBR_EDU_RSPNBER_TYPE">
+			,MBR_EDU_RSPNBER_TYPE 
+			</isNotEmpty>
+		) VALUES (
+			#EU_SN#
+			,TRIM(#SIDO_NM#)
+			,TRIM(#SIGNGU_NM#)
+			<isNotEmpty property="REG_NUM_CD">
+			,REPLACE(#REG_NUM_CD#,'-','')
+			</isNotEmpty>
+			<isNotEmpty property="SHIP_CD">
+			,REPLACE(TRIM(#SHIP_CD#),'-','')
+			</isNotEmpty>
+			<isNotEmpty property="DTL_NM">
+			,TRIM(#DTL_NM#)
+			</isNotEmpty>
+			<isNotEmpty property="DTL_SN">
+			,#DTL_SN#
+			</isNotEmpty>
+			<isNotEmpty property="DTL_CD">
+			,#DTL_CD#
+			</isNotEmpty>
+			<isNotEmpty property="DTL_LICENSE_NM">
+			,TRIM(#DTL_LICENSE_NM#)
+			</isNotEmpty>
+			<isNotEmpty property="SHIP_LICENSE">
+			,TRIM(#SHIP_LICENSE#)
+			</isNotEmpty>
+			<isNotEmpty property="CHANGE_INFO">
+			,#CHANGE_INFO#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ID">
+			,#MBR_ID#
+			</isNotEmpty>
+			,TRIM(#MBR_NM#)
+<!-- 			,TRIM(#MBR_BIRTH#) -->
+			,REPLACE(#MBR_BIRTH#,'-','')
+			,REPLACE(#MBR_HP#,'-','')
+			,TRIM(#MBR_ADDR#)
+			<isNotEmpty property="MBR_TEL">
+			,REPLACE(#MBR_TEL#,'-','')
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ZIPCD">
+			,REPLACE(#MBR_ZIPCD#,'-','')
+			</isNotEmpty>
+			<isNotEmpty property="MBR_EDU_RSPNBER_TYPE">
+			,#MBR_EDU_RSPNBER_TYPE#
+			</isNotEmpty>
+		)
+	</insert>
+	<select id="get_edu_excel_upload_list" parameterClass="eduExcelUploadVO" resultClass="eduExcelUploadVO">
+		SELECT T.*,
+			   MBR_CNT.CNT AS MBR_CNT, AREA_NM.SIDO_NM AS SIDO_NM, AREA_NM.SIGNGU_NM SIGNGU_NM, IFNULL(APRV_CNT.CNT, 0) AS APRV_CNT
+		FROM EDU_EXCEL_UPLOAD_TB AS T
+		LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.REG_MBR_ID
+		LEFT OUTER JOIN ( 
+							SELECT EU_SN, COUNT(EU_SN) CNT 
+							FROM EDU_EXCEL_UPLOAD_DTL_TB GROUP BY EU_SN
+						)AS MBR_CNT
+		ON   T.EU_SN = MBR_CNT.EU_SN		
+		LEFT OUTER JOIN (
+							SELECT EU_SN, SIDO_NM, SIGNGU_NM 
+							FROM EDU_EXCEL_UPLOAD_DTL_TB 
+							GROUP BY EU_SN
+						)AS AREA_NM
+		ON   T.EU_SN = AREA_NM.EU_SN	
+		LEFT OUTER JOIN (
+							SELECT A.EU_SN, COUNT(B.EU_SN) CNT 
+							FROM EDU_EXCEL_UPLOAD_TB AS A
+							LEFT OUTER JOIN EDU_EXCEL_UPLOAD_DTL_TB AS B
+							ON   A.EU_SN = B.EU_SN
+							WHERE A.CONFM_ST = 'Y'	
+							AND (B.CHANGE_INFO IS NULL OR B.CHANGE_INFO != 'none')
+							GROUP BY A.EU_SN
+						)AS APRV_CNT
+		ON   T.EU_SN = APRV_CNT.EU_SN		
+		WHERE 1 = 1
+		<!-- <isNotEmpty property="REG_MBR_ID">
+			AND REG_MBR_ID = #REG_MBR_ID#
+		</isNotEmpty> -->
+		<isNotEmpty property="CONFM_REG_DT" >
+			<isEqual property="CONFM_REG_DT" compareValue="NOT_NULL" prepend="AND">
+			( T.CONFM_REG_DT IS NOT NULL OR T.CONFM_REG_DT != '' )
+			</isEqual>
+		</isNotEmpty>
+		<isEqual property="MBR_REG_TYPE_CD" compareValue="PCD0003">
+			AND M.MBR_SIDO_CD = #MBR_SIDO_CD#
+			AND M.MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+			AND M.MBR_ST = #MBR_ST#
+			<isNotEmpty property="MBR_TRGT_CD">
+			AND M.MBR_TRGT_CD = #MBR_TRGT_CD#
+			</isNotEmpty>			
+		</isEqual>
+		ORDER BY 
+			CASE WHEN T.CONFM_ST="N" THEN T.REG_DT END DESC,
+			CASE WHEN T.CONFM_ST="Y" THEN T.REG_DT END DESC
+		<isNotEqual property="isNotUsedPagination" compareValue="true">  
+            LIMIT #recordCountPerPage# OFFSET #firstIndex#
+         </isNotEqual>  
+	</select>
+	<select id="get_edu_excel_upload_list_totcnt" parameterClass="eduExcelUploadVO" resultClass="int">
+		SELECT COUNT(P.EU_SN)
+		FROM (
+			SELECT T.*
+			FROM EDU_EXCEL_UPLOAD_TB AS T
+			LEFT JOIN MBR_TB AS M ON M.MBR_ID = T.REG_MBR_ID
+			WHERE 1 = 1
+			<!-- <isNotEmpty property="REG_MBR_ID">
+				AND REG_MBR_ID = #REG_MBR_ID#
+			</isNotEmpty> -->
+			<isNotEmpty property="CONFM_REG_DT" >
+				<isEqual property="CONFM_REG_DT" compareValue="NOT_NULL" prepend="AND">
+				( T.CONFM_REG_DT IS NOT NULL OR T.CONFM_REG_DT != '' )
+				</isEqual>
+			</isNotEmpty>
+			<isEqual property="MBR_REG_TYPE_CD" compareValue="PCD0003">
+				AND M.MBR_SIDO_CD = #MBR_SIDO_CD#
+				AND M.MBR_SIGNGU_CD = #MBR_SIGNGU_CD#
+				AND M.MBR_ST = #MBR_ST#
+				<isNotEmpty property="MBR_TRGT_CD">
+				AND M.MBR_TRGT_CD = #MBR_TRGT_CD#
+				</isNotEmpty>			
+			</isEqual>
+			ORDER BY 
+				CASE WHEN T.CONFM_ST="N" THEN T.REG_DT END DESC,
+				CASE WHEN T.CONFM_ST="Y" THEN T.REG_DT END DESC 
+		) AS P
+	</select>
+	
+	<select id="get_edu_excel_upload_dtl_list" parameterClass="eduExcelUploadVO" resultClass="eduExcelUploadVO">
+		SELECT *
+		FROM EDU_EXCEL_UPLOAD_DTL_TB
+		WHERE EU_SN = #EU_SN#
+		<isEqual property="searchCondition" compareValue="CHANGE_INFO_NOT_NULL">
+			AND CHANGE_INFO IS NOT NULL
+		</isEqual>
+	</select>
+	<delete id="remove_edu_excel_upload_list" parameterClass="eduExcelUploadVO">
+		<isNotEmpty property="EU_SN">	
+			DELETE 
+			FROM EDU_EXCEL_UPLOAD_TB
+			WHERE 1=1 AND EU_SN = #EU_SN#
+		</isNotEmpty>
+	</delete>
+	<delete id="remove_edu_excel_upload_dtl_list" parameterClass="eduExcelUploadVO">
+		<isNotEmpty property="EU_SN">	
+			DELETE 
+			FROM EDU_EXCEL_UPLOAD_DTL_TB
+			WHERE 1=1 AND EU_SN = #EU_SN#
+		</isNotEmpty>
+	</delete>
+	<select id="get_edu_excel_upload_info" parameterClass="eduExcelUploadVO" resultClass="eduExcelUploadVO">
+		SELECT *
+		FROM EDU_EXCEL_UPLOAD_TB
+		WHERE EU_SN = #EU_SN#
+	</select>
+	
+	<update id="set_edu_excel_upload_request" parameterClass="eduExcelUploadVO">
+		UPDATE EDU_EXCEL_UPLOAD_TB
+		SET CONFM_REG_DT = NOW()
+		WHERE EU_SN = #EU_SN#
+	</update>
+	<update id="set_edu_excel_upload_confm" parameterClass="eduExcelUploadVO">
+		UPDATE EDU_EXCEL_UPLOAD_TB
+		SET CONFM_UPD_DT = NOW()
+		, CONFM_ST = 'Y'
+		WHERE EU_SN = #EU_SN#
+	</update>
+	
+	<update id="set_edu_excel_upload_dtl_mod">
+		UPDATE EDU_EXCEL_UPLOAD_DTL_TB
+		SET MBR_ID = #MBR_ID#
+		<isNotEmpty property="EUD_CONFM_ST">
+		,EUD_CONFM_ST = #EUD_CONFM_ST#
+		</isNotEmpty>
+		<isNotEmpty property="DTL_SN">
+		,DTL_SN = #DTL_SN#
+		</isNotEmpty>
+		<isNotEmpty property="CHANGE_INFO">
+		,CHANGE_INFO = #CHANGE_INFO#
+		</isNotEmpty>
+		<isNotEmpty property="DTL_CD">
+		,DTL_CD = #DTL_CD#
+		</isNotEmpty>
+		WHERE EU_SN = #EU_SN#
+		AND EUD_SN = #EUD_SN#
+	</update>
+	
+	<update id="set_change_pwd">
+		UPDATE MBR_TB
+		   SET MBR_PWD = #MBR_PWD#
+		 WHERE MBR_ID = #MBR_ID#
+		   AND MBR_SN = #MBR_SN#
+	</update>
+	
+	<delete id="eduMember.remove_edu_member_all_target" parameterClass="eduMemberVO">	
+			DELETE 
+			FROM MBR_EDU_TRGT_TB 
+			WHERE CRS_SN = #CRS_SN#
+	</delete>
+	
+	<delete id="set_edu_excel_upload_del" parameterClass="eduExcelUploadVO">	
+			DELETE 
+			FROM EDU_EXCEL_UPLOAD_TB 
+			WHERE EU_SN = #EU_SN#
+	</delete>
+	
+	<delete id="set_edu_excel_upload_dtl_del" parameterClass="eduExcelUploadVO">	
+			DELETE 
+			FROM EDU_EXCEL_UPLOAD_DTL_TB 
+			WHERE EU_SN = #EU_SN#
+	</delete>
+	
+	<select id="get_api_edu_member_list" parameterClass="eduMemberVO" resultClass="eduMemberVO">
+			SELECT 
+			T.* 
+			FROM MBR_TB AS T
+			WHERE 1=1 
+			<isNotEmpty property="MBR_ID">
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_NM">
+				AND T.MBR_NM = #MBR_NM#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HP">
+				AND T.MBR_HP = #MBR_HP#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_BIRTH">
+				AND T.MBR_BIRTH = #MBR_BIRTH#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= #MBR_LV_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+			ORDER BY T.MBR_ST ASC, T.MBR_NM ASC	
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>						
+	</select>
+	
+	<select id="get_api_edu_member_list_totcnt" parameterClass="eduMemberVO" resultClass="int">
+			SELECT COUNT(T.MBR_ID)
+			FROM MBR_TB AS T
+			WHERE 1=1 
+			<isNotEmpty property="MBR_ID">
+				AND T.MBR_ID = #MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_NM">
+				AND T.MBR_NM = #MBR_NM#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_HP">
+				AND T.MBR_HP = #MBR_HP#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_BIRTH">
+				AND T.MBR_BIRTH = #MBR_BIRTH#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_LV_ID">
+				AND T.MBR_LV_ID >= #MBR_LV_ID#
+			</isNotEmpty>
+			<isNotEmpty property="MBR_ST" prepend="AND">
+				MBR_ST = #MBR_ST#
+			</isNotEmpty>
+	</select>
+	
+	<select id="get_edu_excel_upload_dtl_list_add" parameterClass="eduExcelUploadVO" resultClass="eduExcelUploadVO">
+			SELECT MBR_CNT.CNT AS MBR_CNT, AREA_NM.SIDO_NM AS SIDO_NM, AREA_NM.SIGNGU_NM SIGNGU_NM, IFNULL(APRV_CNT.CNT, 0) AS APRV_CNT
+			FROM   EDU_EXCEL_UPLOAD_TB AS EEU
+			LEFT OUTER JOIN ( 
+								SELECT EU_SN, COUNT(EU_SN) CNT 
+								FROM EDU_EXCEL_UPLOAD_DTL_TB GROUP BY EU_SN
+							)AS MBR_CNT
+			ON   EEU.EU_SN = MBR_CNT.EU_SN		
+			LEFT OUTER JOIN (
+								SELECT EU_SN, SIDO_NM, SIGNGU_NM 
+								FROM EDU_EXCEL_UPLOAD_DTL_TB 
+								GROUP BY EU_SN
+							)AS AREA_NM
+			ON   EEU.EU_SN = AREA_NM.EU_SN	
+			LEFT OUTER JOIN (
+								SELECT A.EU_SN, COUNT(B.EU_SN) CNT 
+								FROM EDU_EXCEL_UPLOAD_TB AS A
+								LEFT OUTER JOIN EDU_EXCEL_UPLOAD_DTL_TB AS B
+								ON   A.EU_SN = B.EU_SN
+								WHERE A.CONFM_ST = 'Y'	
+								GROUP BY A.EU_SN
+							)AS APRV_CNT
+			ON   EEU.EU_SN = APRV_CNT.EU_SN
+	</select>
+	
+	<update id="set_dpcn_member_dtl_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_DTL_TB
+		SET MBR_CD = #MBR_CD#,
+			MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE DTL_SN = #DTL_SN#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_edu_trgt_mod" parameterClass="eduMemberVO">
+		UPDATE MBR_EDU_TRGT_TB
+		SET MBR_CD = #MBR_CD#,
+			MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE 1=1 
+		<isNotEmpty property="HMBR_SN">
+			AND HMBR_SN = #HMBR_SN#
+		</isNotEmpty>
+		<isEmpty property="HMBR_SN">
+			AND HMBR_SN IS NULL
+		</isEmpty>
+		AND TRGT_YEAR = #TRGT_YEAR#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_edu_hstry_mod" parameterClass="eduMemberVO">
+		UPDATE EDU_MBR_HSTRY_TB
+		SET MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_edu_hstry_dtl_mod" parameterClass="eduMemberVO">
+		UPDATE EDU_MBR_HSTRY_DTL_TB
+		SET MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_edu_crtf_mod" parameterClass="eduMemberVO">
+		UPDATE EDU_CRTF_TB
+		SET MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_edu_crtf_dtl_mod" parameterClass="eduMemberVO">
+		UPDATE EDU_CRTF_DTL_TB
+		SET MBR_ID = #MBR_ID#,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT = NOW()
+		WHERE HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_MOD_ID#
+	</update>
+	
+	<update id="set_dpcn_member_survey_answer_mod" parameterClass="eduMemberVO">
+		UPDATE NAKSINURI_SURVEY_ANSWER
+		SET ETC_2 = #MBR_ID#
+		WHERE HMBR_SN = #HMBR_SN#
+		AND ETC_2 = #MBR_MOD_ID#
+	</update>
+	
+	<delete id="remove_edu_member_hstry" parameterClass="eduMemberVO">
+		DELETE 
+		FROM EDU_MBR_HSTRY_TB 
+		WHERE 1=1
+		AND HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#
+	</delete>
+	
+	<delete id="remove_edu_member_hstry_dtl" parameterClass="eduMemberVO">
+		DELETE 
+		FROM EDU_MBR_HSTRY_DTL_TB 
+		WHERE 1=1
+		AND HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#
+	</delete>
+	
+	<delete id="remove_edu_crtf" parameterClass="eduMemberVO">
+		DELETE 
+		FROM EDU_CRTF_TB 
+		WHERE 1=1
+		AND HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#
+	</delete>
+	
+	<delete id="remove_edu_crtf_dtl" parameterClass="eduMemberVO">
+		DELETE 
+		FROM EDU_CRTF_DTL_TB 
+		WHERE 1=1
+		AND HMBR_SN = #HMBR_SN#
+		AND MBR_ID = #MBR_ID#
+	</delete>
+	
+</sqlMap>

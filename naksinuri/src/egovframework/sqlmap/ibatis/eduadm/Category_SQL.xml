@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="EduCategory">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="eduCategoryVO" type="egovframework.eduadm.category.service.EduCategoryVO"/>
+	<typeAlias  alias="eduCategoryInsInfVO" type="egovframework.eduadm.category.service.EduCategoryInsInfVO"/>
+		
+	<!-- 카테고리 -->
+	<select id="get_edu_category_list_1" parameterClass="eduCategoryVO" resultClass="eduCategoryVO">
+			SELECT * 
+			FROM EDU_CAT_TB
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword">
+				<isEqual compareValue="use_st" property="searchKeyword">
+					<isNotEmpty property="USE_ST">
+					AND USE_ST=#USE_ST#	
+					</isNotEmpty>
+			  	</isEqual>			
+		  	</isNotEmpty>
+			ORDER BY USE_ST DESC, CAT_ORD ASC			
+	</select>
+	<select id="get_edu_category_list_2" parameterClass="eduCategoryVO" resultClass="eduCategoryVO">
+			SELECT * 
+			FROM EDU_CAT_DTL_TB		    	
+			WHERE CAT_SN = #CAT_SN#			
+			<isNotEmpty property="searchKeyword">
+				<isEqual compareValue="use_st" property="searchKeyword">
+					<isNotEmpty property="USE_ST">
+					AND USE_ST=#USE_ST#	
+					</isNotEmpty>
+			  	</isEqual>
+		  	</isNotEmpty>
+			ORDER BY USE_ST DESC, CAT_ORD ASC			
+	</select>
+	<select id="get_edu_category_info" parameterClass="eduCategoryVO" resultClass="eduCategoryVO">
+			SELECT * FROM EDU_CAT_TB		  
+			<isNotEmpty property="CAT_SN">		    	
+				WHERE CAT_SN = #CAT_SN#
+			</isNotEmpty>
+			ORDER BY CAT_ORD ASC			
+	</select>	
+	<select id="get_edu_category_dtl_info" parameterClass="eduCategoryVO" resultClass="eduCategoryVO">
+			SELECT * FROM EDU_CAT_DTL_TB
+			WHERE 1=1  
+			<isNotEmpty property="CAT_SN">		    	
+				AND CAT_SN = #CAT_SN#
+			</isNotEmpty>
+			<isNotEmpty property="CAT_DTL_SN">		    	
+				AND CAT_DTL_SN = #CAT_DTL_SN#
+			</isNotEmpty>
+			ORDER BY CAT_ORD ASC			
+	</select>	
+	<insert id="set_edu_category_reg_1" parameterClass="eduCategoryVO">
+			INSERT INTO EDU_CAT_TB
+			(	
+				<isNotEmpty property="CAT_NM">		    	
+				CAT_NM,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DSCRP">		    	
+				CAT_DSCRP,
+				</isNotEmpty>
+				<isNotEmpty property="USE_ST">		    	
+				USE_ST,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_ORD">		    	
+				CAT_ORD,
+				</isNotEmpty>
+				REG_DT,
+				UPD_DT,
+				REG_MBR_ID,
+				UPD_MBR_ID
+			) VALUES (
+				<isNotEmpty property="CAT_NM">		    	
+				#CAT_NM#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DSCRP">		    	
+				#CAT_DSCRP#,
+				</isNotEmpty>
+				<isNotEmpty property="USE_ST">		    	
+				#USE_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_ORD">		    	
+				#CAT_ORD#,
+				</isNotEmpty>
+				NOW(),
+				NOW(),
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#
+			)
+			<selectKey keyProperty="CAT_SN" resultClass="String">
+				SELECT LAST_INSERT_ID()
+	   		</selectKey>
+	</insert>	
+	<insert id="set_edu_category_reg_2" parameterClass="eduCategoryVO">
+			INSERT INTO EDU_CAT_DTL_TB
+			(	
+				<isNotEmpty property="CAT_SN">
+				CAT_SN,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_SN">
+				CAT_DTL_SN,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_NM">		    	
+				CAT_DTL_NM,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_DSCRP">		    	
+				CAT_DTL_DSCRP,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TIME">		    	
+				LRNNG_TIME,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_POINT">		    	
+				LRNNG_POINT,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_GB">		    	
+				LRNNG_GB,
+				</isNotEmpty>
+				<isNotEmpty property="USE_ST">		    	
+				USE_ST,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_ORD">		    	
+				CAT_ORD,
+				</isNotEmpty>
+				REG_DT,
+				UPD_DT,
+				REG_MBR_ID,
+				UPD_MBR_ID
+			) VALUES (
+				<isNotEmpty property="CAT_SN">
+				#CAT_SN#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_SN">
+				#CAT_DTL_SN#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_NM">		    	
+				#CAT_DTL_NM#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_DTL_DSCRP">		    	
+				#CAT_DTL_DSCRP#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_TIME">		    	
+				#LRNNG_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_POINT">		    	
+				#LRNNG_POINT#,
+				</isNotEmpty>
+				<isNotEmpty property="LRNNG_GB">		    	
+				#LRNNG_GB#,
+				</isNotEmpty>
+				<isNotEmpty property="USE_ST">		    	
+				#USE_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="CAT_ORD">		    	
+				#CAT_ORD#,
+				</isNotEmpty>
+				NOW(),
+				NOW(),
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#
+			)
+			<selectKey keyProperty="CAT_DTL_SN" resultClass="String">
+				SELECT LAST_INSERT_ID()
+		   	</selectKey>		  	       
+	</insert>
+	<update id="set_edu_category_mod_1" parameterClass="eduCategoryVO">
+		UPDATE EDU_CAT_TB 
+		SET 
+		<isNotEmpty property="CAT_NM">		    	
+		CAT_NM = #CAT_NM#,
+		</isNotEmpty>
+		<isNotEmpty property="CAT_DSCRP">		    	
+		CAT_DSCRP = #CAT_DSCRP#,
+		</isNotEmpty>
+  		<isNotEmpty property="USE_ST">		    	
+		USE_ST = #USE_ST#,
+		</isNotEmpty>
+		<isNotEmpty property="DEL_ST">		    	
+		DEL_ST = #DEL_ST#,
+		</isNotEmpty>
+		<isNotEmpty property="CAT_ORD">		    	
+		CAT_ORD = #CAT_ORD#,
+		</isNotEmpty>
+		UPD_MBR_ID = #UPD_MBR_ID#,
+		UPD_DT = NOW() 
+		WHERE CAT_SN = #CAT_SN#	
+	</update>
+	<update id="set_edu_category_mod_2" parameterClass="eduCategoryVO">
+		UPDATE EDU_CAT_DTL_TB
+		SET 
+		<isNotEmpty property="CAT_SN_CHNG">		    	
+		CAT_SN = #CAT_SN_CHNG#,
+		</isNotEmpty>
+		<isNotEmpty property="CAT_DTL_NM">		    	
+		CAT_DTL_NM = #CAT_DTL_NM#,
+		</isNotEmpty>
+		<isNotEmpty property="CAT_DTL_DSCRP">		    	
+		CAT_DTL_DSCRP = #CAT_DTL_DSCRP#,
+		</isNotEmpty>
+		<isNotEmpty property="LRNNG_TIME">		    	
+		LRNNG_TIME = #LRNNG_TIME#,
+		</isNotEmpty>
+		<isNotEmpty property="LRNNG_POINT">		    	
+		LRNNG_POINT = #LRNNG_POINT#,
+		</isNotEmpty>
+		<isNotEmpty property="LRNNG_GB">		    	
+		LRNNG_GB = #LRNNG_GB#,
+		</isNotEmpty>
+	  	<isNotEmpty property="USE_ST">		    	
+		USE_ST = #USE_ST#,
+		</isNotEmpty>
+		<isNotEmpty property="DEL_ST">		    	
+		DEL_ST = #DEL_ST#,
+		</isNotEmpty>
+		<isNotEmpty property="CAT_ORD">		    	
+		CAT_ORD = #CAT_ORD#,
+		</isNotEmpty>
+		UPD_MBR_ID = #UPD_MBR_ID#,
+		UPD_DT = NOW() 
+		WHERE CAT_SN = #CAT_SN# 
+		AND CAT_DTL_SN = #CAT_DTL_SN#	
+	</update>		
+	<update id="del_edu_category_1" parameterClass="eduCategoryVO">
+		<![CDATA[
+		UPDATE EDU_CAT_TB 
+		SET USE_ST=0,
+		DEL_ST=1,
+		UPD_MBR_ID=#UPD_MBR_ID#,
+		UPD_DT=NOW() 
+		WHERE 
+		CAT_SN=$CAT_SN$
+		]]>
+	</update>
+	<update id="del_edu_category_2" parameterClass="eduCategoryVO">
+		UPDATE EDU_CAT_DTL_TB 
+		SET 
+		USE_ST=0,
+		DEL_ST=1,
+		UPD_MBR_ID = #UPD_MBR_ID#,
+		UPD_DT=NOW() 
+		WHERE 
+		CAT_SN = #CAT_SN#
+		<isNotEmpty property="CAT_DTL_SN">
+		AND CAT_DTL_SN = #CAT_DTL_SN#
+		</isNotEmpty>
+	</update>	
+	<delete id="remove_edu_category_1" parameterClass="eduCategoryVO">
+		<isNotEmpty property="CAT_SN">
+			DELETE FROM EDU_CAT_TB
+			WHERE 1=1
+			AND CAT_SN = #CAT_SN#
+		</isNotEmpty>
+	</delete>
+	<delete id="remove_edu_category_2" parameterClass="eduCategoryVO">
+		<isEmpty property="CAT_DTL_SN">
+			DELETE FROM EDU_CAT_DTL_TB
+			WHERE 1=1
+			AND CAT_SN = #CAT_SN#
+		</isEmpty>
+		<isNotEmpty property="CAT_DTL_SN">
+			DELETE FROM EDU_CAT_DTL_TB
+			WHERE 1=1
+			AND CAT_SN = #CAT_SN#
+			AND CAT_DTL_SN = #CAT_DTL_SN#
+		</isNotEmpty>
+	</delete>
+	
+	
+	<!-- 교육기관 -->
+	<select id="get_edu_category_ins_inf_info" parameterClass="eduCategoryInsInfVO" resultClass="eduCategoryInsInfVO">
+			SELECT * 
+			FROM EDU_CAT_INS_INF_TB
+			WHERE 1=1
+			<isNotEmpty property="USE_ST" prepend="AND">
+				USE_ST = #USE_ST#
+			</isNotEmpty>
+		  	AND CAT_INS_SN = #CAT_INS_SN#			
+	</select>	
+	<select id="get_edu_category_ins_inf_list" parameterClass="eduCategoryInsInfVO" resultClass="eduCategoryInsInfVO">
+			SELECT T.* 
+			FROM EDU_CAT_INS_INF_TB AS T
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( T.CAT_INS_NM LIKE '%' #searchKeyword# '%' )
+			</isNotEmpty>
+			<isNotEmpty property="USE_ST" prepend="AND">
+				T.USE_ST = #USE_ST#
+			</isNotEmpty>
+			ORDER BY USE_ST DESC, CAT_INS_ORD ASC, CAT_INS_SN DESC
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex#			
+			</isNotEqual>			
+	</select>	
+	<select id="get_edu_category_ins_inf_list_totcnt" parameterClass="eduCategoryInsInfVO" resultClass="int">
+			SELECT COUNT(T.CAT_INS_SN) AS CNT  
+			FROM EDU_CAT_INS_INF_TB AS T
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( T.CAT_INS_NM LIKE '%' #searchKeyword# '%' )
+			</isNotEmpty>
+			<isNotEmpty property="USE_ST" prepend="AND">
+				T.USE_ST = #USE_ST#
+			</isNotEmpty>	
+	</select>
+	<insert id="set_edu_category_ins_inf_reg" parameterClass="eduCategoryInsInfVO">
+		INSERT INTO EDU_CAT_INS_INF_TB 
+		(
+			CAT_INS_NM,
+			CAT_INS_DSCRP,
+			USE_ST,
+			REG_DT,
+			UPD_DT,
+			REG_MBR_ID,
+			UPD_MBR_ID,
+			CAT_INS_ORD,
+			CAT_INS_LOGO,
+			CAT_INS_STAMP,
+			CAT_INS_PSTN,
+			CAT_INS_CEO,
+			CAT_INS_TEL,
+			CAT_INS_DATE,
+			CAT_AUTH_HIDE,
+			SIDO_CD,
+			SIGNGU_CD,
+			EMD_CD,
+			CAT_INS_ADDR,
+			CAT_INS_ZIP,
+			CAT_INS_OTLNMAP,
+			CAT_INS_IMG
+		) VALUES (
+			#CAT_INS_NM#,
+			#CAT_INS_DSCRP#,
+			#USE_ST#,
+			NOW(),
+			NOW(),
+			#REG_MBR_ID#,
+			#UPD_MBR_ID#,
+			#CAT_INS_ORD#,
+			#CAT_INS_LOGO#,
+			#CAT_INS_STAMP#,
+			#CAT_INS_PSTN#,
+			#CAT_INS_CEO#,
+			#CAT_INS_TEL#,
+			#CAT_INS_DATE#,
+			#CAT_AUTH_HIDE#,
+			#SIDO_CD#,
+			#SIGNGU_CD#,
+			#EMD_CD#,
+			#CAT_INS_ADDR#,
+			#CAT_INS_ZIP#,
+			#CAT_INS_OTLNMAP#,
+			#CAT_INS_IMG#						
+		)
+	</insert>
+	<update id="set_edu_category_ins_inf_mod" parameterClass="eduCategoryInsInfVO">
+		UPDATE EDU_CAT_INS_INF_TB 
+		SET UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT=NOW() 
+			<isNotEmpty property="CAT_INS_NM" prepend=",">CAT_INS_NM = #CAT_INS_NM#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_DSCRP" prepend=",">CAT_INS_DSCRP = #CAT_INS_DSCRP#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_ORD" prepend=",">CAT_INS_ORD = #CAT_INS_ORD#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_LOGO" prepend=",">CAT_INS_LOGO = #CAT_INS_LOGO#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_STAMP" prepend=",">CAT_INS_STAMP = #CAT_INS_STAMP#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_PSTN" prepend=",">CAT_INS_PSTN = #CAT_INS_PSTN#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_CEO" prepend=",">CAT_INS_CEO = #CAT_INS_CEO#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_TEL" prepend=",">CAT_INS_TEL = #CAT_INS_TEL#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_DATE" prepend=",">CAT_INS_DATE = #CAT_INS_DATE#</isNotEmpty>
+			<isNotEmpty property="CAT_AUTH_HIDE" prepend=",">CAT_AUTH_HIDE = #CAT_AUTH_HIDE#</isNotEmpty>
+			<isNotEmpty property="SIDO_CD" prepend=",">SIDO_CD = #SIDO_CD#</isNotEmpty>
+			<isNotEmpty property="SIGNGU_CD" prepend=",">SIGNGU_CD = #SIGNGU_CD#</isNotEmpty>
+			<isNotEmpty property="EMD_CD" prepend=",">EMD_CD = #EMD_CD#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_ADDR" prepend=",">CAT_INS_ADDR = #CAT_INS_ADDR#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_ZIP" prepend=",">CAT_INS_ZIP = #CAT_INS_ZIP#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_OTLNMAP" prepend=",">CAT_INS_OTLNMAP = #CAT_INS_OTLNMAP#</isNotEmpty>
+			<isNotEmpty property="CAT_INS_IMG" prepend=",">CAT_INS_IMG = #CAT_INS_IMG#</isNotEmpty>
+			<isNotEmpty property="USE_ST" prepend=",">
+				USE_ST = #USE_ST#
+				<isEqual property="USE_ST" compareValue="1" prepend=",">
+					DEL_ST = '0'
+				</isEqual>
+			</isNotEmpty>
+		WHERE CAT_INS_SN = #CAT_INS_SN#			
+	</update>	
+	<update id="del_edu_category_ins_inf" parameterClass="eduCategoryInsInfVO">
+		<isNotEmpty property="CAT_INS_SN" >
+		UPDATE EDU_CAT_INS_INF_TB 
+		SET 
+			USE_ST=0,
+			DEL_ST=1,
+			UPD_MBR_ID = #UPD_MBR_ID#,
+			UPD_DT=NOW() 
+		WHERE CAT_INS_SN = #CAT_INS_SN#	
+		</isNotEmpty>	
+	</update>	
+	<delete id="remove_edu_category_ins_inf" parameterClass="eduCategoryInsInfVO">
+		<isNotEmpty property="CAT_INS_SN" >
+			DELETE FROM EDU_CAT_INS_INF_TB
+			WHERE CAT_INS_SN = #CAT_INS_SN#		
+		</isNotEmpty>
+	</delete>
+	<!-- End 교육기관 -->
+	
+</sqlMap>

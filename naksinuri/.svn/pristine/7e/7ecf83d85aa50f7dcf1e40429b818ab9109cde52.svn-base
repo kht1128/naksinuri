@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ctiMyHistorySQL">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="ctiMyHistoryVO" type="egovframework.cti.mbrhstry.service.CtiMyHistoryVO"/>
+	
+	<select id="ctiMyHistoryDAO.get_edu_mbrhstry_list" parameterClass="ctiMyHistoryVO" resultClass="ctiMyHistoryVO">
+			SELECT 	T.*
+					,DATE_FORMAT(T.LRNNG_CMPLT_DT, '%Y-%m-%d') AS LRNNG_CMPLT_DT_STR
+					,C.CRS_NM
+					,C.CRS_PLACE
+					,C.CRS_ADDR
+					,D.CRTF_SN
+					,D.CRTF_CD
+			FROM EDU_MBR_HSTRY_TB AS T
+			LEFT JOIN EDU_CURRICULUM_TB AS C ON C.CRS_SN = T.CRS_SN
+			LEFT JOIN EDU_CRTF_TB AS D ON D.CRS_SN = T.CRS_SN AND D.HMBR_SN = T.HMBR_SN
+			WHERE T.MBR_ID = #MBR_ID#
+			<isNotEmpty property="LRNNG_CMPLT_ST" prepend="AND">
+			 	T.LRNNG_CMPLT_ST = #LRNNG_CMPLT_ST#
+			</isNotEmpty>  	
+			<isNotEmpty property="LRNNG_ST" prepend="AND">		    	
+				T.LRNNG_ST = #LRNNG_ST#
+			</isNotEmpty>
+	</select>
+		
+</sqlMap>

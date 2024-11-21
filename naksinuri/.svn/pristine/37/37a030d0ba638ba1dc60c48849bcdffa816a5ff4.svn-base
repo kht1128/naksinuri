@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ctiCallHistorySQL">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="ctiCallHistoryVO" type="egovframework.cti.callhstry.service.CtiCallHistoryVO"/>
+	
+	<select id="ctiCallHistorySQL.get_cti_callhstry_list_totcnt" parameterClass="ctiCallHistoryVO" resultClass="int">
+			SELECT COUNT(DISTINCT T.HCALL_SN)
+			FROM CTI_CALL_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M1 ON M1.MBR_ID = T.STAFF_MBR_ID
+			LEFT JOIN CTI_STAFF_TB AS M2 ON M2.MBR_ID = T.STAFF_MBR_ID
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword">
+					LEFT JOIN MBR_TB AS M3 ON M3.MBR_ID = T.MBR_ID
+					LEFT JOIN CTI_MBR_TB AS M4 ON M4.MBR_ID = T.MBR_ID
+					LEFT JOIN MBR_TB AS M5 ON M5.MBR_HP = T.MBR_HP
+					LEFT JOIN CTI_MBR_TB AS M6 ON M6.CTI_MBR_HP = T.MBR_HP
+					</isNotEmpty>
+				</isEqual>
+			</isNotEmpty>
+			WHERE 1 = 1 
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( 
+						M3.MBR_NM LIKE '%$searchKeyword$' OR M3.MBR_NM LIKE '%$searchKeyword$%' OR M3.MBR_HP LIKE '$searchKeyword$%' OR M3.MBR_ID LIKE '%$searchKeyword$%' OR
+						M4.CTI_MBR_NM LIKE '%$searchKeyword$' OR M4.CTI_MBR_NM LIKE '%$searchKeyword$%' OR M4.CTI_MBR_HP LIKE '$searchKeyword$%' OR
+						M6.CTI_MBR_NM LIKE '%$searchKeyword$' OR M6.CTI_MBR_NM LIKE '%$searchKeyword$%' OR M6.CTI_MBR_HP LIKE '$searchKeyword$%' 
+						OR T.MBR_HP LIKE '$searchKeyword$%' 
+					)
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>
+		  	<isNotEmpty property="searchStrDate" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_DT >= #searchStrDate#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="searchEndDate" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_DT <= #searchEndDate#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="STAFF_MBR_ID" prepend="AND">		    	
+				T.STAFF_MBR_ID = #STAFF_MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="HCALL_AGREE_1" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_AGREE_1 = #HCALL_AGREE_1#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_AGREE_2" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_AGREE_2 = #HCALL_AGREE_2#
+		  		]]>
+		  	</isNotEmpty>	
+		  	<isNotEmpty property="HCALL_IVR_CD" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_IVR_CD = #HCALL_IVR_CD#
+		  		]]>
+		  	</isNotEmpty>	
+		  	<isNotEmpty property="MBR_HP" prepend="AND">
+		  		<![CDATA[
+		  		T.MBR_HP = #MBR_HP#
+		  		]]>
+		  	</isNotEmpty>  	
+	</select>
+	<select id="ctiCallHistorySQL.get_cti_callhstry_list" parameterClass="ctiCallHistoryVO" resultClass="ctiCallHistoryVO">
+			SELECT 
+			IF(M3.MBR_ID IS NULL AND M5.MBR_ID IS NULL,'N','Y') AS IS_JOIN_MBR,
+			IF(M4.CTI_MBR_NM IS NULL AND M6.CTI_MBR_NM IS NULL,'N','Y') AS IS_CTI_MBR,
+			M3.MBR_ID AS JOIN_MBR_ID,M3.MBR_NM AS JOIN_MBR_NM,M3.MBR_HP AS JOIN_MBR_HP,M4.CTI_MBR_NM AS CTI_MBR_NM,M4.CTI_MBR_HP AS CTI_MBR_HP,
+			M5.MBR_ID AS JOIN_HP_MBR_ID,M5.MBR_NM AS JOIN_HP_MBR_NM,M6.CTI_MBR_NM AS CNSLT_MBR_NM,M6.CTI_MBR_HP AS CNSLT_MBR_HP,
+			M2.STAFF_NM AS STAFF_MBR_NM,
+			CD1.CD_NM AS HCALL_GUBUN_1_NM,
+			CD2.CD_NM AS HCALL_GUBUN_2_NM,
+			T.*
+			FROM CTI_CALL_HSTRY_TB AS T
+			LEFT JOIN MBR_TB AS M1 ON M1.MBR_ID = T.STAFF_MBR_ID AND M1.MBR_ID != ''
+			LEFT JOIN CTI_STAFF_TB AS M2 ON M2.MBR_ID = T.STAFF_MBR_ID AND M2.MBR_ID != ''
+			LEFT JOIN MBR_TB AS M3 ON M3.MBR_ID = T.MBR_ID AND M3.MBR_ID != ''
+			LEFT JOIN CTI_MBR_TB AS M4 ON M4.MBR_ID = T.MBR_ID AND M4.MBR_ID != ''
+			LEFT JOIN MBR_TB AS M5 ON M5.MBR_HP = T.MBR_HP
+			LEFT JOIN CTI_MBR_TB AS M6 ON M6.CTI_MBR_HP = T.MBR_HP
+			LEFT JOIN ALL_CODE_SET_TB AS CD1 ON CD1.CD_ID = T.HCALL_GUBUN_1
+			LEFT JOIN ALL_CODE_SET_TB AS CD2 ON CD2.CD_ID = T.HCALL_GUBUN_2
+			WHERE 1 = 1 
+			<isNotEmpty property="searchUseYn">
+				<isEqual compareValue="Y" property="searchUseYn">
+					<isNotEmpty property="searchKeyword" prepend="AND">
+					( 
+						M3.MBR_NM LIKE '%$searchKeyword$' OR M3.MBR_NM LIKE '%$searchKeyword$%' OR M3.MBR_HP LIKE '$searchKeyword$%' OR M3.MBR_ID LIKE '%$searchKeyword$%' OR
+						M4.CTI_MBR_NM LIKE '%$searchKeyword$' OR M4.CTI_MBR_NM LIKE '%$searchKeyword$%' OR M4.CTI_MBR_HP LIKE '$searchKeyword$%' OR
+						M6.CTI_MBR_NM LIKE '%$searchKeyword$' OR M6.CTI_MBR_NM LIKE '%$searchKeyword$%' OR M6.CTI_MBR_HP LIKE '$searchKeyword$%' 
+						OR T.MBR_HP LIKE '$searchKeyword$%' 
+					)
+					</isNotEmpty>
+				</isEqual>			
+		  	</isNotEmpty>
+		  	<isNotEmpty property="searchStrDate" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_DT >= #searchStrDate#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="searchEndDate" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_DT <= #searchEndDate#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="STAFF_MBR_ID" prepend="AND">		    	
+				T.STAFF_MBR_ID = #STAFF_MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="HCALL_AGREE_1" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_AGREE_1 = #HCALL_AGREE_1#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_AGREE_2" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_AGREE_2 = #HCALL_AGREE_2#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_IVR_CD" prepend="AND">
+		  		<![CDATA[
+		  		T.HCALL_IVR_CD = #HCALL_IVR_CD#
+		  		]]>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="MBR_HP" prepend="AND">
+		  		<![CDATA[
+		  		T.MBR_HP = #MBR_HP#
+		  		]]>
+		  	</isNotEmpty>
+			GROUP BY T.HCALL_SN
+			ORDER BY T.REG_DT DESC 
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>	
+	</select>
+	<insert id="ctiCallHistorySQL.set_cti_callhstry_reg" parameterClass="ctiCallHistoryVO">
+			INSERT INTO
+			CTI_CALL_HSTRY_TB
+			(
+				<isNotEmpty property="HCALL_TYPE">		    	
+				HCALL_TYPE,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_ST">		    	
+				HCALL_ST,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_DT">		    	
+				HCALL_DT,
+				</isNotEmpty>
+				<isNotEmpty property="STAFF_MBR_ID">		    	
+				STAFF_MBR_ID,
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP">		    	
+				MBR_HP,
+				</isNotEmpty>
+				<isNotEmpty property="CALL_CD">		    	
+				CALL_CD,
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID">		    	
+				MBR_ID,
+				</isNotEmpty>
+				<isNotEmpty property="REC_FILE_NM">		    	
+				REC_FILE_NM,
+				</isNotEmpty>
+				<isNotEmpty property="EXTNO">		    	
+				EXTNO,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_R_TEL">		    	
+				HCALL_R_TEL,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_S_TEL">		    	
+				HCALL_S_TEL,
+				</isNotEmpty>	
+				<isNotEmpty property="HCALL_TIME">		    	
+				HCALL_TIME,
+				</isNotEmpty>	   	
+				<isNotEmpty property="HCALL_READY_TIME">		    	
+				HCALL_READY_TIME,
+				</isNotEmpty>	
+				<isNotEmpty property="CALL_LOG_MSG">		    	
+				CALL_LOG_MSG,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_AGREE_1">		    	
+				HCALL_AGREE_1,
+				</isNotEmpty>		
+				<isNotEmpty property="HCALL_AGREE_2">		    	
+				HCALL_AGREE_2,
+				</isNotEmpty>	
+				<isNotEmpty property="HCALL_IVR">
+			  	HCALL_IVR,
+			  	</isNotEmpty>			
+			  	<isNotEmpty property="HCALL_IVR_CD">
+			  	HCALL_IVR_CD,
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_IMPRT">
+		  		HCALL_IMPRT, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_GUBUN_1">
+			  	HCALL_GUBUN_1, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_GUBUN_2">
+			  	HCALL_GUBUN_2, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_CONT">
+			  	HCALL_CONT, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_MEMO">
+			  	HCALL_MEMO, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_DTL_TYPE">
+			  	HCALL_DTL_TYPE, 
+			  	</isNotEmpty>
+			  	HCALL_FILE_1,
+			  	HCALL_FILE_2,
+				REG_DT,
+				UPD_DT,
+				REG_MBR_ID,
+				UPD_MBR_ID
+			) VALUES (
+				<isNotEmpty property="HCALL_TYPE">		    	
+				#HCALL_TYPE#,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_ST">		    	
+				#HCALL_ST#,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_DT">		    	
+				#HCALL_DT#,
+				</isNotEmpty>
+				<isNotEmpty property="STAFF_MBR_ID">		    	
+				#STAFF_MBR_ID#,
+				</isNotEmpty>
+				<isNotEmpty property="MBR_HP">		    	
+				REPLACE(#MBR_HP#,'-',''),
+				</isNotEmpty>
+				<isNotEmpty property="CALL_CD">		    	
+				#CALL_CD#,
+				</isNotEmpty>
+				<isNotEmpty property="MBR_ID">		    	
+				#MBR_ID#,
+				</isNotEmpty>
+				<isNotEmpty property="REC_FILE_NM">		    	
+				#REC_FILE_NM#,
+				</isNotEmpty>
+				<isNotEmpty property="EXTNO">		    	
+				#EXTNO#,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_R_TEL">		    	
+				#HCALL_R_TEL#,
+				</isNotEmpty>
+				<isNotEmpty property="HCALL_S_TEL">		    	
+				#HCALL_S_TEL#,
+				</isNotEmpty>	
+				<isNotEmpty property="HCALL_TIME">		    	
+				#HCALL_TIME#,
+				</isNotEmpty>	
+				<isNotEmpty property="HCALL_READY_TIME">		    	
+				#HCALL_READY_TIME#,
+				</isNotEmpty>
+				<isNotEmpty property="CALL_LOG_MSG">		    	
+				#CALL_LOG_MSG#,
+				</isNotEmpty>		
+				<isNotEmpty property="HCALL_AGREE_1">		    	
+				#HCALL_AGREE_1#,
+				</isNotEmpty>		
+				<isNotEmpty property="HCALL_AGREE_2">		    	
+				#HCALL_AGREE_2#,
+				</isNotEmpty>		
+				<isNotEmpty property="HCALL_IVR">
+			  	#HCALL_IVR#,
+			  	</isNotEmpty>	
+			  	<isNotEmpty property="HCALL_IVR_CD">
+			  	#HCALL_IVR_CD#,
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_IMPRT">
+		  		#HCALL_IMPRT#, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_GUBUN_1">
+			  	#HCALL_GUBUN_1#, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_GUBUN_2">
+			  	#HCALL_GUBUN_2#, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_CONT">
+			  	#HCALL_CONT#, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_MEMO">
+			  	#HCALL_MEMO#, 
+			  	</isNotEmpty>
+			  	<isNotEmpty property="HCALL_DTL_TYPE">
+			  	#HCALL_DTL_TYPE#, 
+			  	</isNotEmpty>
+			  	#HCALL_FILE_1#,
+			  	#HCALL_FILE_2#,
+				NOW(),
+				NOW(),
+				#REG_MBR_ID#,
+				#UPD_MBR_ID#
+			)
+	</insert>
+	
+	<update id="ctiCallHistorySQL.set_cti_callhstry_info_mod" parameterClass="ctiCallHistoryVO">
+		UPDATE CTI_CALL_HSTRY_TB SET 
+			UPD_MBR_ID = #UPD_MBR_ID#
+			,UPD_DT = NOW()
+			,HCALL_FILE_1 = #HCALL_FILE_1#
+		  	,HCALL_FILE_2 = #HCALL_FILE_2#
+			<isNotEmpty property="HCALL_IMPRT" prepend=",">
+		  		HCALL_IMPRT = #HCALL_IMPRT# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_GUBUN_1" prepend=",">
+		  		HCALL_GUBUN_1 = #HCALL_GUBUN_1# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_GUBUN_2" prepend=",">
+		  		HCALL_GUBUN_2 = #HCALL_GUBUN_2# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_CONT" prepend=",">
+		  		HCALL_CONT = #HCALL_CONT# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_MEMO" prepend=",">
+		  		HCALL_MEMO = #HCALL_MEMO# 
+		  	</isNotEmpty>	
+		  	<isNotEmpty property="MBR_ID" prepend=",">
+		  		MBR_ID = #MBR_ID# 
+		  	</isNotEmpty>
+		  	<isEqual compareValue="true" property="FORCE_UPD_MBR_ID" prepend=",">
+		  		MBR_ID = #MBR_ID# 
+		  	</isEqual>				
+		  	<isNotEmpty property="MBR_HP" prepend=",">
+		  		MBR_HP = #MBR_HP# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_R_TEL" prepend=",">
+		  		HCALL_R_TEL = #HCALL_R_TEL# 
+		  	</isNotEmpty>
+		  	<isNotEmpty property="HCALL_S_TEL" prepend=",">
+		  		HCALL_S_TEL = #HCALL_S_TEL# 
+		  	</isNotEmpty>
+		WHERE 
+		<isNotEmpty property="HCALL_SN">
+			HCALL_SN = #HCALL_SN#
+		</isNotEmpty>
+		<isEmpty property="HCALL_SN">
+	  		CALL_CD = #CALL_CD# 
+	  	</isEmpty>
+	</update>
+	
+	<select id="ctiCallHistorySQL.get_cti_callhstry_info" parameterClass="ctiCallHistoryVO" resultClass="ctiCallHistoryVO">
+		SELECT *
+		FROM CTI_CALL_HSTRY_TB
+		WHERE 
+		<isNotEmpty property="HCALL_SN">
+			HCALL_SN = #HCALL_SN#
+		</isNotEmpty>
+		<isEmpty property="HCALL_SN">
+	  		CALL_CD = #CALL_CD# 
+	  	</isEmpty>
+	</select>
+	
+	<delete id="ctiCallHistorySQL.remove_cti_callhstry_info" parameterClass="ctiCallHistoryVO" >
+		DELETE FROM CTI_CALL_HSTRY_TB 	
+		WHERE HCALL_SN = #HCALL_SN#		
+	</delete>
+	
+	<select id="ctiCallHistorySQL.get_cti_callhstry_last_info" parameterClass="ctiCallHistoryVO" resultClass="ctiCallHistoryVO">
+		SELECT	IF(T.MBR_ID IS NULL,'',T.MBR_ID) AS MBR_ID
+				,T.MBR_HP
+				,T.HCALL_TYPE
+				,T.HCALL_ST
+				,IF(T.HCALL_IVR IS NULL,'',T.HCALL_IVR) AS HCALL_IVR
+				,T.HCALL_IMPRT
+				,IF(C1.CD_NM IS NULL,'',C1.CD_NM) AS SIDO_CD_NM
+				,IF(C2.CD_NM IS NULL,'',C2.CD_NM) AS SIGNGU_CD_NM
+				,IF(MDTL.DTL_NM IS NULL,'',MDTL.DTL_NM) AS DTL_NM
+				,IF(C3.CD_NM IS NULL,'',C3.CD_NM) AS DTL_CD_NM 
+		FROM CTI_CALL_HSTRY_TB AS T
+		LEFT JOIN MBR_DTL_TB AS MDTL ON MDTL.DTL_SN = (
+			SELECT T2.DTL_SN 
+			FROM MBR_DTL_TB AS T2 
+			WHERE T2.MBR_ID = T.MBR_ID 
+			LIMIT 1
+		) 
+		LEFT JOIN all_code_set_tb AS C1 ON C1.CD_ID = MDTL.SIDO_CD
+		LEFT JOIN all_code_set_tb AS C2 ON C2.CD_ID = MDTL.SIGNGU_CD
+		LEFT JOIN all_code_set_tb AS C3 ON C3.CD_ID = MDTL.DTL_CD
+		WHERE T.MBR_HP = #MBR_HP# 
+		<![CDATA[ AND ( T.HCALL_TYPE = '발신' OR T.HCALL_TYPE = '수신' ) ]]>
+		ORDER BY T.HCALL_SN DESC 	
+		LIMIT 1
+	</select>
+	
+	<select id="ctiCallHistorySQL.get_cti_callhstry_default_info" parameterClass="ctiCallHistoryVO" resultClass="ctiCallHistoryVO">
+		SELECT	*
+		FROM MBR_TB
+		WHERE MBR_HP = #MBR_HP# 
+		LIMIT 1
+	</select>	
+	
+	
+	<select id="ctiCallHistorySQL.get_cti_callhstry_excel_list" parameterClass="ctiCallHistoryVO" resultClass="ctiCallHistoryVO">
+		SELECT M.MBR_NM, M.MBR_TEL, M.MBR_BIRTH, C.HCALL_ST, C.HCALL_TYPE, C.HCALL_S_TEL, C.HCALL_DT, C.HCALL_TIME, S.STAFF_NM, C.HCALL_IVR, A.CD_NM AS CD_NM1, A2.CD_NM AS CD_NM2, C.HCALL_CONT
+		FROM CTI_CALL_HSTRY_TB AS C
+		LEFT JOIN MBR_TB AS M ON M.MBR_ID = C.MBR_ID
+		LEFT JOIN CTI_STAFF_TB AS S ON C.STAFF_MBR_ID = S.MBR_ID
+		LEFT JOIN ALL_CODE_SET_TB AS A ON C.HCALL_GUBUN_1 = A.CD_ID
+		LEFT JOIN ALL_CODE_SET_TB AS A2 ON C.HCALL_GUBUN_2 = A2.CD_ID
+		WHERE 1=1
+			<isNotEmpty property="HCALL_STR_DT" prepend="AND">
+				<![CDATA[
+					C.HCALL_DT >= DATE_FORMAT(#HCALL_STR_DT#,'%Y/%m/%d 00:00:00')
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="HCALL_END_DT" prepend="AND">
+				<![CDATA[
+					C.HCALL_DT <= DATE_FORMAT(#HCALL_END_DT#,'%Y/%m/%d 23:59:59')
+				]]>
+			</isNotEmpty>
+	</select>
+</sqlMap>

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+################################################################
+##
+##   Log Clean Script
+##   Written By: blueagle Kumar
+##   Last Update: 2010-01-28
+##
+################################################################
+# 본 스크림트를 특정 위치에 복사
+# 실행권한 부여
+#       chmod 777 log_clean
+#
+# 본 스크립트의 환경값 변경
+#
+# 크론 등록 root계정으로
+#       crontab -e
+#       0 2 * * * root /backup/log_clean
+
+export PATH=/bin:/usr/bin:/usr/local/bin
+TODAY=`date '+%Y-%m-%d'`
+TODAYDATETIME=`date '+%Y-%m-%d_%H:%M:%S'`
+
+################################################################
+################## Update below values  ########################
+
+APACHE_LOG_PATH='/usr/local/apache2/logs'
+TOMCAT_LOG_PATH='/usr/local/tomcat/logs'
+
+BACKUP_RETAIN_DAYS=7   ## Number of days to keep local backup copy
+
+#################################################################
+
+##### Remove backups older than {BACKUP_RETAIN_DAYS} days  #####
+
+LOGDELDATE=`date +"%Y-%m-%d" --date="${BACKUP_RETAIN_DAYS} days ago"`
+
+echo "Clean log " $APACHE_LOG_PATH
+find ${APACHE_LOG_PATH} -mindepth 1 -maxdepth 1 -mtime +${BACKUP_RETAIN_DAYS} -type f -exec rm -rf {} \;
+find ${APACHE_LOG_PATH} -mindepth 1 -maxdepth 1 -type f -size +1000000k -exec rm -rf {} \;
+
+#echo "Clean log " $TOMCAT_LOG_PATH
+#find ${TOMCAT_LOG_PATH} -mindepth 1 -maxdepth 1 -mtime +${BACKUP_RETAIN_DAYS} -type f -exec rm -rf {} \;
+##find ${TOMCAT_LOG_PATH} -mindepth 1 -maxdepth 1 -type f -size +1000000k -exec rm -rf {} \;
+#find ${TOMCAT_LOG_PATH} -type f -size +1000000k -exec cp /dev/null {}  \;
+### End of script ####
+

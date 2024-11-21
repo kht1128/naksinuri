@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <title>Websocket client</title>
+	    <link href="./bootstrap-combined.min.css" rel="stylesheet">
+	    <style type="text/css">
+	    	#telper-left {float: left; width: 50%;}
+	    	#telper-right {float: left; width: 50%;}
+			.button {
+				background-color: white; /* Green */
+				border:2px solid #e7e7e7;
+				color: black;
+				padding: 4px 8px;
+				text-decoration: none;
+				text-align: center;
+				display: inline-block;
+				font-size: 12px;
+				margin: 2px 1px;
+				-webkit-transition-duration: 0.1s; /* Safari */
+				transition-duration: 0.0s;
+				cursor: pointer;
+				transform: translateY(4px);
+				
+			}
+
+			.button:hover {
+				background-color: #e7e7e7;
+				text-decoration: none;
+			}
+			.button:active {
+				background-color: #e7e7e7;
+				text-decoration: none;
+				transform: translateY(6px);
+			}
+			.disabled {
+				background-color: #7e7e7e;
+				pointer-events: none;
+				cursor: default;
+			}
+	    </style>
+	    <script src="./jquery.js"></script>
+	    <script type="text/javascript" src="./json2.js"></script>
+	</head>
+<body>
+	<div class="container">
+		<h1 class="page-header">TELPER CTI SoftPhone TestPage</h1>
+
+		<div id="telper-left">
+			<form action="" class="form-inline" id="connectForm">
+				<div class="input-append">
+					<input type="text" class="input-large" placeholder="Server Info" value="ws://192.168.1.1:7103/softphone" id="wsServer">
+					<a href="#" class="button" onclick="ConnectServer()" id="connect">Connect</a>
+					<a href="#" class="button disabled" onclick="DisconnectServer()" id="disconnect">Disconnect</a>
+					
+				</div>
+			</form>
+			<form action="" id="spForm">
+				<div class="input-append">
+						<input type="text" class="input-small" placeholder="TelNo" id="telNo">
+									<input type="text" class="input-small" placeholder="CtiID" id="ctiId">
+									<input type="text" class="input-long" placeholder="DestTelNo" id="destTelno">
+									<br/><br/>
+									<input type="text" class="input-long" placeholder="UEI" id="uei">
+									
+							</div>
+							<div class="unstyled"><br/>	
+									<a href="#" class="button enabled" onclick="MonitorRegist()"  id="monitorRegist">Monitor Regist</a>   
+									<a href="#" class="button enabled" onclick="MonitorUnregist()"  id="monitorUnregist">Monitor Unregist</a>
+									<br/><br/>	
+									<a href="#" class="button disabled" onclick="Login()"  id="userLogin">User Login</a>   
+									<a href="#" class="button disabled" onclick="Logout()"  id="userLogOut">User LogOut</a>	
+									<br/><br/>
+									<a href="#" class="button disabled" onclick="Avail()"  id="userWorkModeAvail">Avail</a>	
+									<a href="#" class="button disabled" onclick="Unavail('0')"  id="userWorkModeUnavail">Unavail</a>	
+									<a href="#" class="button disabled" onclick="Work('0')"  id="userWorkModeWork">Work</a>	
+									<a href="#" class="button disabled" onclick="Work('ACW')"  id="userWorkModeACW">ACW</a>	
+									<br/><br/>
+									<a href="#" class="button disabled" onclick="MakeCall()"  id="makeCall">Make Call</a>																										
+									<a href="#" class="button disabled" onclick="AnswerCall()"  id="answerCall">AnswerCall</a>	
+									<a href="#" class="button disabled" onclick="DisconnectCall()"  id="disconnectCall">Disconnect Call</a>	
+									<a href="#" class="button disabled" onclick="HoldCall()"  id="holdCall">Hold Call</a>	
+									<a href="#" class="button disabled" onclick="RetrieveCall()"  id="retrieveCall">Retrieve Call</a>	
+									<br/><br/>
+									<a href="#" class="button disabled" onclick="ConsultationCall()"  id="consultationCall">Consultation Call</a>	
+									<a href="#" class="button disabled" onclick="ReconnectCall()"  id="reconnectCall">Reconnect Call</a>	
+									<a href="#" class="button disabled" onclick="TransferCall()"  id="transferCall">Transfer Call</a>											
+									<a href="#" class="button disabled" onclick="AlternateCall()"  id="alternateCall">Alternate Call</a>	
+									<br/><br/>
+									<a href="#" class="button disabled" onclick="ConferenceCall()"  id="conferenceCall">Conference Call</a>
+									<a href="#" class="button disabled" onclick="SingleStepTransferCall()"  id="singleStepTransferCall">Single Step Transfer Call</a>																									
+									<a href="#" class="button disabled" onclick="SingleStepConferenceCall()"  id="singleStepConferenceCall">Single Step Conference Call</a>
+									<a href="#" class="button disabled" onclick="GroupPickup()"  id="groupPickup">Group Pickup</a>
+									<br/><br/>	
+									<a href="#" class="button" onclick="ClearLog()" id="clearLog">Clear Log</a>				
+									<a href="#" class="button" onclick="SetUEI()" id="setUei">Set Uei</a>		
+									<a href="#" class="button" onclick="GetUEI()" id="getUei">Get Uei</a>	
+									<a href="#" class="button" onclick="GetQueueInfo()" id="getQueueInfo">Get QueueInfo</a>
+									<a href="#" class="button" onclick="GetIvrInfo()" id="getIvrInfo">Get IvrInfo</a>
+									<a href="#" class="button" onclick="GetMyStatus()" id="getMyStatus">Get My Status</a>
+									<br/><br/>
+									<a href="#" class="button disabled" onclick="CtfStart()" id="ctfStart">CTF Start</a>
+									<a href="#" class="button" onclick="SendPing()" id="sendPind">Send PING</a>
+									<a href="#" class="button" onclick="AllButtonState('on')" id="AllButtonOn">All Button On</a>	
+									<a href="#" class="button" onclick="ProcJsonEventButtonMsg(buttonMsg)" id="AllButtonRestore">All Button Restore</a>
+									
+				</div>
+			</form>
+			
+			
+		</div>
+
+		<div id="telper-right">
+			
+			<form action="" id="dtmfForm">
+			
+				<div class="unstyled">
+						<a href="#" class="button" onclick="DTMFTone('1')" id="dtmfOne">1</a>  
+						<a href="#" class="button" onclick="DTMFTone('2')" id="dtmfTwo">2</a> 
+						<a href="#" class="button" onclick="DTMFTone('3')" id="dtmfThree">3</a>  
+						<br/>	
+						<a href="#" class="button" onclick="DTMFTone('4')" id="dtmfFour">4</a>  
+						<a href="#" class="button" onclick="DTMFTone('5')" id="dtmfFive">5</a> 
+						<a href="#" class="button" onclick="DTMFTone('6')" id="dtmfSix">6</a> 
+						<br/>	
+						<a href="#" class="button" onclick="DTMFTone('7')" id="dtmfSeven">7</a>  
+						<a href="#" class="button" onclick="DTMFTone('8')" id="dtmfEight">8</a> 
+						<a href="#" class="button" onclick="DTMFTone('9')" id="dtmfNine">9</a>
+						<br/>
+						<a href="#" class="button" onclick="DTMFTone('*')" id="dtmfStar">*</a>  
+						<a href="#" class="button" onclick="DTMFTone('0')" id="dtmfZero">0</a> 
+						<a href="#" class="button" onclick="DTMFTone('#')" id="dtmfSharp">#</a>
+			</div>
+			</form>
+			<br/>
+			<form action="" id="setFeatureForm">
+				<div class="unstyled">
+				<a href="#" class="button" onclick="SetFeature('MicrophoneMute')" id="microphoneMute">Microphone Mute</a>
+				<a href="#" class="button" onclick="SetFeature('SpeakerMute')" id="speakerMute">Speaker Mute</a>
+				<a href="#" class="button" onclick="SetFeature('SpeakerVolume')" id="speakerVolume">Speaker Volume</a>
+				<br/>
+				<br/>
+				<select class="input-small" id="featureOnOff">
+					<option value="ON">ON</option>
+					<option value="OFF">OFF</option>
+				</select>
+				<input type="text" class="input-small" placeholder="Volume" id="featureVolume">
+				
+				<br/>
+				<br/>
+				<a href="#" class="button" onclick="QueryDevice()" id="queryDeviceFeature">Query Device</a>
+				<br/>
+				<br/>
+				<select class="input-small" id="featureKind">
+					<option value="MICROPHONE_MUTE">MICROPHONE MUTE</option>
+					<option value="SPEAKER_MUTE">SPEAKER MUTE</option>
+					<option value="SPEAKER_VOLUME">SPEAKER VOLUME</option>
+				</select>
+				
+				</div>
+			</form>
+			
+		</div>  	
+			
+	</div>
+	<hr>
+	<ul class="unstyled" id="log"></ul> 
+
+<script>
+
+Date.prototype.yyyymmddhhmmss = function()
+{
+	var yyyy = this.getFullYear().toString();
+    var mm = (this.getMonth() + 1).toString();
+    var dd = this.getDate().toString();
+	var	hh = this.getHours().toString();
+	var ii = this.getMinutes().toString();
+	var ss = this.getSeconds().toString();
+	
+	return yyyy + "-" + (mm[1] ? mm : '0'+mm[0]) + "-" + (dd[1] ? dd : '0'+dd[0]) + " " + (hh[1] ? hh : '0'+ hh[0]) + ":" + (ii[1] ? ii : '0' + ii[0]) + ":" + (ss[1] ? ss : '0' + ss[0]);
+}
+
+function btnstate(id, state){
+	if(state == 'off')
+		document.getElementById(id).className = 'button disabled';
+	else
+		document.getElementById(id).className = 'button';
+}
+
+function AllButtonState(state) {
+	btnstate('connect', state);
+	btnstate('disconnect', state);   		
+	btnstate('userLogin', state);  		
+	btnstate('userLogOut', state);  		
+	btnstate('userWorkModeAvail', state);  
+	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+//	btnstate('userWorkModeUnavail', state);
+	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state);  	
+//	btnstate('userWorkModeWork', state);  	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+//	btnstate('userWorkModeWork', state); 	
+	btnstate('userWorkModeACW', state);  	
+//	btnstate('userWorkModeWork', state);  	
+	btnstate('makeCall', state);  			
+	btnstate('answerCall', state); 			
+	btnstate('disconnectCall', state);  	
+	btnstate('holdCall', state);   			
+	btnstate('retrieveCall', state); 		
+	btnstate('consultationCall', state); 	
+	btnstate('reconnectCall', state); 		
+	btnstate('transferCall', state);
+	btnstate('alternateCall', state);
+	btnstate('conferenceCall', state);  	
+	btnstate('singleStepTransferCall', state);
+	btnstate('singleStepConferenceCall', state);
+	btnstate('groupPickup', state);
+	btnstate('ctfStart', state);
+}
+
+var w;
+var jsonMsg;
+var buttonMsg;
+
+// ����ȭ ���� �� bDup �� true �� ������ ��
+var bDup = true;
+var vOpen = false;
+var vError = false;
+var vRetry = false;
+
+function ConnectServer() {
+    if(typeof(Worker) == "undefined") {
+		WriteLog("Sorry, your browser does not support Web Workers...")
+		return;
+	}
+		
+	if(typeof(w) == "undefined") {
+		w = new Worker("sp.js");
+		WriteLog("Web Workers Setting...");
+	}
+	
+	PostJsonMsg('ConnectServer', $('#wsServer').val());
+	
+	w.onmessage = function(event) {
+		jsonMsg = event.data;
+		
+		if(jsonMsg.KIND == "Event")
+			ProcJsonEventMsg(jsonMsg);
+		else if(jsonMsg.KIND == "Resp")
+			ProcJsonRespMsg(jsonMsg);
+		else if(jsonMsg.KIND == "Open")
+			ProcJsonOpenMsg(jsonMsg);
+		else if(jsonMsg.KIND == "Close")
+			ProcJsonCloseMsg(jsonMsg);
+		else if(jsonMsg.KIND == "Error")
+			ProcJsonErrorMsg(jsonMsg);
+		else
+		{
+			var jsonStr = JSON.stringify(jsonMsg);
+		}
+		
+			
+	};
+}
+
+function ProcJsonOpenMsg(jsonMsg) {
+	vOpen = true;
+	var reason = jsonMsg.REASON;
+	WriteLog(reason);
+	
+	if(bDup == true && vRetry == true)
+	{
+		vRetry = false;
+		vError = false;
+		ReconnectServer();
+	}
+}
+
+function ProcJsonCloseMsg(jsonMsg) {
+	var bError = jsonMsg.ERROR_YN;
+	if(bError == "Y")
+	{
+		vError = true;
+		
+		if(bDup == true && vRetry == true)
+		{
+			setTimeout("ReconnectServer()", 1000);
+		}
+		
+		if(bDup == true && vOpen == true && vError == true)
+		{
+			// ������ timer
+			vRetry = true;
+			setTimeout("ReconnectServer()", 1000);			
+		}
+	}
+	
+	vOpen = false;
+	
+	var reason = jsonMsg.REASON;
+	WriteLog(reason);
+
+}
+
+function ProcJsonErrorMsg(jsonMsg) {
+	var reason = jsonMsg.REASON;
+	WriteLog(reason);
+}
+
+function ReconnectServer()
+{
+	if(vRetry == true)
+	{
+		ConnectServer();
+	}
+	else
+	{
+		GetMyStatus();
+	}
+}
+
+function DisconnectServer() { 
+	PostJsonMsg('DisconnectServer');
+}
+
+function MonitorRegist(){
+	PostJsonMsg('MonitorRegist', $('#telNo').val());
+}
+
+function MonitorUnregist(){
+	PostJsonMsg('MonitorUnregist', $('#telNo').val());
+}
+
+function Login(){
+	PostJsonMsg('Login', $('#telNo').val(), $('#ctiId').val());
+}
+
+function Logout(){
+	PostJsonMsg('Logout', $('#telNo').val(), $('#ctiId').val());
+}
+
+function Avail(){
+	PostJsonMsg('Avail', $('#telNo').val(), $('#ctiId').val()); 
+}
+
+function Unavail(subState){
+	PostJsonMsg('Unavail', $('#telNo').val(), $('#ctiId').val(), subState);
+}
+
+function Work(subState){
+	PostJsonMsg('Work', $('#telNo').val(), $('#ctiId').val(), subState);
+}
+
+function MakeCall(){
+	PostJsonMsg('MakeCall', $('#telNo').val(), $('#ctiId').val(), $('#destTelno').val());
+}
+
+function AnswerCall(){
+	PostJsonMsg('AnswerCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function DisconnectCall(){
+	alert("softPhone-DisconnectCall실행")
+	//PostJsonMsg('DisconnectCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function HoldCall(){
+	PostJsonMsg('HoldCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function RetrieveCall(){
+	PostJsonMsg('RetrieveCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function ConsultationCall(){
+	PostJsonMsg('ConsultationCall', $('#telNo').val(), $('#ctiId').val(), $('#destTelno').val());
+}
+
+function ReconnectCall(){
+	PostJsonMsg('ReconnectCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function TransferCall(){
+	PostJsonMsg('TransferCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function AlternateCall(){
+	PostJsonMsg('AlternateCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function ConferenceCall(){
+	PostJsonMsg('ConferenceCall', $('#telNo').val(), $('#ctiId').val());
+}
+
+function SingleStepTransferCall(){
+	PostJsonMsg('SingleStepTransferCall', $('#telNo').val(), $('#ctiId').val(), $('#destTelno').val());
+}
+
+function SingleStepConferenceCall(){
+	PostJsonMsg('SingleStepConferenceCall', $('#telNo').val(), $('#ctiId').val(), $('#destTelno').val());
+}
+
+function GroupPickup(){
+	PostJsonMsg('GroupPickup', $('#telNo').val(), $('#ctiId').val());
+}
+
+function DTMFTone(dtmfString){
+	PostJsonMsg('SendDTMF', $('#telNo').val(), $('#ctiId').val(), dtmfString);
+}
+
+function SetUEI(){
+	PostJsonMsg('SetUEI', $('#telNo').val(), $('#ctiId').val(), $('#uei').val());
+}
+
+function GetUEI(){
+	PostJsonMsg('GetUEI', $('#telNo').val(), $('#ctiId').val());
+}
+
+function GetIvrInfo(){
+	PostJsonMsg('GetIvrInfo', $('#telNo').val(), $('#ctiId').val());
+}
+
+function GetQueueInfo(){
+	PostJsonMsg('GetQueueInfo', $('#telNo').val(), $('#ctiId').val(), $('#destTelno').val());
+}
+
+function GetMyStatus(){
+	PostJsonMsg('GetMyStatus', $('#telNo').val(), $('#ctiId').val());
+}
+
+function CtfStart() {
+	PostJsonMsg('CtfStart', $('#telNo').val(), $('#ctiId').val());
+}
+
+function SetFeature(featureType){
+	if(featureType == 'SpeakerVolume')
+		PostJsonMsg(featureType, $('#telNo').val(), $('#featureVolume').val() == 'undefined' ? '0' : $('#featureVolume').val());
+	else
+		PostJsonMsg(featureType, $('#telNo').val(), $('#featureOnOff').val());
+}
+
+function QueryDevice(){
+	PostJsonMsg('QueryDevice', $('#telNo').val(), $('#featureKind').val());
+}
+
+function SendPing(){
+	PostJsonMsg('SendPing', $('#telNo').val());
+}
+
+
+function PostJsonMsg(valID, valParam1, valParam2, valParam3)
+{
+	var message = new Object;
+	message.ID = valID;
+	if(valID == 'ConnectServer')				{	message.PARAM = valParam1;		}
+	else if(valID == 'DisconnectServer')		{	;	}	// noParam
+	else if(valID == 'MonitorRegist')			{	message.TEL = valParam1;		}
+	else if(valID == 'MonitorUnregist')			{	message.TEL = valParam1;		}
+	else if(valID == 'Login')					{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'Logout')					{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'Avail')					{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'Unavail')					{	message.TEL = valParam1;		message.CTIID = valParam2;		if(valParam3 == '0')		message.ID = 'Unavail0';
+																													else if(valParam3 == '1')	message.ID = 'Unavail1';
+																													else if(valParam3 == '2')	message.ID = 'Unavail2';
+																													else if(valParam3 == '3')	message.ID = 'Unavail3';
+																													else if(valParam3 == '4')	message.ID = 'Unavail4';
+																													else if(valParam3 == '5')	message.ID = 'Unavail5';
+																													else if(valParam3 == '6')	message.ID = 'Unavail6';
+																													else if(valParam3 == '7')	message.ID = 'Unavail7';
+																													else if(valParam3 == '8')	message.ID = 'Unavail8';
+																													else if(valParam3 == '9')	message.ID = 'Unavail9';		}
+	else if(valID == 'Work')					{	message.TEL = valParam1;		message.CTIID = valParam2;		if(valParam3 == '0')		message.ID = 'Work0';
+																													else if(valParam3 == '1')	message.ID = 'Work1';
+																													else if(valParam3 == '2')	message.ID = 'Work2';
+																													else if(valParam3 == '3')	message.ID = 'Work3';
+																													else if(valParam3 == '4')	message.ID = 'Work4';
+																													else if(valParam3 == '5')	message.ID = 'Work5';
+																													else if(valParam3 == '6')	message.ID = 'Work6';
+																													else if(valParam3 == '7')	message.ID = 'Work7';
+																													else if(valParam3 == '8')	message.ID = 'Work8';
+																													else if(valParam3 == '9')	message.ID = 'Work9';
+																													else if(valParam3 == 'ACW')	message.ID = 'WorkACW';
+																													else if(valParam3 == 'CTF')	message.ID = 'WorkCTF';			}
+	else if(valID == 'MakeCall')				{	message.TEL = valParam1;		message.CTIID = valParam2;		message.DESTTEL = valParam3;		}
+	else if(valID == 'AnswerCall')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'DisconnectCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'HoldCall')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'RetrieveCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'ConsultationCall')		{	message.TEL = valParam1;		message.CTIID = valParam2;		message.DESTTEL = valParam3;		}
+	else if(valID == 'ReconnectCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'TransferCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'AlternateCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'ConferenceCall')			{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'SingleStepTransferCall')	{	message.TEL = valParam1;		message.CTIID = valParam2;		message.DESTTEL = valParam3;		}
+	else if(valID == 'SingleStepConferenceCall'){	message.TEL = valParam1;		message.CTIID = valParam2;		message.DESTTEL = valParam3;		}
+	else if(valID == 'GroupPickup')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'SendDTMF')				{	message.TEL = valParam1;		message.CTIID = valParam2;		message.DTMFSTRING = valParam3;		}
+	else if(valID == 'SetUEI')					{	message.TEL = valParam1;		message.CTIID = valParam2;		message.UEI = valParam3;			}
+	else if(valID == 'GetUEI')					{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'GetQueueInfo')			{	message.TEL = valParam1;		message.CTIID = valParam2;		message.QUEUETEL = valParam3;		}
+	else if(valID == 'GetIvrInfo')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'GetMyStatus')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	else if(valID == 'MicrophoneMute')			{	message.TEL = valParam1;		message.ONOFF = valParam2;		}
+	else if(valID == 'SpeakerMute')				{	message.TEL = valParam1;		message.ONOFF = valParam2;		}
+	else if(valID == 'SpeakerVolume')			{	message.TEL = valParam1;		message.VALUE = valParam2;		}
+	else if(valID == 'QueryDevice')				{	message.TEL = valParam1;		message.VALUE = valParam2;		}
+	else if(valID == 'SendPing')				{	message.TEL = valParam1;		}
+	else if(valID == 'CtfStart')				{	message.TEL = valParam1;		message.CTIID = valParam2;		}
+	
+	
+	WriteLog("ID[" + valID + "] Param1[" + valParam1 + "] Param2[" + valParam2 + "] Param3[" + valParam3 + "]", "send");
+	w.postMessage(message);
+}
+
+function ProcJsonRespMsg(jsonMsg){
+	var valID = jsonMsg.ID;
+	if(valID == "SetUEI" || valID == "GetUEI")
+		WriteLog("ID[" + jsonMsg.ID + "] RespType[" + jsonMsg.RESPTYPE + "] Reason[" + jsonMsg.REASON + "] UEI[" + jsonMsg.UEI + "]", "receive");
+	else if(valID == "GetIvrInfo")
+		WriteLog("ID[" + jsonMsg.ID + "] RespType[" + jsonMsg.RESPTYPE + "] Reason[" + jsonMsg.REASON + "] IVR MENU CODE[" + jsonMsg.IVR_MENUCODE + "] IVR INPUT INFO[" + jsonMsg.IVR_INPUTINFO + "] IVR MENU PATH[" + jsonMsg.IVR_MENUPATH + "]", "receive");
+	else if(valID == "GetQueueInfo")
+		WriteLog("ID[" + jsonMsg.ID + "] RespType[" + jsonMsg.RESPTYPE + "] Reason[" + jsonMsg.REASON + "] AVAIL USER COUNT[" + jsonMsg.AVAILUSERCOUNT + "] WAIT COUNT[" + jsonMsg.WAITCOUNT + "] WAIT_TIME[" + jsonMsg.WAITTIME + "]", "receive");	
+	else
+		WriteLog("ID[" + jsonMsg.ID + "] RespType[" + jsonMsg.RESPTYPE + "] Reason[" + jsonMsg.REASON + "]", "receive");
+		
+	if(valID == "GetMyStatus")
+	{
+		var valRespType = jsonMsg.RESPTYPE;
+		if(valRespType == "Fail")
+		{
+			var valReason = jsonMsg.REASON;
+			if(valReason == "NotReady")
+				setTimeout("GetMyStatus()", 1000);
+			
+		}
+		
+	}
+}
+
+function ProcJsonEventMsg(jsonMsg){
+
+	var valID = jsonMsg.ID;
+	
+	if(valID == "ButtonStatus")
+		ProcJsonEventButtonMsg(jsonMsg);
+	else if(
+			valID == "LOGIN" || valID == "LOGOUT" ||
+			valID == "AVAIL" ||
+			valID == "UNAVAIL0" || valID == "UNAVAIL1" || valID == "UNAVAIL2" || valID == "UNAVAIL3" || valID == "UNAVAIL4" || valID == "UNAVAIL5" || valID == "UNAVAIL6" || valID == "UNAVAIL7" || valID == "UNAVAIL8" || valID == "UNAVAIL9" ||
+			valID == "WORK0" || valID == "WORK1" || valID == "WORK2" || valID == "WORK3" || valID == "WORK4" || valID == "WORK5" || valID == "WORK6" || valID == "WORK7" || valID == "WORK8" || valID == "WORK9" || valID == "WORKACW" || valID == "WORKCTF"
+			)
+		ProcJsonEventStateMsg(jsonMsg);
+	else if(valID == "SERVICE_INITIATED")
+	{
+		ProcJsonEventServiceInitMsg(jsonMsg);
+	}
+	else if(valID == "ORIGINATED")
+	{
+		ProcJsonEventOriginatedMsg(jsonMsg);
+	}
+	else if(valID == "NETWORK_REACHED")
+	{
+		ProcJsonEventNetworkReachedMsg(jsonMsg);
+	}
+	else if(valID == "ALERTED")
+	{
+		ProcJsonEventAlertedMsg(jsonMsg);
+	}
+	else if(valID == "CONNECTED")
+	{
+		ProcJsonEventConnectedMsg(jsonMsg);
+	}
+	else if(valID == "HOLD")
+	{
+		ProcJsonEventHoldMsg(jsonMsg);
+	}
+	else if(valID == "HELD")
+	{
+		ProcJsonEventHeldMsg(jsonMsg);
+	}
+	else if(valID == "RETRIEVED")
+	{
+		ProcJsonEventRetrievedMsg(jsonMsg);
+	}
+	else if(valID == "DISCONNECTED")
+	{
+		ProcJsonEventDisconnectedMsg(jsonMsg);
+	}
+	else if(valID == "CONNECTION_CLEARED")
+	{
+		ProcJsonEventConnectionClearMsg(jsonMsg);
+	}
+	else if(valID == "CONFERENCED")
+	{
+		ProcJsonEventConferencedMsg(jsonMsg);
+	}
+	else if(valID == "CONFERENCED_HOLD")
+	{
+		ProcJsonEventConferencedHoldMsg(jsonMsg);
+	}
+	else if(valID == "CONFERENCED_HELD")
+	{
+		ProcJsonEventConferencedHeldMsg(jsonMsg);
+	}
+	else if(valID == "DIVERTED")
+	{
+		ProcJsonEventDivertedMsg(jsonMsg);
+	}
+	else if(valID == "FAILED")
+	{
+		ProcJsonEventFailedMsg(jsonMsg);
+	}
+	else if(valID == "QUEUED")
+	{
+		ProcJsonEventQueuedMsg(jsonMsg);
+	}
+	else if(valID == "QUEUED_OUT")
+	{
+		ProcJsonEventQueuedOutMsg(jsonMsg);
+	}
+	else if(valID == "XFERRED")
+	{
+		ProcJsonEventXferredMsg(jsonMsg);
+	}
+	else if(valID == "OUT_OF_SERVICE")
+	{
+		ProcJsonEventOutOfServiceMsg(jsonMsg);
+	}
+	else if(valID == "IN_SERVICE")
+	{
+		ProcJsonEventInServiceMsg(jsonMsg);
+	}
+	else if(valID == "PONG")
+	{
+		ProcJsonEventPongMsg(jsonMsg);
+	}
+	else if(valID == "POPUP")
+	{
+		ProcJsonEventPopupMsg(jsonMsg);
+	}
+	else
+	{
+		var jsonStr = JSON.stringify(jsonMsg);
+		WriteLog(jsonStr);
+	}
+}
+
+function ProcJsonEventServiceInitMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventOriginatedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventNetworkReachedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventAlertedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valInOut = jsonMsg.INOUT;
+	var valOppTelno = jsonMsg.OPPTEL;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] InOut[" + valInOut + "] OppTelno[" + valOppTelno + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventConnectedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valInOut = jsonMsg.INOUT;
+	var valOppTelno = jsonMsg.OPPTEL;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] InOut[" + valInOut + "] OppTelno[" + valOppTelno + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventHoldMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventHeldMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventRetrievedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventDisconnectedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valReleasing = jsonMsg.RELEASING;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] RELEASING[" + valReleasing + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventConnectionClearMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventConferencedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventConferencedHoldMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventConferencedHeldMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventDivertedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventFailedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventQueuedMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventXferredMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valCallCnt = jsonMsg.CALLCOUNT;
+	var valStatus = jsonMsg.STATUS;
+	var valCallKey = jsonMsg.CALLKEY;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("Call Key[" + valCallKey + "] ID[" + valID + "] Call Count[" + valCallCnt + "] Call Status[" + valStatus + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+function ProcJsonEventOutOfServiceMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	
+	WriteLog("ID[" + valID + "]", "receive");
+}
+function ProcJsonEventInServiceMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	
+	WriteLog("ID[" + valID + "]", "receive");
+}
+
+function ProcJsonEventPongMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	
+	WriteLog("ID[" + valID + "]", "receive");
+}
+
+function ProcJsonEventPopupMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var valQueueDur = jsonMsg.QUEUEDUR;
+	var valCalling = jsonMsg.CALLING;
+	var valIvrMenuCode = jsonMsg.IVR_MENUCODE;
+	var valIvrInputInfo = jsonMsg.IVR_INPUTINFO;
+	var valIvrMenuPath = jsonMsg.IVR_MENUPATH;
+	
+	WriteLog("ID[" + valID + "] QUEUE DUR[" + valQueueDur + "] Calling[" + valCalling + "] IVR MENU CODE[" + valIvrMenuCode + "] IVR INPUT INFO[" + valIvrInputInfo + "] IVR MENU PATH[" + valIvrMenuPath + "]", "receive");
+}
+
+
+function ProcJsonEventStateMsg(jsonMsg)
+{
+	var valID = jsonMsg.ID;
+	var telno = jsonMsg.TEL;
+	var ctiid = jsonMsg.CTIID;
+	var valTime = jsonMsg.TIME;
+	var convTime = new Date(valTime * 1000);
+	
+	WriteLog("ID[" + valID + "] TEL[" + telno + "] CTIID[" + ctiid + "] Time[" + convTime.yyyymmddhhmmss() + "]", "receive");
+}
+
+function ProcJsonEventButtonMsg(jsonMsg)
+{
+//	var valID = jsonMsg.ID;
+//	WriteLog("ID[" + valID + "]", "receive");
+	buttonMsg = jsonMsg;
+	
+	var onoff;
+	
+
+	onoff = jsonMsg.CONNECT;					btnstate('connect', onoff);
+	onoff = jsonMsg.DISCONNECT;					btnstate('disconnect', onoff);   		
+	onoff = jsonMsg.LOGIN;						btnstate('userLogin', onoff);  		
+	onoff = jsonMsg.LOGOUT;						btnstate('userLogOut', onoff);  		
+	onoff = jsonMsg.AVAIL;						btnstate('userWorkModeAvail', onoff);  
+	onoff = jsonMsg.UNAVAIL0;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL1;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL2;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL3;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL4;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL5;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL6;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL7;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL8;					btnstate('userWorkModeUnavail', onoff);
+//	onoff = jsonMsg.UNAVAIL9;					btnstate('userWorkModeUnavail', onoff);
+	onoff = jsonMsg.WORK0;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK1;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK2;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK3;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK4;						btnstate('userWorkModeWork', onoff);  	
+//	onoff = jsonMsg.WORK5;						btnstate('userWorkModeWork', onoff);  	
+//	onoff = jsonMsg.WORK6;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK7;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK8;						btnstate('userWorkModeWork', onoff); 	
+//	onoff = jsonMsg.WORK9;						btnstate('userWorkModeWork', onoff); 	
+	onoff = jsonMsg.WORKACW;					btnstate('userWorkModeACW', onoff);  	
+//	onoff = jsonMsg.WORKCTF;					btnstate('userWorkModeWork', onoff);  	
+	onoff = jsonMsg.MAKECALL;					btnstate('makeCall', onoff);  			
+	onoff = jsonMsg.ANSWERCALL;					btnstate('answerCall', onoff); 			
+	onoff = jsonMsg.DISCONNECTCALL;				btnstate('disconnectCall', onoff);  	
+	onoff = jsonMsg.HOLDCALL;					btnstate('holdCall', onoff);   			
+	onoff = jsonMsg.RETRIEVECALL;				btnstate('retrieveCall', onoff); 		
+	onoff = jsonMsg.CONSULTATIONCALL; 			btnstate('consultationCall', onoff); 	
+	onoff = jsonMsg.RECONNECTCALL;				btnstate('reconnectCall', onoff); 		
+	onoff = jsonMsg.TRANSFERCALL;				btnstate('transferCall', onoff);
+	onoff = jsonMsg.ALTERNATECALL;				btnstate('alternateCall', onoff);
+	onoff = jsonMsg.CONFERENCECALL;				btnstate('conferenceCall', onoff);  	
+	onoff = jsonMsg.SINGLESTEPTRANSFERCALL;		btnstate('singleStepTransferCall', onoff);
+	onoff = jsonMsg.SINGLESTEPCONFERENCECALL;	btnstate('singleStepConferenceCall', onoff);
+	onoff = jsonMsg.GROUPPICKUP;				btnstate('groupPickup', onoff);
+	onoff = jsonMsg.CTF;						btnstate('ctfStart', onoff);
+}
+
+
+function WriteLog(message, type)
+{
+	var dt = new Date();
+	dt = dt.getFullYear() + "/" + dt.getMonth() + "/" + dt.getDate() + " " + dt.getHours() + ":" +  dt.getMinutes() + ":" + dt.getSeconds() + ":" + dt.getMilliseconds();
+	
+	var log;
+	
+	if(type == "send")
+		log = "Send	   : " + message;
+	else if(type == "receive")
+		log = "Receive : " + message;
+	else log = message;
+	
+	
+	$('#log').append('<li>' + "[" + dt + "] " + '<span class="badge">' + log + '</span></li>');
+}
+
+function ClearLog()
+{
+	var tagLog = document.getElementById("log");
+	tagLog.innerHTML = '';
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN" "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Center_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Member_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/TrainingData_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Category_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Curriculum_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Myhistory_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Certificate_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Board_SQL.xml"/>
+	<sqlMap resource="egovframework/sqlmap/ibatis/eduadm/Analytics_SQL.xml"/>
+	
+</sqlMapConfig>

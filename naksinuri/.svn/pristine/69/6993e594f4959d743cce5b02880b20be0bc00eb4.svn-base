@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LoginUsr">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="loginVO" type="egovframework.all.login.service.LoginVO"/>
+
+	<!-- 일반 로그인 -->
+	<select id="loginDAO.actionLogin" resultClass="loginVO">
+    	<![CDATA[
+       	SELECT T.*           
+         FROM MBR_TB AS T
+         WHERE T.MBR_ID = #MBR_ID#
+          	AND T.MBR_PWD = #MBR_PWD#
+          	AND T.MBR_ST = 'Y'
+          	]]>
+          	<isNotEmpty property="MBR_LV_ID" prepend="AND">		    	
+				T.MBR_LV_ID = #MBR_LV_ID#
+			</isNotEmpty>
+          	<![CDATA[
+      	 ]]>
+	</select>
+	<!-- 관리자 검증용 로그인 (ㅂㅁ 보유 여부 등) -->	
+	<select id="loginDAO.actionChkAdmLogin" resultClass="loginVO">
+       	<![CDATA[
+       	SELECT T.*           
+         FROM MBR_TB AS T
+         WHERE T.MBR_ID = #MBR_ID#
+         	AND ( T.MBR_PWD IS NULL OR T.MBR_PWD = '' )
+          	AND T.MBR_ST = 'Y'
+          	AND T.MBR_LV_ID <= 4
+      	 ]]>
+	</select>
+	
+	<!-- 인증서 로그인
+	<select id="loginDAO.actionCrtfctLogin" resultMap="login">
+		<![CDATA[
+		SELECT emplyr_id AS id
+		     , USER_NM AS name
+		     , password AS password
+		     , ihidnum AS ihidNum
+		     , email_adres AS email
+		     , 'USR' AS userSe
+		     , orgnzt_id AS orgnztId
+		     , ESNTL_ID AS uniqId
+		  FROM LETTNEMPLYRINFO
+		 WHERE sub_dn = #dn#
+		]]>
+	</select>
+	 -->
+	<!-- 아이디 찾기
+	<select id="loginDAO.searchId" resultMap="id">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			SELECT mber_id AS id
+			  FROM LETTNGNRLMBER
+			 WHERE mber_nm = #name#
+			   AND mber_email_adres = #email#
+			   AND mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			SELECT entrprsmber_id AS id
+			  FROM LETTNENTRPRSMBER
+			 WHERE cmpny_nm = #name#
+			   AND applcnt_email_adres = #email#
+			   AND entrprs_mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			SELECT emplyr_id AS id
+			  FROM LETTNEMPLYRINFO
+			 WHERE USER_NM = #name#
+			   AND email_adres = #email#
+			   AND emplyr_sttus_code = 'P'
+			]]>
+		</isEqual>
+	</select>
+	 -->
+	<!-- ㅂㅁ 찾기 
+	<select id="loginDAO.searchPassword" resultMap="password">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			SELECT password AS password
+			  FROM LETTNGNRLMBER
+			 WHERE mber_id = #id#
+			   AND mber_nm = #name#
+			   AND mber_email_adres = #email#
+			   AND password_hint = #passwordHint#
+			   AND password_cnsr = #passwordCnsr#
+			   AND mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			SELECT entrprs_mber_password AS password
+			  FROM LETTNENTRPRSMBER
+			 WHERE entrprsmber_id = #id#
+			   AND cmpny_nm = #name#
+			   AND applcnt_email_adres = #email#
+			   AND entrprs_mber_password_hint = #passwordHint#
+			   AND entrprs_mber_password_cnsr = #passwordCnsr#
+			   AND entrprs_mber_sttus = 'P'
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			SELECT password AS password
+			  FROM LETTNEMPLYRINFO
+			 WHERE emplyr_id = #id#
+			   AND USER_NM = #name#
+			   AND email_adres = #email#
+			   AND password_hint = #passwordHint#
+			   AND password_cnsr = #passwordCnsr#
+			   AND emplyr_sttus_code = 'P'
+			]]>
+		</isEqual>
+	</select>
+	-->
+	<!-- 변경된 ㅂㅁ를 저장 
+	<update id="loginDAO.updatePassword">
+		<isEqual property="userSe" compareValue="GNR">
+			<![CDATA[
+			UPDATE LETTNGNRLMBER
+			   SET password = #password#
+			 WHERE mber_id = #id#
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="ENT">
+			<![CDATA[
+			UPDATE LETTNENTRPRSMBER
+			   SET entrprs_mber_password = #password#
+			 WHERE entrprsmber_id = #id#
+			]]>
+		</isEqual>
+		<isEqual property="userSe" compareValue="USR">
+			<![CDATA[
+			UPDATE LETTNEMPLYRINFO
+			   SET password = #password#
+			 WHERE emplyr_id = #id#
+			]]>
+		</isEqual>
+	</update>
+	-->
+	
+	<!-- 
+		ㅂㅁ 재설정 유저 확인
+	 -->
+	<select id="loginDAO.searchIdWithNullPwd" resultClass="loginVO">
+    	<!-- 일반회원 -->
+       	<![CDATA[
+       	SELECT MBR_ID 		
+            , MBR_NM 		
+            , MBR_PWD
+         FROM MBR_TB
+        	WHERE MBR_ID = #MBR_ID#
+         	AND (MBR_PWD IS NULL OR MBR_PWD = '')
+      	 ]]>
+	</select>
+	<!-- 
+		ㅂㅁ 재설정(변경)
+	 -->
+	<update id="loginDAO.updatePassword">
+		<![CDATA[
+		UPDATE MBR_TB
+		   SET MBR_PWD = #MBR_PWD#
+		   	   	,MBR_MOD_DT = NOW()
+		   	   	,MBR_PWD_DT = NOW()
+				,MBR_RETRY_LOGIN_DT = NULL
+				,MBR_RETRY_LOGIN_CNT = 0
+				,MBR_PWD_ST = '0'
+		 WHERE MBR_ID = #MBR_ID#
+		]]>
+	</update>
+	<!-- 
+		아이디 조회
+	-->
+	<select id="loginDAO.searchId" resultClass="loginVO">
+		<![CDATA[
+		SELECT MBR_ID
+		  FROM MBR_TB
+		 WHERE MBR_ID = #MBR_ID#
+		]]>
+	</select>
+	<!-- 
+		아이디 찾기
+	 -->
+	<select id="loginDAO.selectIdFind" resultClass="loginVO">
+		<![CDATA[
+		SELECT MBR_ID  
+		FROM MBR_TB
+		WHERE MBR_NM = #MBR_NM#
+			AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+		]]>
+	</select>
+	<!-- 
+		마지막 로그인 일자
+	 -->
+	<update id="loginDAO.updateLoginHistory">
+		<![CDATA[
+		UPDATE MBR_TB
+		   SET 	MBR_LAST_CON_TM = #MBR_LAST_CON_TM#,
+				MBR_LAST_CON_IPADDR = #MBR_LAST_CON_IPADDR#,
+				MBR_RETRY_LOGIN_DT = NULL,
+				MBR_RETRY_LOGIN_CNT = 0
+		 WHERE MBR_ID = #MBR_ID#
+		]]>
+	</update>
+	<!-- 
+		로그인 시도 기록
+	 -->
+	<update id="loginDAO.updateLoginRetry">
+		<![CDATA[
+		UPDATE MBR_TB
+		   SET 	MBR_RETRY_LOGIN_DT = NOW(),
+				MBR_RETRY_LOGIN_CNT = MBR_RETRY_LOGIN_CNT + 1
+		 WHERE MBR_ID = #MBR_ID#
+		]]>
+	</update>
+	<!-- 
+		로그인 시도 정보 가져오기
+	-->
+	<select id="loginDAO.retryLogin" resultClass="loginVO">
+    	<![CDATA[
+       	SELECT MBR_ID
+       		, MBR_LV_ID
+       		, MBR_SN 	
+            , MBR_RETRY_LOGIN_DT 
+            , MBR_RETRY_LOGIN_CNT
+            , MBR_USG_DT
+         FROM MBR_TB
+        	WHERE MBR_ID = #MBR_ID#
+      	 ]]>
+	</select>
+	<!-- 
+		이름과 생년월일로 검증하여 로그인 한다.
+	 -->
+	<select id="loginDAO.actionLoginNmBirth" resultClass="loginVO">
+    	<![CDATA[
+       	SELECT * 
+		FROM MBR_TB
+		WHERE MBR_NM = #MBR_NM#
+			AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+			AND MBR_ST = 'Y'
+			]]>
+          	<isNotEmpty property="MBR_LV_ID" prepend="AND">		    	
+				(MBR_LV_ID = #MBR_LV_ID# OR MBR_LV_ID = 5)
+			</isNotEmpty>
+          	<![CDATA[
+          	]]>
+          	<isNotEmpty property="MBR_HP" prepend="AND">		    	
+				MBR_HP = REPLACE(#MBR_HP#,'-','')
+			</isNotEmpty>
+          	<![CDATA[
+		ORDER BY MBR_ST ASC
+      	]]>
+	</select>
+	<!-- 
+		(관리자) 최초 설정 : 아이디 및 ㅂㅁ 변경
+	 -->
+	<update id="loginDAO.updatePasswordFirst">
+		<![CDATA[
+		UPDATE MBR_TB
+		   SET MBR_PWD = #MBR_PWD#
+		   	   	,MBR_ID = #MBR_ID#
+		   	   	,MBR_MOD_DT = NOW()
+		   	   	,MBR_PWD_ST = '0'
+		   	   	,MBR_PWD_DT = NOW()
+		   	   	,MBR_RETRY_LOGIN_DT = NULL
+				,MBR_RETRY_LOGIN_CNT = 0
+		 WHERE MBR_SN = #MBR_SN#
+		]]>
+	</update>
+	<!-- 
+		MBR_SN 으로 회원정보 조회
+	-->
+	<select id="loginDAO.searchSnInfo" resultClass="loginVO">
+		<![CDATA[
+		SELECT T.*
+		FROM MBR_TB AS T
+		WHERE T.MBR_SN = #MBR_SN#
+			]]>
+          	<isNotEmpty property="MBR_ST" prepend="AND">		    	
+				T.MBR_ST = #MBR_ST# 
+			</isNotEmpty>
+	</select>
+	<!-- 
+		(관리자) 본인인증을 위한 이름,생년월일,휴대폰연락처 변경
+	 -->
+	<update id="loginDAO.updateChangeInfoFirst">
+		<![CDATA[
+		UPDATE MBR_TB
+		   SET MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+		   	   	,MBR_NM = #MBR_NM#
+		   	   	,MBR_HP = REPLACE(#MBR_HP#,'-','')
+		   	   	,MBR_PSITN_NM = #MBR_PSITN_NM#
+		   	   	,MBR_NCNM = #MBR_NCNM#
+		   	   	,MBR_TEL = REPLACE(#MBR_TEL#,'-','')
+		   	   	,MBR_EMAIL = #MBR_EMAIL#
+		   	   	,MBR_DSCRP = #MBR_DSCRP#
+		   	   	,MBR_PWD_ST = '0'
+		   	   	,MBR_MOD_DT = NOW()
+		   	   	,MBR_RETRY_LOGIN_DT = NULL
+				,MBR_RETRY_LOGIN_CNT = 0
+		 WHERE MBR_SN = #MBR_SN#
+		]]>
+	</update>
+	<!-- 
+		본인을 제외한 이름,생년월일,휴대폰번호 중복조회
+	-->
+	<select id="loginDAO.searchAuthOverlayInfo" resultClass="int">
+		SELECT COUNT(T.MBR_SN)
+		FROM MBR_TB AS T
+		WHERE T.MBR_NM = #MBR_NM# 
+			AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+			AND MBR_HP = REPLACE(#MBR_HP#,'-','')
+			<isNotEmpty property="MBR_SN" prepend="AND">		 
+			MBR_SN != #MBR_SN#
+			</isNotEmpty>
+	</select>
+	<!-- 
+		ㅂㅁ 오류 횟수 초과시 차단 처리 (ㅂㅁ 초기화)
+	 -->
+	 <update id="loginDAO.actionLoginLockClearPwd" parameterClass="loginVO">
+	 	UPDATE MBR_TB
+	 	SET MBR_PWD = NULL,
+			MBR_PWD_ST = '2',
+			MBR_MOD_DT = NOW()
+		WHERE MBR_ID = #MBR_ID# AND MBR_SN = #MBR_SN# AND MBR_PWD_ST = '0'
+	 </update>
+	 
+	 <select id="loginDAO.searchAuthOverlayInfoMbrId" parameterClass="loginVO" resultClass="string">
+	 	SELECT T.MBR_ID
+		FROM MBR_TB AS T
+		WHERE T.MBR_NM = #MBR_NM# 
+			AND MBR_BIRTH = REPLACE(#MBR_BIRTH#,'-','')
+			AND MBR_HP = REPLACE(#MBR_HP#,'-','')
+			<isNotEmpty property="MBR_SN" prepend="AND">		 
+			MBR_SN != #MBR_SN#
+			</isNotEmpty>
+	 </select>
+</sqlMap>

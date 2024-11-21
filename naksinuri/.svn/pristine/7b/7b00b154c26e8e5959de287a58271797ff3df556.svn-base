@@ -1,0 +1,104 @@
+<?php
+
+$_LOGS_SAVE = false;
+$_LOGS_SAVE_PATH = "/home/data/cron/logs/";
+
+/*
+
+[버전관리]
+
+2019.03.20
+
+
+[사용법]
+
+log_message(tag,string);
+log_message(tag,array());
+log_message(tag,Object);
+
+[확인]
+
+/logs/ 폴더
+
+*/
+
+
+function log_message($tag='',$msg='',$filename='',$debug=false) {
+
+	global $_LOGS_SAVE,$_LOGS_SAVE_PATH;
+
+	if(!$_LOGS_SAVE && !$debug)
+		return;
+
+	//로그파일확인및생성
+	if(empty($filename)) {
+		$logfilename = $_LOGS_SAVE_PATH.'log_'.date('Y-m-d').".txt";
+	} else {
+		$logfilename = $_LOGS_SAVE_PATH.$filename.".txt";
+	}	
+	if(!file_exists($logfilename)) {
+        fopen($logfilename, "w");
+    } 
+	//디버그정보확인
+	$LOG_DEBUG = debug_backtrace();
+	$LOG_LINE = 'null';//$LOG_DEBUG[0][line];
+	$LOG_FILE = $_SERVER['DOCUMENT_ROOT'];//str_replace($_SERVER['DOCUMENT_ROOT'],'',$LOG_DEBUG[0][file]);
+	//변수타입확인
+	if (is_object($msg) || is_array($msg)) {
+		$log_file = fopen($logfilename, "a");  
+		$log_txt = '['.date('Y-m-d H:i:s')."][".$LOG_FILE."][".$LOG_LINE."][Array][TAG:".str_replace('$','@',$tag)."] ";
+		fwrite($log_file, $log_txt);  
+		fwrite($log_file, parseArrayToJson($msg));
+		fwrite($log_file, "\r\n"); 
+		fclose($log_file);  
+	} else {
+		$log_txt = '['.date('Y-m-d H:i:s')."][".$LOG_FILE."][".$LOG_LINE."][TAG:".str_replace('$','@',$tag)."] ".$msg;  
+		$log_file = fopen($logfilename, "a");  
+		fwrite($log_file, $log_txt."\r\n");  
+		fclose($log_file);  
+	}
+
+}
+
+
+function parseArray($arr) {
+	$txt = '';
+	if (is_object($arr)) {
+		$arr = get_object_vars($arr);
+	} 
+	if (is_array($arr)) {
+		$txt = '(';
+		foreach($arr AS $key=>$val) {
+			$txt .= '['.$key.']=>'.parseArray($val).',';	
+		}
+		$txt .= ')';
+	} else {
+		$txt = $arr;
+	}
+	return $txt;
+}
+
+
+function parseArrayToJson($arr) {
+	$txt = '';
+	if (is_object($arr)) {
+		$arr = get_object_vars($arr);
+	} 
+	$maxCount = count($arr);
+	$count = 1;
+	if (is_array($arr)) {
+		$txt = '{';
+		foreach($arr AS $key=>$val) {
+			$txt .= '"'.$key.'":'.parseArrayToJson($val);	
+			if($count < $maxCount)
+				$txt .= ',';
+			$count++;
+		}
+		$txt .= '}';
+	} else {
+		$txt = '"'. str_replace(array("\r\n","\r","\n"), '', $arr).'"';
+	}
+	return $txt;
+}
+
+?>

@@ -1,0 +1,108 @@
+<?php
+// php -q  /home/data/cron/temp_cron.php
+include "_logmanager.php";
+include "_database.php";
+
+$_TAG = 'TEMP_CRON';
+$FILE_NAME = "temp_cron_".date("Y-m-d");
+$row_date = date("Y-m-d H:i:s"); //현재시간
+log_message($_TAG,'_________________________  start ... '.$row_date ,$FILE_NAME,true);
+//-------------------------------------------------------------------------------
+// 기간 세팅
+//-------------------------------------------------------------------------------
+$cur_date = date("Y-m-d");
+$cur_year = date("Y");
+$cur_month = date("m");
+$cur_day = date("d");
+$prev_date = date("Y-m-d", strtotime($cur_date." -1 day"));
+$prev_year = date("Y", strtotime($cur_date." -1 day"));
+$prev_month = date("m", strtotime($cur_date." -1 day"));
+$prev_day = date("d", strtotime($cur_date." -1 day"));
+$prev_prev_date = date("Y-m-d", strtotime($prev_date." -1 day"));
+$cur_back_month_date = date("Y-m-d", strtotime($cur_date." -1 month"));
+$prev_back_month_date = date("Y-m-d", strtotime($prev_date." -1 month"));
+{
+	$chksql = "
+				SELECT p.* 
+				FROM (
+				SELECT 
+				  (SELECT COUNT(*) FROM edu_mbr_hstry_tb AS hmbr LEFT JOIN `edu_curriculum_tb` AS crs1 ON crs1.CRS_SN = hmbr.CRS_SN WHERE (DATE_FORMAT(crs1.CRS_STR_DT,'%Y') = '2020' ) AND hmbr.mbr_id = t.mbr_id ) AS hmbr_cnt, 
+				  (SELECT COUNT(*) FROM mbr_edu_trgt_tb AS mt WHERE mt.mbr_id = t.mbr_id AND mt.TRGT_YEAR = '2020' ) AS trgt_2020cnt, 
+				  (SELECT COUNT(*) FROM mbr_edu_trgt_tb AS mt WHERE mt.mbr_id = t.mbr_id AND mt.TRGT_YEAR = '2020' AND mt.CRS_SN = t.CRS_SN AND mt.HMBR_SN = t.HMBR_SN) AS trgt_cnt, 
+				   m.MBR_NM,
+				    m.MBR_CD,
+				  ins.`CAT_INS_NM`,
+				  crs.crs_str_dt,
+				  crs.`MBR_MAX_CNT`,
+				  crs.CRS_NM, 
+				  DATE_FORMAT(crs.CRS_STR_DT,'%Y') AS _year,
+				  t.CRS_SN,
+				  t.HMBR_SN,
+				  t.MBR_ID,
+				  t.REG_DT,
+				  t.REG_MBR_ID,
+				  t.`LRNNG_ST`
+				FROM
+				  `edu_mbr_hstry_tb` AS t
+				  LEFT JOIN mbr_tb AS m ON m.mbr_id = t.mbr_id
+				  LEFT JOIN `edu_curriculum_tb` AS crs ON crs.CRS_SN = t.CRS_SN
+				  LEFT JOIN `edu_cat_ins_inf_tb` AS ins ON ins.`CAT_INS_SN` = crs.`CAT_INS_SN`
+				  WHERE (DATE_FORMAT(crs.CRS_STR_DT,'%Y') = '2020' )
+				  ) AS p
+				  WHERE 1=1
+
+				 AND  p.trgt_cnt <= 0
+				AND  p.hmbr_cnt >= 2
+				/*ORDER BY p.reg_dt DESC,p.mbr_nm ASC, p.trgt_cnt ASC*/
+				  ORDER BY p.mbr_id ASC,p.reg_dt DESC,p.trgt_cnt ASC
+			";
+	$query = query($chksql);
+	$row_count = mysql_num_rows($query);
+	log_message($_TAG,'조회수 : '.$row_count ,$FILE_NAME,true);
+	$tmp_qry = '';
+	if($row_count > 0) {
+		while ($row=mysql_fetch_array($query)) 
+		{ 
+			$REG_MBR_ID = $row['REG_MBR_ID'];
+			$REG_DT = $row['REG_DT'];
+			$HMBR_SN = $row['HMBR_SN'];
+			$CRS_SN = $row['CRS_SN'];
+			$MBR_ID = $row['MBR_ID'];
+			$MBR_CD = $row['MBR_CD'];
+			$MBR_NM = $row['MBR_NM'];
+			$hmbr_cnt = intval($row['hmbr_cnt']);
+			$trgt_2020cnt = intval($row['trgt_2020cnt']);
+			$trgt_cnt = intval($row['trgt_cnt']);
+			
+			if($hmbr_cnt >= 2) { //1개이상
+				if($trgt_2020cnt > 0) { //무조건등록
+					$querysql = " INSERT INTO `mbr_edu_trgt_tb` (`MBR_CD`, `MBR_ID`, `MBR_NM`, `REG_TYPE_CD`, `TRGT_YEAR`, `CMPLT_ST`, `CMPLT_DT`, `CMPLT_MBR_ID`, `CRS_SN`, `HMBR_SN`, `USE_AT`, `DEL_AT`, `HIDE_AT`, `REG_DT`, `UPD_DT`, `REG_MBR_ID`, `UPD_MBR_ID`) VALUES ('${MBR_CD}', '${MBR_ID}', '${MBR_NM}', NULL, '2020', '0', NULL, NULL, '${CRS_SN}', '${HMBR_SN}', 'Y', 'N', 'N', '${REG_DT}', '${REG_DT}', '${REG_MBR_ID}', '${REG_MBR_ID}');  ";
+					$tmp_qry .= " delete from  `mbr_edu_trgt_tb` where `TRGT_YEAR` = '2020' and MBR_ID = '${MBR_ID}' ;";		
+				} else {
+					$querysql = " INSERT INTO `mbr_edu_trgt_tb` (`MBR_CD`, `MBR_ID`, `MBR_NM`, `REG_TYPE_CD`, `TRGT_YEAR`, `CMPLT_ST`, `CMPLT_DT`, `CMPLT_MBR_ID`, `CRS_SN`, `HMBR_SN`, `USE_AT`, `DEL_AT`, `HIDE_AT`, `REG_DT`, `UPD_DT`, `REG_MBR_ID`, `UPD_MBR_ID`) VALUES ('${MBR_CD}', '${MBR_ID}', '${MBR_NM}', NULL, '2020', '0', NULL, NULL, '${CRS_SN}', '${HMBR_SN}', 'Y', 'N', 'N', '${REG_DT}', '${REG_DT}', '${REG_MBR_ID}', '${REG_MBR_ID}');  ";
+				}
+				//query($querysql);
+			} else { //1건
+				if($trgt_2020cnt <= 0) { //무조건등록
+					//$querysql = " INSERT INTO mbr_edu_trgt_tb (MBR_CD, MBR_ID, MBR_NM, REG_TYPE_CD, TRGT_YEAR, CMPLT_ST, CMPLT_DT, CMPLT_MBR_ID, CRS_SN, HMBR_SN, USE_AT, DEL_AT, HIDE_AT, REG_DT, UPD_DT, REG_MBR_ID, UPD_MBR_ID) VALUES ('${MBR_CD}', '${MBR_ID}', '${MBR_NM}', NULL, '2020', '0', NULL, NULL, '${CRS_SN}', '${HMBR_SN}', 'Y', 'N', 'N', '${REG_DT}', '${REG_DT}', '${REG_MBR_ID}', '${REG_MBR_ID}');  ";
+				} else {//업데이트
+					//$querysql =  " UPDATE `mbr_edu_trgt_tb` SET `CRS_SN` = '${CRS_SN}' ,`HMBR_SN` = '${HMBR_SN}' ,`REG_DT` = '${REG_DT}' , `UPD_DT` = '${REG_DT}' , `REG_MBR_ID` = '${REG_MBR_ID}', `UPD_MBR_ID` = '${REG_MBR_ID}' where `TRGT_YEAR` = '2020' and MBR_ID = '${MBR_ID}' "; 
+				}
+				//query($querysql);
+			}
+			log_message($_TAG,$querysql ,$FILE_NAME,true);
+		
+
+		}
+	}
+	log_message($_TAG,$tmp_qry ,$FILE_NAME,true);
+}
+echo 'completed.';
+//--------------------------------------------------
+// disconnect
+//--------------------------------------------------
+dbclose();
+//--------------------------------------------------
+log_message($_TAG,'_________________________  complete ... ' ,$FILE_NAME,true);
+
+?>

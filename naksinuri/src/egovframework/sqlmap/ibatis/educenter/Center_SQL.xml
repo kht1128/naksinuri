@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="eduCenterMain">
+
+	<typeAlias  alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<typeAlias  alias="eduCenterMainVO" type="egovframework.educenter.service.EduCenterMainVO"/>
+	<typeAlias  alias="eduCategoryInsInfVO" type="egovframework.eduadm.category.service.EduCategoryInsInfVO"/>
+	<typeAlias  alias="eduCenterMbrRemindersVO" type="egovframework.educenter.service.EduCenterMbrRemindersVO"/>
+	<typeAlias  alias="eduSmsRequstVO" type="egovframework.educenter.service.EduSmsRequstVO"/>
+	<typeAlias  alias="MbrHpChngVO" type="egovframework.educenter.service.MbrHpChngVO"/>
+	<typeAlias  alias="EduCprBplcVO" type="egovframework.educenter.service.EduCprBplcVO"/>
+	
+	
+	<!-- 교육기관 -->
+	<select id="get_educenter_category_ins_inf_list" parameterClass="eduCategoryInsInfVO" resultClass="eduCategoryInsInfVO">
+			SELECT * 
+			FROM EDU_CAT_INS_INF_TB
+			WHERE 1=1
+			<isNotEmpty property="searchKeyword">
+				<isEqual compareValue="use_st" property="searchKeyword">
+					<isNotEmpty property="USE_ST">
+					AND USE_ST=#USE_ST#	
+					</isNotEmpty>
+			  	</isEqual>			
+		  	</isNotEmpty>
+		  	AND CAT_AUTH_HIDE = 'N'
+			ORDER BY USE_ST DESC, CAT_INS_ORD ASC			
+	</select>	
+	<!-- End 교육기관 -->
+	
+	<select id="get_educenter_main_curriculum_upcoming_info" resultClass="eduCenterMainVO">
+			SELECT 
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_TIME)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_TIME,
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_POINT)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_POINT,
+			T.*, C.CAT_INS_NM
+			FROM EDU_CURRICULUM_TB AS T
+			LEFT JOIN EDU_CAT_INS_INF_TB AS C ON C.CAT_INS_SN = T.CAT_INS_SN
+			WHERE 1=1 AND T.USE_ST = '1' AND T.DEL_ST = '0' AND T.LOCK_ST = '0' AND T.CRS_ST = '1'
+			ORDER BY T.RECRUIT_STR_DT ASC
+			LIMIT 1	
+	</select>
+	<select id="get_educenter_main_curriculum_list" parameterClass="eduCenterMainVO" resultClass="eduCenterMainVO">
+			SELECT 
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_TIME)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_TIME,
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_POINT)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_POINT,
+			T.*, C.CAT_INS_NM, C1.CD_NM AS CRS_GRP_CD_NM
+			FROM EDU_CURRICULUM_TB AS T
+			LEFT JOIN ALL_CODE_SET_TB AS C1 ON C1.CD_ID = T.CRS_GRP_CD
+			LEFT JOIN EDU_CAT_INS_INF_TB AS C ON C.CAT_INS_SN = T.CAT_INS_SN
+			WHERE 1=1 AND T.USE_ST = '1' AND T.DEL_ST = '0' AND T.CRS_ST = '1'
+			<isNotEmpty property="CRS_TYPE" prepend="AND">
+				T.CRS_TYPE = #CRS_TYPE#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_STR_DT" prepend="AND">
+				(
+				<isNotEmpty property="searchCondition">
+					<isEqual property="searchCondition" compareValue="LIKE_CRS_STR_DT">
+						<![CDATA[ 
+						T.CRS_STR_DT LIKE #CRS_STR_DT# '%'
+						]]>
+					</isEqual>
+				</isNotEmpty>
+				<isEmpty property="searchCondition">
+					<![CDATA[
+					STR_TO_DATE(#CRS_STR_DT#, '%Y-%m-%d') <= DATE_FORMAT(T.CRS_STR_DT, '%Y-%m-%d')
+					]]>
+				</isEmpty>
+				)
+			</isNotEmpty>
+			<isNotEmpty property="CRS_END_DT" prepend="AND">
+				((
+				<![CDATA[ 
+				STR_TO_DATE(#CRS_END_DT#, '%Y-%m-%d') >= DATE_FORMAT(T.CRS_END_DT, '%Y-%m-%d')
+				]]>
+				) OR CRS_GRP_CD = #CRS_GRP_CD#)
+			</isNotEmpty>
+			<isNotEmpty property="RECRUIT_STR_DT" prepend="AND">
+				((
+				<![CDATA[
+				STR_TO_DATE(#RECRUIT_STR_DT#, '%Y-%m-%d') <= DATE_FORMAT(T.RECRUIT_STR_DT, '%Y-%m-%d')
+				]]>
+				) OR CRS_GRP_CD = #CRS_GRP_CD#)
+			</isNotEmpty>
+			<isNotEmpty property="RECRUIT_END_DT" prepend="AND">
+				<![CDATA[ 
+				STR_TO_DATE(#RECRUIT_END_DT#, '%Y-%m-%d') >= DATE_FORMAT(T.RECRUIT_END_DT, '%Y-%m-%d')
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_GRP_CD" prepend="AND">
+				<![CDATA[ 
+				CRS_GRP_CD = #CRS_GRP_CD# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_MBR_CD" prepend="AND">
+				<![CDATA[ 
+				CRS_MBR_CD = #CRS_MBR_CD# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="TYPE_GB" prepend="AND">
+				<![CDATA[ 
+				TYPE_GB = #TYPE_GB# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="LOCK_ST" prepend="AND">
+				<![CDATA[ 
+				LOCK_ST = #LOCK_ST# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_LAW_TYPE" prepend="AND">
+				<![CDATA[ 
+				CRS_LAW_TYPE = #CRS_LAW_TYPE# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_YEAR" prepend="AND">
+				CRS_YEAR = #CRS_YEAR# 
+			</isNotEmpty>
+			<isNotEmpty property="orderByStr">
+				<isEqual property="orderByStr" compareValue="CRS_STR_DT">
+				ORDER BY CRS_STR_DT ASC
+				</isEqual>
+			</isNotEmpty>
+			<isEmpty property="orderByStr">
+				ORDER BY T.CRS_GRP_CD ASC, REG_DT DESC
+			</isEmpty>	  			
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>	
+	</select>
+	
+	<select id="get_educenter_main_curriculum_list_cnt" parameterClass="eduCenterMainVO" resultClass="int">
+	SELECT COUNT(1) TOTCNT
+        FROM(
+			SELECT 
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_TIME)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_TIME,
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_POINT)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_POINT,
+			T.*, C.CAT_INS_NM, C1.CD_NM AS CRS_GRP_CD_NM
+			FROM EDU_CURRICULUM_TB AS T
+			LEFT JOIN ALL_CODE_SET_TB AS C1 ON C1.CD_ID = T.CRS_GRP_CD
+			LEFT JOIN EDU_CAT_INS_INF_TB AS C ON C.CAT_INS_SN = T.CAT_INS_SN
+			) A
+			WHERE 1=1 AND USE_ST = '1' AND DEL_ST = '0' AND CRS_ST = '1'
+			<isNotEmpty property="CRS_TYPE" prepend="AND">
+				CRS_TYPE = #CRS_TYPE#
+			</isNotEmpty>
+			<isNotEmpty property="CRS_STR_DT" prepend="AND">
+				(
+				<isNotEmpty property="searchCondition">
+					<isEqual property="searchCondition" compareValue="LIKE_CRS_STR_DT">
+						<![CDATA[ 
+						CRS_STR_DT LIKE #CRS_STR_DT# '%'
+						]]>
+					</isEqual>
+				</isNotEmpty>
+				<isEmpty property="searchCondition">
+					<![CDATA[
+					STR_TO_DATE(#CRS_STR_DT#, '%Y-%m-%d') <= DATE_FORMAT(CRS_STR_DT, '%Y-%m-%d')
+					]]>
+				</isEmpty>
+				)
+			</isNotEmpty>
+			<isNotEmpty property="CRS_END_DT" prepend="AND">
+				((
+				<![CDATA[ 
+				STR_TO_DATE(#CRS_END_DT#, '%Y-%m-%d') >= DATE_FORMAT(CRS_END_DT, '%Y-%m-%d')
+				]]>
+				) OR CRS_GRP_CD = #CRS_GRP_CD#)
+			</isNotEmpty>
+			<isNotEmpty property="RECRUIT_STR_DT" prepend="AND">
+				((
+				<![CDATA[
+				STR_TO_DATE(#RECRUIT_STR_DT#, '%Y-%m-%d') <= DATE_FORMAT(RECRUIT_STR_DT, '%Y-%m-%d')
+				]]>
+				) OR CRS_GRP_CD = #CRS_GRP_CD#)
+			</isNotEmpty>
+			<isNotEmpty property="RECRUIT_END_DT" prepend="AND">
+				<![CDATA[ 
+				STR_TO_DATE(#RECRUIT_END_DT#, '%Y-%m-%d') >= DATE_FORMAT(RECRUIT_END_DT, '%Y-%m-%d')
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_GRP_CD" prepend="AND">
+				<![CDATA[ 
+				CRS_GRP_CD = #CRS_GRP_CD# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_MBR_CD" prepend="AND">
+				<![CDATA[ 
+				CRS_MBR_CD = #CRS_MBR_CD# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="TYPE_GB" prepend="AND">
+				<![CDATA[ 
+				TYPE_GB = #TYPE_GB# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="LOCK_ST" prepend="AND">
+				<![CDATA[ 
+				LOCK_ST = #LOCK_ST# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_LAW_TYPE" prepend="AND">
+				<![CDATA[ 
+				CRS_LAW_TYPE = #CRS_LAW_TYPE# 
+				]]>
+			</isNotEmpty>
+			<isNotEmpty property="CRS_YEAR" prepend="AND">
+				CRS_YEAR = #CRS_YEAR# 
+			</isNotEmpty>			
+			<isNotEmpty property="orderByStr">
+				<isEqual property="orderByStr" compareValue="CRS_STR_DT">
+				ORDER BY CRS_STR_DT ASC
+				</isEqual>
+			</isNotEmpty>
+			<isEmpty property="orderByStr">
+				ORDER BY CRS_GRP_CD ASC, REG_DT DESC
+			</isEmpty>	  				
+	</select>
+	<select id="get_educenter_curriculum_dtl_list" parameterClass="eduCenterMainVO" resultClass="eduCenterMainVO">
+			SELECT T.*,C1.CAT_NM,C2.CAT_DTL_NM,C2.LRNNG_GB,
+			(
+				SELECT AVG(Ts.LRNNG_PRGRS)
+				FROM EDU_MBR_HSTRY_DTL_TB AS Ts 
+				WHERE Ts.CRS_DTL_SN = T.CRS_DTL_SN
+				AND Ts.HMBR_SN = #HMBR_SN#
+			) AS HMBR_LRNNG_PRGRS
+			FROM EDU_CURRICULUM_DTL_TB AS T
+			LEFT JOIN EDU_CAT_TB AS C1 ON C1.`CAT_SN` = T.`CAT_SN`
+			LEFT JOIN EDU_CAT_DTL_TB AS C2 ON C2.`CAT_DTL_SN` = T.`CAT_DTL_SN`
+			WHERE CRS_SN = #CRS_SN#
+			<isEqual property="STEP_ST" compareValue="sort">
+			ORDER BY T.CRS_ORD ASC
+			</isEqual>
+			<isEqual property="STEP_ST" compareValue="random">
+			ORDER BY T.CRS_ORD ASC, T.REG_DT ASC, T.CRS_DTL_NM ASC
+			</isEqual>				
+			<isNotEqual property="isNotUsedPagination" compareValue="true">  
+				LIMIT #recordCountPerPage# OFFSET #firstIndex#
+			</isNotEqual>					
+	</select>
+	<select id="get_educenter_curriculum_info" parameterClass="eduCenterMainVO" resultClass="eduCenterMainVO">
+			SELECT 
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_TIME)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_TIME,
+				IFNULL((
+				SELECT SUM(Tdtl.CRS_TOT_POINT)
+				FROM EDU_CURRICULUM_DTL_TB AS Tdtl 
+				WHERE Tdtl.CRS_SN = T.CRS_SN 
+				GROUP BY Tdtl.CRS_SN
+				),0) AS SUM_TOT_POINT,
+			T.*, C.CAT_INS_NM
+			FROM EDU_CURRICULUM_TB AS T
+			LEFT JOIN EDU_CAT_INS_INF_TB AS C ON C.CAT_INS_SN = T.CAT_INS_SN
+			WHERE T.CRS_SN = #CRS_SN#	
+			AND T.USE_ST='1'
+			AND T.DEL_ST='0'
+	</select>	
+	<select id="get_educenter_rmndr_info_list" parameterClass="eduCenterMbrRemindersVO" resultClass="eduCenterMbrRemindersVO">
+			SELECT T.*,
+				C.CRS_SN,
+				C.CRS_NM, 
+				C.CRS_STR_DT,
+				C.CRS_END_DT
+			FROM MBR_RMNDR_TB AS T
+				LEFT JOIN EDU_CURRICULUM_TB AS C
+				ON T.RMNDR_CRS_SN = C.CRS_SN
+			WHERE 1=1
+			AND RMNDR_MBR_NM=#RMNDR_MBR_NM#	
+			AND RMNDR_MBR_HP=#RMNDR_MBR_HP#
+			AND RMNDR_MBR_BIRTH=#RMNDR_MBR_BIRTH#
+			<isNotEmpty property="CMPLT_ST">
+				AND T.CMPLT_ST = #CMPLT_ST#
+			</isNotEmpty>
+	</select>	
+	<update id="set_educenter_curriculum_mbr_cur_cnt_up" parameterClass="eduCenterMainVO">
+		<![CDATA[
+		UPDATE EDU_CURRICULUM_TB 
+		SET MBR_CUR_CNT = MBR_CUR_CNT + 1,
+		UPD_DT=NOW() 
+		WHERE CRS_SN = #CRS_SN#	
+		]]>
+	</update>	
+	<update id="set_educenter_curriculum_mbr_cur_cnt_down" parameterClass="eduCenterMainVO">
+		<![CDATA[
+		UPDATE EDU_CURRICULUM_TB 
+		SET MBR_CUR_CNT = MBR_CUR_CNT - 1,
+		UPD_DT=NOW() 
+		WHERE CRS_SN = #CRS_SN#	
+		]]>
+	</update>
+	<update id="set_educenter_curriculum_mbr_cmplt_cnt_down" parameterClass="eduCenterMainVO">
+		<![CDATA[
+		UPDATE EDU_CURRICULUM_TB 
+		SET MBR_CMPLT_CNT = MBR_CMPLT_CNT - 1,
+		UPD_DT=NOW() 
+		WHERE CRS_SN = #CRS_SN#	
+		]]>
+	</update>	
+	
+	<!-- 교육사전알림등록 // 정보 조회 구간 추후 삭제 > 개인정보동의서(선택)조회에 필요 -->
+	<select id="get_educenter_mbr_rmndr_info" parameterClass="eduCenterMbrRemindersVO" resultClass="eduCenterMbrRemindersVO">
+			SELECT T.* 
+			FROM MBR_RMNDR_TB AS T
+			LEFT JOIN MBR_TB AS M
+			ON M.MBR_ID = T.RMNDR_MBR_ID
+			WHERE 1=1 
+			AND T.USE_ST=1 AND T.DEL_ST=0
+			<isNotEmpty property="RMNDR_MBR_NM">
+				AND T.RMNDR_MBR_NM=#RMNDR_MBR_NM#
+			</isNotEmpty>
+			<isNotEmpty property="RMNDR_MBR_ID">
+				AND T.RMNDR_MBR_ID=#RMNDR_MBR_ID#
+			</isNotEmpty>
+			<isNotEmpty property="RMNDR_CRS_SN">
+				AND T.RMNDR_CRS_SN=#RMNDR_CRS_SN#
+			</isNotEmpty>	  				
+			<isNotEmpty property="RMNDR_MBR_HP">
+				AND T.RMNDR_MBR_HP=REPLACE(#RMNDR_MBR_HP#,'-','')
+			</isNotEmpty>
+			<isNotEmpty property="RMNDR_MBR_BIRTH">
+				AND T.RMNDR_MBR_BIRTH=REPLACE(#RMNDR_MBR_BIRTH#,'-','')
+			</isNotEmpty>
+			<!-- <isNotEmpty property="RMNDR_MBR_SEX">
+				AND RMNDR_MBR_SEX=#RMNDR_MBR_SEX#
+			</isNotEmpty> -->
+			AND M.MBR_ID IS NOT NULL
+	</select>	
+	<!-- 교육수강신청(검토) -->
+	<insert id="set_educenter_mbr_rmndr_reg" parameterClass="eduCenterMbrRemindersVO">
+		
+		INSERT INTO MBR_RMNDR_TB
+		(
+			RMNDR_DTL_CD,
+			RMNDR_MBR_DSCRP,
+			RMNDR_MBR_NM,
+			RMNDR_MBR_HP,
+			RMNDR_MBR_TEL,
+			RMNDR_MBR_BIRTH,
+			RMNDR_MBR_ADDR1,
+			RMNDR_MBR_ADDR2,
+			RMNDR_MBR_ZIP,
+			RMNDR_MBR_ID,
+			RMNDR_CRS_SN,
+			RMNDR_BUSINESS_NUM,
+			RMNDR_SHIP_LICENSE,
+			RMNDR_SHIP_LICENSE_STR_DT,
+			RMNDR_SHIP_LICENSE_END_DT,
+			<isNotEmpty property="INDVDL_INFO_ST">
+			INDVDL_INFO_ST,
+			RMNDR_DTL_LICENSE_CD,
+			MBR_FSHRBT_TYPE,
+			RMNDR_SIDO_CD,
+			RMNDR_SIGNGU_CD,
+			RMNDR_YMD_NM,
+				<isEqual property="INDVDL_INFO_ST" compareValue="Y">
+					RMNDR_DTL_NM,
+					RMNDR_REG_NUM_CD,
+					RMNDR_SHIP_CD,
+				</isEqual>	
+			</isNotEmpty>
+			PARNTS_MBR_NM,
+			PARNTS_MBR_HP,
+			PARNTS_MBR_BIRTH,
+			PARNTS_MBR_RELATIONSHIP,
+			<isNotEmpty property="UNDER_AGE_14_ST">
+			UNDER_AGE_14_ST,
+			</isNotEmpty>
+			<isNotEmpty property="TYPE_GB">
+			TYPE_GB,
+			</isNotEmpty>
+			REG_DT,
+			UPD_DT,
+			REG_MBR_ID,
+			UPD_MBR_ID
+		) VALUES (
+			#RMNDR_DTL_CD#,
+			#RMNDR_MBR_DSCRP#,
+			#RMNDR_MBR_NM#,
+			REPLACE(#RMNDR_MBR_HP#,'-',''),
+			REPLACE(#RMNDR_MBR_TEL#,'-',''),
+			REPLACE(#RMNDR_MBR_BIRTH#,'-',''),
+			#RMNDR_MBR_ADDR1#,
+			#RMNDR_MBR_ADDR2#,
+			#RMNDR_MBR_ZIP#,
+			#RMNDR_MBR_ID#,
+			#RMNDR_CRS_SN#,
+			REPLACE(#RMNDR_BUSINESS_NUM#,'-',''),
+			#RMNDR_SHIP_LICENSE#,
+			#RMNDR_SHIP_LICENSE_STR_DT#,
+			#RMNDR_SHIP_LICENSE_END_DT#,
+			<isNotEmpty property="INDVDL_INFO_ST">
+			#INDVDL_INFO_ST#,
+			#RMNDR_DTL_LICENSE_CD#,
+			#MBR_FSHRBT_TYPE#,
+			#RMNDR_SIDO_CD#,
+			#RMNDR_SIGNGU_CD#,
+			#RMNDR_YMD_NM#,		
+				<isEqual property="INDVDL_INFO_ST" compareValue="Y">
+					#RMNDR_DTL_NM#,
+					REPLACE(#RMNDR_REG_NUM_CD#,'-',''),
+					REPLACE(#RMNDR_SHIP_CD#,'-',''),
+				</isEqual>	
+			</isNotEmpty>
+			#PARNTS_MBR_NM#,
+			#PARNTS_MBR_HP#,
+			#PARNTS_MBR_BIRTH#,
+			#PARNTS_MBR_RELATIONSHIP#,
+			<isNotEmpty property="UNDER_AGE_14_ST">
+			#UNDER_AGE_14_ST#,
+			</isNotEmpty>
+			<isNotEmpty property="TYPE_GB">
+			#TYPE_GB#,
+			</isNotEmpty>
+			NOW(),
+			NOW(),
+			#REG_MBR_ID#,
+			#UPD_MBR_ID#
+		)	
+		
+	</insert>
+	<!-- End 교육수강신청(검토) -->
+	<insert id="set_educenter_sms_request" parameterClass="eduSmsRequstVO">
+		INSERT INTO EDU_SMS_REQUST_TB (
+			ESR_MBR_ID,
+		  	ESR_MBR_HP,
+		  	ESR_MBR_NM,
+		  	ESR_DTL_CD,
+		  	ESR_DTL_LICENSE_CD,
+		  	ESR_CRS_SN,
+		  	ESR_SIDO_CD,
+		  	ESR_SIGNGU_CD,
+		  	ESR_REG_DT,
+		  	ESR_UPD_DT,
+		  	ESR_REG_MBR_ID,
+		  	ESR_UPD_MBR_ID,
+		  	ESR_TRGET
+		) VALUES (
+			#ESR_MBR_ID#,
+			REPLACE(#ESR_MBR_HP#,'-',''),
+			#ESR_MBR_NM#,
+			#ESR_DTL_CD#,
+			#ESR_DTL_LICENSE_CD#,
+			#ESR_CRS_SN#,
+			#ESR_SIDO_CD#,
+			#ESR_SIGNGU_CD#,
+			now(),
+			now(),
+			#ESR_REG_MBR_ID#,
+			#ESR_UPD_MBR_ID#,
+			#ESR_TRGET#
+		)
+	</insert>
+	
+	<insert id="set_educenter_mbr_hp_chng_reg" parameterClass="MbrHpChngVO">
+		INSERT INTO MBR_HP_CHNG_TB (
+			MHC_EDU_NM,
+			MHC_EDU_HP,
+			MHC_EDU_BRTHDY,
+			<isNotEmpty property="MHC_EDU_SHIP">
+			MHC_EDU_SHIP,
+			</isNotEmpty>
+			MHC_NM,
+			MHC_HP,
+			MHC_BRTHDY,
+			MHC_INDVDL_INFO_ST,
+			MHC_REG_DT,
+			<isNotEmpty property="MHC_MBR_ID">
+			MHC_MBR_ID,
+			</isNotEmpty>
+			<isNotEmpty property="MHC_MBR_ID_CNT">
+			MHC_MBR_ID_CNT,
+			</isNotEmpty>
+			MHC_REG_ID
+		) VALUES (
+			#MHC_EDU_NM#,
+			REPLACE(#MHC_EDU_HP#,'-',''),
+			REPLACE(#MHC_EDU_BRTHDY#,'-',''),
+			<isNotEmpty property="MHC_EDU_SHIP">
+			#MHC_EDU_SHIP#,
+			</isNotEmpty>
+			#MHC_NM#,
+			REPLACE(#MHC_HP#,'-',''),
+			REPLACE(#MHC_BRTHDY#,'-',''),
+			#MHC_INDVDL_INFO_ST#,
+			now(),
+			<isNotEmpty property="MHC_MBR_ID">
+			#MHC_MBR_ID#,
+			</isNotEmpty>
+			<isNotEmpty property="MHC_MBR_ID_CNT">
+			#MHC_MBR_ID_CNT#,
+			</isNotEmpty>
+			#MHC_REG_ID#
+		)
+	</insert>
+	<insert id="set_educenter_cpr_bplc_reg" parameterClass="EduCprBplcVO">
+		INSERT INTO EDU_CPR_BPLC_TB (
+			ECB_DTL_CD,
+			ECB_DTL_LICENSE_CD,
+			ECB_CPR_NM,
+			ECB_CPR_BRTHDY,
+			ECB_CPR_SIDO_CD,
+			ECB_CPR_SIGNGU_CD,
+			ECB_REG_NUM_CD,
+			ECB_CPR_DTL_NM,
+			ECB_CPR_HP,
+			ECB_CPR_ZIP,
+			ECB_CPR_ADDR1,
+			ECB_CPR_ADDR2,
+			ECB_EDU_NM,
+			ECB_EDU_BRTHDY,
+			ECB_EDU_POSIT,
+			ECB_EDU_HP,
+			ECB_EDU_ZIP,
+			ECB_EDU_ADDR1,
+			ECB_EDU_ADDR2,
+			ECB_REG_DT,
+			ECB_REG_ID,
+			ECB_INDVDL_INFO_ST
+		) VALUES (
+			#ECB_DTL_CD#,
+			#ECB_DTL_LICENSE_CD#,
+			#ECB_CPR_NM#,
+			REPLACE(#ECB_CPR_BRTHDY#,'-',''),
+			#ECB_CPR_SIDO_CD#,
+			#ECB_CPR_SIGNGU_CD#,
+			REPLACE(#ECB_REG_NUM_CD#,'-',''),
+			#ECB_CPR_DTL_NM#,
+			REPLACE(#ECB_CPR_HP#,'-',''),
+			#ECB_CPR_ZIP#,
+			#ECB_CPR_ADDR1#,
+			#ECB_CPR_ADDR2#,
+			#ECB_EDU_NM#,
+			REPLACE(#ECB_EDU_BRTHDY#,'-',''),
+			#ECB_EDU_POSIT#,
+			REPLACE(#ECB_EDU_HP#,'-',''),
+			#ECB_EDU_ZIP#,
+			#ECB_EDU_ADDR1#,
+			#ECB_EDU_ADDR2#,
+			now(),
+			#ECB_REG_ID#,
+			#ECB_INDVDL_INFO_ST#
+		
+		)
+	</insert>
+	<delete id="remove_eduCenter_mbr_reminders" parameterClass="eduCenterMbrRemindersVO" >
+    	<isNotEmpty property="RMNDR_SN">
+    	DELETE FROM MBR_RMNDR_TB WHERE RMNDR_SN = #RMNDR_SN#
+    	</isNotEmpty>
+    	<isEmpty property="RMNDR_SN">
+	    	<isNotEmpty property="RMNDR_MBR_NM">    	
+		    	<isNotEmpty property="RMNDR_MBR_HP">    	
+			    	<isNotEmpty property="RMNDR_MBR_BIRTH">    	
+			    		DELETE FROM MBR_RMNDR_TB 
+			    		WHERE RMNDR_MBR_NM = #RMNDR_MBR_NM#
+			    		AND RMNDR_MBR_HP = #RMNDR_MBR_HP#
+			    		AND RMNDR_MBR_BIRTH = #RMNDR_MBR_BIRTH#
+			    	</isNotEmpty>
+		    	</isNotEmpty>
+	    	</isNotEmpty>
+    	</isEmpty>
+    	
+    </delete>
+    
+	<select id="get_edu_list" parameterClass="EduCenterMainVO" resultClass="EduCenterMainVO">
+		SELECT *
+		FROM EDU_CURRICULUM_TB
+		WHERE TYPE_GB = 'offline'
+			AND CRS_ST = '1'
+			AND CRS_MBR_CD = #CRS_MBR_CD#
+			AND CRS_STR_DT LIKE '$RECRUIT_STR_DT$%'
+			AND USE_ST = '1'
+    		AND DEL_ST = '0'
+    		
+    		<isNotEmpty property="CRS_LAW_TYPE" prepend="AND">
+				<![CDATA[ 
+				CRS_LAW_TYPE = #CRS_LAW_TYPE# 
+				]]>
+			</isNotEmpty>
+			
+			<isNotEmpty property="search_word" prepend="AND">
+				<isEqual property="basic_select" compareValue="select_total">
+					( CRS_NM LIKE '%$search_word$%' OR CRS_ADDR LIKE '%$search_word$%' )
+				</isEqual>
+				<isEqual property="basic_select" compareValue="select_crs_nm">
+					CRS_NM LIKE '%$search_word$%'
+				</isEqual>
+				<isEqual property="basic_select" compareValue="select_crs_addr">
+					CRS_ADDR LIKE '%$search_word$%'
+				</isEqual>
+			</isNotEmpty>
+		<![CDATA[
+			ORDER BY CASE WHEN RECRUIT_END_DT < #CRS_STR_DT# THEN RECRUIT_END_DT END ASC, CRS_STR_DT ASC
+		]]>
+		<isNotEqual property="isNotUsedPagination" compareValue="true">  
+			LIMIT #recordCountPerPage# OFFSET #firstIndex#
+		</isNotEqual>
+	</select>
+
+	<select id="get_edu_list_totcnt" parameterClass="EduCenterMainVO" resultClass="int">
+		SELECT COUNT(*)
+		FROM EDU_CURRICULUM_TB
+		WHERE TYPE_GB = 'offline'
+			AND CRS_ST = '1'
+			AND CRS_MBR_CD = #CRS_MBR_CD#
+			AND CRS_STR_DT LIKE '$RECRUIT_STR_DT$%'
+			AND USE_ST = '1'
+    		AND DEL_ST = '0'
+    		
+    		<isNotEmpty property="CRS_LAW_TYPE" prepend="AND">
+				<![CDATA[ 
+				CRS_LAW_TYPE = #CRS_LAW_TYPE# 
+				]]>
+			</isNotEmpty>
+			
+			<isNotEmpty property="search_word" prepend="AND">
+				<isEqual property="basic_select" compareValue="select_total">
+					( CRS_NM LIKE '%$search_word$%' OR CRS_ADDR LIKE '%$search_word$%' )
+				</isEqual>
+				<isEqual property="basic_select" compareValue="select_crs_nm">
+					CRS_NM LIKE '%$search_word$%'
+				</isEqual>
+				<isEqual property="basic_select" compareValue="select_crs_addr">
+					CRS_ADDR LIKE '%$search_word$%'
+				</isEqual>
+			</isNotEmpty>
+		ORDER BY CRS_STR_DT
+	</select>
+</sqlMap>
