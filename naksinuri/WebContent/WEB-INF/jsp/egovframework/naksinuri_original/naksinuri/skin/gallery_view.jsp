@@ -390,7 +390,7 @@
 											<a href="#;" onclick="view2('${item.bo_sn}')"class="pic" title="${item.bo_subject} 상세보기"><img src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${item.bo_main_img}"/>&fileSn=<c:out value="0"/>'  width="303" height="250"  alt="${item.bo_subject}"/></a>
 										</c:otherwise>
 									</c:choose>
-									<a href="#;" onclick="view2('${item.bo_sn}')" class="subject">
+									<a href="#;" onclick="view2('${item.bo_sn}')" class="subject" tabindex="-1">
 										<c:choose>
 											<c:when test="${fn:length(item.bo_subject)>50 }">
 												<em class="list_subject">${fn:substring(item.bo_subject, 0, 50)}...</em>
@@ -401,7 +401,7 @@
 										</c:choose> 
 										<%-- <span class="date">${fn:substring(item.bo_insert_dt,0,10)}</span> 김현태 주석 처리--%>
 									</a>
-									<a href="#;" onclick="view2('${item.bo_sn}')" class="search_square"><i class="fa fa-search" aria-hidden="true" title="${item.bo_subject} 상세보기"></i></a>
+									<a href="#;" onclick="view2('${item.bo_sn}')" class="search_square" tabindex="-1"><i class="fa fa-search" aria-hidden="true" title="${item.bo_subject} 상세보기"></i></a>
 								</li>
 							</c:forEach>
 						</ul>
