@@ -200,17 +200,34 @@ if(qna_type=='낚시관리및제도일반'){
 	$('.tab5').removeClass("on");
 }
 	
-	$('.faq_con dl dt a').click(function() {
-		if($(this).parent().parent().parent().hasClass('active')){
-			$('.faq_con').removeClass('active');
-			$('.faq_con dl dd').slideUp();
-		}else{
-			$('.faq_con').removeClass('active');
-			$(this).parent().parent().parent().addClass('active');
-			$('.faq_con dl dd').slideUp();
-			$(this).parent().next().slideDown();
-		}
-	});
+
+	/* $('.faq_con dl dt a').click(function() {
+	if($(this).parent().parent().parent().hasClass('active')){
+		$('.faq_con').removeClass('active');
+		$('.faq_con dl dd').slideUp();
+	}else{
+		$('.faq_con').removeClass('active');
+		$(this).parent().parent().parent().addClass('active');
+		$('.faq_con dl dd').slideUp();
+		$(this).parent().next().slideDown();
+	}
+}); */
+$('.faq_con dl dt a').click(function() {
+    const parent = $(this).parent().parent().parent();
+    const titleValue = $(this).attr('title');
+
+    if (parent.hasClass('active')) {
+        $('.faq_con').removeClass('active');
+        $('.faq_con dl dd').slideUp();
+        $(this).attr('title', titleValue.replace('상세보기 닫기', '상세보기'));
+    } else {
+        $('.faq_con').removeClass('active');
+        $('.faq_con dl dd').slideUp();
+        parent.addClass('active');
+        $(this).parent().next().slideDown();
+        $(this).attr('title', titleValue.replace('상세보기', '상세보기 닫기'));
+    }
+});
 	
 	function fnSelectInfs(pageIndex) {
 		var idx= $('#s_pageUnit').val();

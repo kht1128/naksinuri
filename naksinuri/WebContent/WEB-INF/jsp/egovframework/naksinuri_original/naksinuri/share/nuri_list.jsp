@@ -90,7 +90,7 @@
 	</div>
 -->
 <script>
-	$('.faq_con dl dt a').click(function() {
+	/* $('.faq_con dl dt a').click(function() {
 		if($(this).parent().parent().parent().hasClass('active')){
 			$('.faq_con').removeClass('active');
 			$('.faq_con dl dd').slideUp();
@@ -100,6 +100,22 @@
 			$('.faq_con dl dd').slideUp();
 			$(this).parent().next().slideDown();
 		}
+	}); */
+	$('.faq_con dl dt a').click(function() {
+	    const parent = $(this).parent().parent().parent();
+	    const titleValue = $(this).attr('title');
+
+	    if (parent.hasClass('active')) {
+	        $('.faq_con').removeClass('active');
+	        $('.faq_con dl dd').slideUp();
+	        $(this).attr('title', titleValue.replace('상세보기 닫기', '상세보기'));
+	    } else {
+	        $('.faq_con').removeClass('active');
+	        $('.faq_con dl dd').slideUp();
+	        parent.addClass('active');
+	        $(this).parent().next().slideDown();
+	        $(this).attr('title', titleValue.replace('상세보기', '상세보기 닫기'));
+	    }
 	});
 </script>
 
