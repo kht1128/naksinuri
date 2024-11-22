@@ -31,6 +31,19 @@
 			}); */
 		});
 	</script>
+	
+<style>
+/* 웹 접근성 글자색 명도대비 수정사항 */
+	.modal-content input::placeholder {
+	    color: #636363;
+	}
+    .reply_write input::placeholder {
+	    color: #636363;
+	}
+	.reply_textbox textarea::placeholder {
+    color: #636363;
+	}
+</style>
 
 	<form:form commandName="listform" id="listform" method="post" enctype="multipart/form-data" >
 		<input type="hidden" name="bo_sn" id="bo_sn"/>
@@ -227,10 +240,10 @@
 											<img alt="낚시누리 Naksi Nuri" src="/naksinuri_original/common_main/img/noImage_writer.png">
 										</c:when>
 										<c:when test="${info.bo_sub_img ne null}">
-											<img alt="${info.bo_name}" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
+											<img alt="낚시누리 Naksi Nuri" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
 										</c:when>
 										<c:when test="${!empty info.bo_sub_img}">
-											<img alt="${info.bo_name}" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
+											<img alt="낚시누리 Naksi Nuri" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
 										</c:when>										
 										<c:otherwise>
 											<img alt="낚시누리 Naksi Nuri" src="/naksinuri_original/common_main/img/noImage_writer.png">
@@ -444,7 +457,7 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<p class="comment">댓글을 삭제합니다. 비밀번호를 입력해주세요.</p>
-				<input type="password" class="del_input" id="co_passr" placeholder="비밀번호를 입력해주세요." />
+				<input style="font-color:black" type="password" class="del_input" id="co_passr" placeholder="비밀번호를 입력해주세요." />
 				<div class="btn_box">
 					<button class="cp_btn del_btn" onclick="co_del()" >확인</button>
 					<a href="#;" class="cp_btn remote_btn" data-dismiss="modal" aria-label="Close">취소</a>
