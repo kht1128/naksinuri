@@ -14,6 +14,12 @@
 <c:set var="pageName" value="${table}" />
 <%@include file="../layout/newHead.jsp"%>
 
+<style>
+.write_box input::placeholder {
+    color: #757575;
+}
+</style>
+
 <div>
 	<form:form commandName="imform" id="imform" method="post" enctype="multipart/form-data" >
 		<input type="hidden" name="bo_sn" id="bo_sn" value="${info.bo_sn}"/>
@@ -360,33 +366,39 @@ function submitContents() {
 	*/
 	if(!ischk1){
 		alert("게시물 작성시 유의사항에 동의해주세요.")
+		document.getElementById("agreeingy").focus();
 		return false;
 	}
 	
 	if($("input[type=radio][name=agreeing]:checked").val() == "비동의"){
 		alert("게시물 작성시 유의사항 동의가 필요합니다.");
+		document.getElementById("agreeingy").focus();
 		return false;
 	}
 	
 	if($("#bo_subject").val()== ""){
 		alert("제목을 입력하세요.");
+		document.getElementById("bo_subject").focus();
 		return false;
 	}
 
 	if($("#bo_name").val()== ""){
 		alert("작성자를 입력하세요.");
+		document.getElementById("bo_name").focus();
 		return false;
 	}
-
+	if($("#bo_pass").val()== ""){
+		alert("비밀번호를 입력하세요.");
+		document.getElementById("bo_pass").focus();
+		return false;
+	}
 	if(!$('#mimg').val()){
 		alert('대표 이미지를 등록해주세요.');
+		document.getElementById("mimg").focus();
 		return false;
 	}
 	
-	if($("#bo_pass").val()== ""){
-		alert("비밀번호를 입력하세요.");
-		return false;
-	}
+
 	/*
 	var xy = document.getElementById("bo_email2");
 	if($('#email_addr').val()=="1"){
@@ -447,6 +459,7 @@ function submitContents() {
 //에디터의 내용에 대한 값 검증은 이곳에서
 if ($("#bo_content").val() == " <p>&nbsp;</p>") {
 	alert('내용을 입력해주세요.');
+	document.getElementById("bo_content").focus();
 	return false;
 
 }   
