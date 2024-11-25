@@ -29,7 +29,7 @@
 
 		<div class="tabArea tab3 mbNone"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 			<ul class="floats">
-				<li class="on"><a href="/sosig/event/list.do" title="진행중인 이벤트 선택됨">진행중인 이벤트</a></li>
+				<li class="on"><a href="/sosig/event/list.do" title="선택됨">진행중인 이벤트</a></li>
 				<li><a href="/sosig/endevent/list.do" title="종료된 이벤트">종료된 이벤트</a></li>
 				<li><a href="/sosig/ancevent/list.do" title="당첨자 발표">당첨자 발표</a></li>
 			</ul>
