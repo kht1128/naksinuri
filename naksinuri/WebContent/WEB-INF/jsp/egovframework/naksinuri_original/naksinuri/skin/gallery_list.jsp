@@ -34,25 +34,25 @@
 				<c:when test="${pageName eq 'junior'}">
 					<div class="tabArea tab2"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 						<ul class="floats">
-							<li class="jucateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="민물(붕어)낚시 선택됨"' : 'title="민물(붕어)낚시"'}>민물(붕어)낚시</a></li>
-							<li class="jucatesea" onclick="fnSelectInfs3('바다')"><a href="#;" ${bo_cate == "바다" ? 'title="바다낚시 선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
+							<li class="jucateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="선택됨"' : 'title="민물(붕어)낚시"'}>민물(붕어)낚시</a></li>
+							<li class="jucatesea" onclick="fnSelectInfs3('바다')"><a href="#;" ${bo_cate == "바다" ? 'title="선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
 						</ul>
 					</div>
 				</c:when>
 				<c:when test="${pageName eq 'gosu'}">
 					<div class="tabArea tab3"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 						<ul class="floats">
-							<li class="gocateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="민물(붕어)낚시 선택됨"' : 'title="민물(붕어)낚시"'}>민물(붕어)낚시</a></li>
-							<li class="gocatesea" onclick="fnSelectInfs3('바다')" ><a href="#;" ${bo_cate == "바다" ? 'title="바다낚시 선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
-							<li class="gocateroo" onclick="fnSelectInfs3('루어')" ><a href="#;" ${bo_cate == "루어" ? 'title="루어낚시 선택됨"' : 'title="루어낚시"'}>루어낚시</a></li>
+							<li class="gocateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="선택됨"' : 'title="민물(붕어)낚시"'}>민물(붕어)낚시</a></li>
+							<li class="gocatesea" onclick="fnSelectInfs3('바다')" ><a href="#;" ${bo_cate == "바다" ? 'title="선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
+							<li class="gocateroo" onclick="fnSelectInfs3('루어')" ><a href="#;" ${bo_cate == "루어" ? 'title="선택됨"' : 'title="루어낚시"'}>루어낚시</a></li>
 						</ul>
 					</div>
 				</c:when>
 				<c:when test="${pageName eq 'class'}">
 					<div class="tabArea tab2"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 						<ul class="floats">
-							<li class="clacateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="민물낚시 선택됨"' : 'title="민물낚시"'}>민물낚시</a></li>
-							<li class="clacatesea" onclick="fnSelectInfs3('바다')" ><a href="#;" ${bo_cate == "바다" ? 'title="바다낚시 선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
+							<li class="clacateriv on" onclick="fnSelectInfs3('민물')" ><a href="#;" ${bo_cate == "민물" ? 'title="선택됨"' : 'title="민물낚시"'}>민물낚시</a></li>
+							<li class="clacatesea" onclick="fnSelectInfs3('바다')" ><a href="#;" ${bo_cate == "바다" ? 'title="선택됨"' : 'title="바다낚시"'}>바다낚시</a></li>
 						</ul>
 					</div>
 				</c:when>

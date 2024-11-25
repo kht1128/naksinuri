@@ -199,18 +199,18 @@ function allPublicModalMessage(msg) {
 					<ul id="gnb_1dul" class="gnb_1dul_m6 gnb1ul"> <!-- 데이터트리 수정진행 floats 제거-->
 						
 						<li class="gnb1li gnb_1dli <c:if test="${depthName eq 'lesson'}"> select </c:if>">
-							<a href="javascript:void(0)" class="gnb_1da" title="낚시교실 바로가기">낚시교실</a>
+							<a href="javascript:void(0)" class="gnb_1da" >낚시교실</a>
 							<ul class="gnb_2dul">
-								<li class="gnb_2dli"><a href="/lesson/dignity/list.do" class="gnb_2da" title="낚시의 품격 바로가기">낚시의 품격</a></li>
-								<li class="gnb_2dli"><a href="/lesson/junior/list.do" class="gnb_2da" title="초보탈출하기 바로가기">초보탈출하기</a></li>
-								<li class="gnb_2dli"><a href="/lesson/gosu/list.do" class="gnb_2da" title="낚시고수되기 바로가기">낚시고수되기</a></li>
-								<li class="gnb_2dli"><a href="/lesson/sense/list.do" class="gnb_2da" title="낚시상식 바로가기">낚시상식</a></li>
-								<li class="gnb_2dli"><a href="/lesson/binding/list.do" class="gnb_2da" title="채비필수묶음법 바로가기">채비필수묶음법</a></li>
-								<li class="gnb_2dli"><a href="/lesson/class/list.do" class="gnb_2da" title="어종별낚시교실 바로가기">어종별 낚시교실</a></li>
+								<li class="gnb_2dli"><a href="/lesson/dignity/list.do" class="gnb_2da">낚시의 품격</a></li>
+								<li class="gnb_2dli"><a href="/lesson/junior/list.do" class="gnb_2da">초보탈출하기</a></li>
+								<li class="gnb_2dli"><a href="/lesson/gosu/list.do" class="gnb_2da">낚시고수되기</a></li>
+								<li class="gnb_2dli"><a href="/lesson/sense/list.do" class="gnb_2da">낚시상식</a></li>
+								<li class="gnb_2dli"><a href="/lesson/binding/list.do" class="gnb_2da">채비필수묶음법</a></li>
+								<li class="gnb_2dli"><a href="/lesson/class/list.do" class="gnb_2da">어종별 낚시교실</a></li>
 							</ul>
 						</li>
 						<li class="gnb1li gnb_1dli <c:if test="${depthName eq 'info' or depthName eq 'sosig' or depthName eq 'promotion'}"> select </c:if>">
-							<a href="javascript:void(0)" class="gnb_1da" title="낚시정보 바로가기">낚시정보</a>
+							<a href="javascript:void(0)" class="gnb_1da">낚시정보</a>
 							<ul class="gnb_2dul">
 								<li class="gnb_2dli"><a href="/sosig/notice/list.do" class="gnb_2da">공지사항</a></li>
 								<li class="gnb_2dli"><a href="/promotion/info/list.do" class="gnb_2da">알림마당</a></li>
@@ -224,7 +224,7 @@ function allPublicModalMessage(msg) {
 							</ul>
 						</li>
 						<li class="gnb1li gnb_1dli <c:if test="${depthName eq 'share'}"> select </c:if>">
-							<a href="javascript:void(0)" class="gnb_1da" title="커뮤니티 바로가기">커뮤니티</a>
+							<a href="javascript:void(0)" class="gnb_1da">커뮤니티</a>
 							<ul class="gnb_2dul">
 								<li class="gnb_2dli"><a href="/sosig/event/list.do" class="gnb_2da">이벤트</a></li>
 								<li class="gnb_2dli"><a href="/survey/survey/list.do" class="gnb_2da">설문조사</a></li>
