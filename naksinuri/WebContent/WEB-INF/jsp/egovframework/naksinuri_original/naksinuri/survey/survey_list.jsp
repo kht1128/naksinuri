@@ -26,7 +26,7 @@
 
 			<div class="tabArea tab2"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 				<ul class="floats">
-					<li class="survey_now on"><a href="./list.do" title="진행중인 설문조사 선택됨">진행중인 설문조사</a></li>
+					<li class="survey_now on"><a href="./list.do" title="선택됨">진행중인 설문조사</a></li>
 					<li class="survey_end"><a href="./endlist.do" title="종료된 설문조사">종료된 설문조사</a></li>
 				</ul>
 			</div>
