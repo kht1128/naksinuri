@@ -21,6 +21,16 @@ String lastDay = String.format("%02d", cal.getActualMaximum(Calendar.DAY_OF_MONT
 //System.out.println("마지막 일(현재 날짜 기준 최대수): "+cal.getActualMaximum(Calendar.DAY_OF_MONTH)); //기본적으로 이걸 사용
 %>
 
+<style>
+	/* 웹 접근성 글자색 명도대비 수정사항 */
+    .agree_box input::placeholder {
+	    color: #636363;
+	}
+	.agree_box textarea::placeholder {
+    	color: #636363;
+	}
+</style>
+
 <jsp:scriptlet>
 pageContext.setAttribute("cr", "\r");
 pageContext.setAttribute("lf", "\n");

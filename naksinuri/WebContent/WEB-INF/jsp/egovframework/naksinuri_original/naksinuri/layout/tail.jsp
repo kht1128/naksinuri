@@ -87,7 +87,7 @@
 			</div><!--//copyright//-->
 			<div class="sns">
 				<a href="https://www.facebook.com/nurinaksi/" target="_blank" title="낚시누리 페이스북 새창열림"><img src="/naksinuri_original/edu/facebook.png" alt="낚시누리 페이스북"/></a>
-				<a href="http://www.wa.or.kr/board/list.asp?search=total&SearchString=%B3%AC%BD%C3%B4%A9%B8%AE&BoardID=0006" target="_blank" title="한국웹접근성인증평가원 새창열림"><img src="/naksinuri_original/edu/quality_mark.gif" alt="한국웹접근성인증평가원" style="padding-top:5px;"/></a>
+				<a href="http://www.wa.or.kr/board/list.asp?search=total&SearchString=%B3%AC%BD%C3%B4%A9%B8%AE&BoardID=0006" target="_blank" title="한국웹접근성인증평가원 새창열림"><img src="/naksinuri_original/edu/quality_mark.gif" alt="과학기술정보통신부 WA WEB접근성품질인증마크 한국웹접근성인증평가원" style="padding-top:5px;"/></a>
 			</div><!--//sns//-->
 		</div><!--//Grp//-->
 

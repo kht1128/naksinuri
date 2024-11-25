@@ -35,6 +35,17 @@ pageContext.setAttribute("crlf", "\r\n");
 	.emphasis3 {color: #fff; background-color: #000;display: inline-block;padding: 3px 5px; font-weight: bold;}
 	#writeForm ul li {list-style: disc;}
 	.light-red {color: #B75552;}
+	
+
+	/* 웹 접근성 글자색 명도대비 수정사항 */
+    .agree_box input::placeholder {
+	    color: #636363;
+	}
+	.agree_box textarea::placeholder {
+    color: #636363;
+	}
+
+	
 </style>
 
 <script>
