@@ -28,12 +28,12 @@
 	<fmt:parseNumber var= "pages" integerOnly= "true" value= "${select_total/pageUnit+1}" />
 		<div class="tabArea tab6 mbNone"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 			<ul class="floats">
-						<li onclick="fnSelectInfs2('낚시관리및제도일반')"class="tab1 on"><a href="#;" ${category_type == "fishing_management_system" ? 'title="낚시관리및제도일반 선택됨"' : 'title="낚시관리및제도일반"'}>낚시관리및제도일반</a></li>
-	 					<li onclick="fnSelectInfs2('낚시터')"class="tab2"><a href="#;" ${category_type == "fishing_hole" ? 'title="낚시터 선택됨"' : 'title="낚시터"'}>낚시터</a></li>
-	 					<li onclick="fnSelectInfs2('낚시어선')"class="tab3"><a href="#;" ${category_type == "fishing_boats" ? 'title="낚시어선 선택됨"' : 'title="낚시어선"'}>낚시어선</a></li>
-	 					<li onclick="fnSelectInfs2('낚시도구및미끼')"class="tab4"><a href="#;" ${category_type == "fishing_tackle_bait" ? 'title="낚시도구및미끼 선택됨"' : 'title="낚시도구및미끼"'}>낚시도구및미끼</a></li>
-	 					<li onclick="fnSelectInfs2('유어장')"class="tab5"><a href="#;" ${category_type == "fishing_area" ? 'title="유어장 선택됨"' : 'title="유어장"'}>유어장</a></li>
-	 					<li onclick="fnSelectInfs2('참고자료')"class="tab6"><a href="#;" ${category_type == "fishing_resources" ? 'title="참고자료 선택됨"' : 'title="참고자료"'}>참고자료</a></li>
+						<li onclick="fnSelectInfs2('낚시관리및제도일반')"class="tab1 on"><a href="#;" ${category_type == "fishing_management_system" ? 'title="선택됨"' : 'title="낚시관리및제도일반"'}>낚시관리및제도일반</a></li>
+	 					<li onclick="fnSelectInfs2('낚시터')"class="tab2"><a href="#;" ${category_type == "fishing_hole" ? 'title="선택됨"' : 'title="낚시터"'}>낚시터</a></li>
+	 					<li onclick="fnSelectInfs2('낚시어선')"class="tab3"><a href="#;" ${category_type == "fishing_boats" ? 'title="선택됨"' : 'title="낚시어선"'}>낚시어선</a></li>
+	 					<li onclick="fnSelectInfs2('낚시도구및미끼')"class="tab4"><a href="#;" ${category_type == "fishing_tackle_bait" ? 'title="선택됨"' : 'title="낚시도구및미끼"'}>낚시도구및미끼</a></li>
+	 					<li onclick="fnSelectInfs2('유어장')"class="tab5"><a href="#;" ${category_type == "fishing_area" ? 'title="선택됨"' : 'title="유어장"'}>유어장</a></li>
+	 					<li onclick="fnSelectInfs2('참고자료')"class="tab6"><a href="#;" ${category_type == "fishing_resources" ? 'title="선택됨"' : 'title="참고자료"'}>참고자료</a></li>
 			</ul>
 		</div>
 		
