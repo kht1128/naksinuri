@@ -625,8 +625,10 @@ $('.sponsor-slide .sponsor_autoplay-control').click(function(){
 	$(this).toggleClass('on');
 	if($(this).hasClass('on')) {
 		sponsorSlide.autoplay.stop();
+		$(this).attr('title', '스폰서 슬라이드 정지됨');
 	} else {
 		sponsorSlide.autoplay.start();
+		$(this).attr('title', '스폰서 슬라이드 재생중');
 	}
 });
 </script>
