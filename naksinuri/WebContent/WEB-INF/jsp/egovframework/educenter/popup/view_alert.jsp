@@ -20,7 +20,7 @@ pageContext.setAttribute("crlf", "\r\n");
 <div class="modal-dialog" role="document">
 	<div class="modal-content form-horizontal">
 		<div class="modal-header">
-			<h4 class="modal-title" tabindex="0" style="display: inline;">교육신청 알림</h4>
+			<h4 class="modal-title" style="display: inline;">교육신청 알림</h4>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
    				<span aria-hidden="true">×</span>
  			</button>
