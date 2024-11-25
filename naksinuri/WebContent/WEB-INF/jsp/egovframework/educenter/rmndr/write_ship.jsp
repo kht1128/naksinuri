@@ -137,7 +137,7 @@ function sel_crs_data(obj) {
 				<span class="ml-5 mr-5 basic_input text-middle">부터 ~</span> 
 				<input type="text" id="CRS_END_DT" class="frm_input basic_input wp15 text-center" value="${CRS_END_DT}" autocomplete="off" placeholder="예)1990-01-01" title="교육일정 종료일 예)YYYY-MM-DD"/>
 				<span class="ml-5 mr-5 basic_input text-middle">까지</span> 
-				<select class="basic_select wp30" title="지역조건 선택옵션(온라인교육,서울인천경기지역,제주지역,강원지역,부산경남지역,대구울산경북지역,광주전남지역,대전충북충남세종지역,전북지역,전국)" id="CRS_GRP_CD"/>
+				<select class="basic_select wp30" title="지역조건 선택옵션" id="CRS_GRP_CD"/>
 					<option value="${item.CD_ID}">지역조건 전체보기</option>
 					<c:forEach var="item" items="${list_edu_grp_cd}">
 						<option value="${item.CD_ID}" <c:if test="${CRS_GRP_CD eq item.CD_ID}">selected</c:if> >${item.CD_NM}</option>
@@ -230,7 +230,7 @@ function sel_crs_data(obj) {
 						<tr>
 							<th>수강인구분 <span class="red-600">*</span></th>
 							<td>
-								<select class="basic_input" title="수강인구분선택옵션(개인업자,법인업자,해기사면허 소지 선장,해기사면허 소지 선원,해기사면허 미소지 선원)" id="RMNDR_DTL_LICENSE_CD" name="RMNDR_DTL_LICENSE_CD" data-fail-message="수강인구분은 필수 선택정보입니다." <%-- onchange="chageSelect();" --%> required>  
+								<select class="basic_input" title="수강인구분선택옵션" id="RMNDR_DTL_LICENSE_CD" name="RMNDR_DTL_LICENSE_CD" data-fail-message="수강인구분은 필수 선택정보입니다." <%-- onchange="chageSelect();" --%> required>  
 									<option value="">수강인구분선택</option> 
 									<c:forEach var="item" items="${list_license_se_cd}"> 
 										<%-- <c:if test="${item.CD_ID ne 'CIDL00001' and item.CD_ID ne 'CIDL00002'}"> --%>
@@ -244,7 +244,7 @@ function sel_crs_data(obj) {
 									<option value="new">신규</option>			
 									<option value="resmpt">재개자</option>	
 								</select>
-								<select class="basic_input" title="해기사면허유무선택옵션(유,무)" name="RMNDR_SHIP_LICENSE" data-fail-message="해기사면허 선택은 필수 선택정보입니다." required>		
+								<select class="basic_input" title="해기사면허유무선택옵션" name="RMNDR_SHIP_LICENSE" data-fail-message="해기사면허 선택은 필수 선택정보입니다." required>		
 									<option value="">해기사면허</option>			
 									<option value="유">유</option>			
 									<option value="무">무</option>		
@@ -287,7 +287,7 @@ function sel_crs_data(obj) {
 						<tr>
 							<th>낚시어선 신고지 <span class="red-600">*</span></th>
 							<td>
-								<select class="basic_input sel_area_sido wp30" title="낚시어선 신고지 시도 선택옵션(서울특별시,부산광역시,대구광역시,인천광역시,광주광역시,대전광역시,울산광역시,경기도,강원도,충청북도,충청남도,전라북도,전라남도,경상북도,경상남도,제주특별자치도,세종특별자치시)" name="RMNDR_SIDO_CD" data-fail-message="낚시어선 신고지(시도)는 필수 선택정보입니다." required>  
+								<select class="basic_input sel_area_sido wp30" title="낚시어선 신고지 시도 선택옵션" name="RMNDR_SIDO_CD" data-fail-message="낚시어선 신고지(시도)는 필수 선택정보입니다." required>  
 									<option value="">시도 선택</option> 
 									<c:forEach var="item" items="${list_address_cd}">
 										<option value="${item.CD_ID}">${item.CD_NM}</option>
