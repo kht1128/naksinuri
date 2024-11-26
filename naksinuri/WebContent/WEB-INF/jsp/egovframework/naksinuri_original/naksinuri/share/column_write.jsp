@@ -192,9 +192,9 @@
 					</div>
 					<div id="btnArea">
 				
-						<td><a href="#;" class="btn_white" onclick="insertinput()" title="파일첨부 추가">첨부파일 추가 </a></td>
+						<td><a href="#;" class="btn_white" onclick="insertinput()">첨부파일 추가 </a></td>
 
-						<td><a href="#;" class="btn_gray" onclick="deleteinput()" title="파일삭제">파일 삭제</a></td>
+						<td><a href="#;" class="btn_gray" onclick="deleteinput()">파일 삭제</a></td>
 					</div>
 					
 					

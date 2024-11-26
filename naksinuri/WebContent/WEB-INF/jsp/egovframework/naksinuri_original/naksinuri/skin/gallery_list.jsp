@@ -66,7 +66,7 @@
 					<option value="bo_content" <c:if test="${searchType eq 'bo_content'}">selected</c:if>>내용</option>
 					<option value="bo_name" <c:if test="${searchType eq 'bo_name'}">selected</c:if>>글쓴이</option>
 				</select>
-				<input type="text" class="basic_input" id="searchText2" name="searchText" value="${searchText}" title="검색어"/><label for="searchText2">검색어</label>
+				<input type="text" class="basic_input" id="searchText2" name="searchText" value="${searchText}" title="검색어"/><!-- <label for="searchText2">검색어</label> -->
 				<button class="searchBtn" type="button" onclick="fnSelectInfs(1)"><span class="blind">검색</span><i class="fa fa-search" aria-hidden="true"></i></button>
 				<c:if test="${(pageName ne 'notice') and (pageName ne 'policy') and (pageName ne 'gosi') and (pageName ne 'info')}">
 					<!-- <div class="change_group"> -->
