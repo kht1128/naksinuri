@@ -282,7 +282,7 @@
 				<div class="edu_notice_Bx">
 					<h3>
 						공지사항
-						<a href="/educenter/board/notice/list.do"><img src="/naksinuri_original/edu/more.png" alt="더보기" /></a>
+						<!-- <a href="/educenter/board/notice/list.do"><img src="/naksinuri_original/edu/more.png" alt="더보기" /></a> -->
 					</h3>
 					<ul class="edu_latest">
 						<c:if test="${empty list_notice}">
@@ -320,6 +320,7 @@
 							</li>
 						</c:forEach>			
 					</ul>
+						<a style="float:right" href="/educenter/board/notice/list.do"><img src="/naksinuri_original/edu/more.png" alt="더보기" /></a>
 				</div><!--//edu_notice_Bx//-->
 		
 				<div class="edu_apply_Bx">
