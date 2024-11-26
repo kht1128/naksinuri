@@ -453,14 +453,14 @@
 	</div>
 	
 	
-	<div class="password_check modal fade" id="changePassword" tabindex="1" role="dialog" aria-labelledby="myModalLabel" style="z-index:9999">
+	<div class="password_check modal fade" id="changePassword" tabindex="0" role="dialog" aria-labelledby="myModalLabel" style="z-index:9999">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<p class="comment">댓글을 삭제합니다. 비밀번호를 입력해주세요.</p>
-				<input style="font-color:black" type="password" class="del_input" id="co_passr" title="비밀번호 입력" placeholder="비밀번호를 입력해주세요." />
+				<input style="font-color:black" type="password" class="del_input" tabindex="0" id="co_passr" title="비밀번호 입력" placeholder="비밀번호를 입력해주세요." />
 				<div class="btn_box">
-					<button class="cp_btn del_btn" onclick="co_del()" >확인</button>
-					<a href="#;" class="cp_btn remote_btn" data-dismiss="modal" aria-label="Close">취소</a>
+					<button class="cp_btn del_btn" tabindex="0" onclick="co_del()" >확인</button>
+					<a href="#;" class="cp_btn remote_btn" tabindex="0" data-dismiss="modal" aria-label="Close">취소</a>
 				</div>
 			</div>
 		</div>
