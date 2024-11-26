@@ -247,7 +247,7 @@ function insertinput(){
 			<li style="padding-top:2px;">\
 			<li><input type="checkbox" id="chart_'+(j+1)+'" name="atch_file_'+(j+1)+'" title="'+(j+1)+' 번 첨부파일 선택"/>\
 			<label for="chart_'+(j+1)+'"><span></span></label>\
-						<input type="file" size="30" name="bo_file_'+(j+1)+'"  style="width:290px" class="write_file" /></li></li></ul>');
+						<input type="file" size="30" id="chart_'+(j+1)+'" name="bo_file_'+(j+1)+'"  style="width:290px" class="write_file" /></li></li></ul>');
 	j++;
 	}
 }

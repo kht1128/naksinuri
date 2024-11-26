@@ -140,7 +140,7 @@
 										<th><label for="chart_0">첨부파일</label></th>
 										<td style="padding-top:10px;">
 											<input type="checkbox" id="chart_0" name="atch_file_0"/>
-											<input type="file" size="30" id="chart_0" name="bo_file_0"  style="width:290px" class="file" />
+											<input type="file" size="30" name="bo_file_0"  style="width:290px" class="file" />
 										</td>									
 									</tr>
 						</tbody>
