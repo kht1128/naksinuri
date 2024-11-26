@@ -173,7 +173,7 @@
 										<li>
 											<input type="checkbox" id="chart_0" name="atch_file_0" title="1번 첨부파일 선택"/>
 											<label for="chart_0"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#chart_0').click();}"></span></label> 
-											<input type="file" size="50" name="bo_file_0" class="write_file" title="파일첨부"/>
+											<input type="file" size="50" id="chart_0"  name="bo_file_0" class="write_file" title="파일첨부"/>
 										</li>								
 								
 						

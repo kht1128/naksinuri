@@ -14,6 +14,7 @@
 <style>
     a {
         text-decoration: none;
+        
         color: #333;
     }
     
@@ -528,7 +529,7 @@ function allPublicModalMessage(msg) {
 					<section class="list_box">
 						<div class="tabArea tab2"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 							<ul class="floats">
-								<li class="<c:if test="${urlmethodsubname eq 'promotion' and urlpagename eq 'auditor_list'}">on</c:if>"><a href="/promotion/auditor/list.do" ${urlmethodsubname eq '' and ( urlpagename eq 'auditor_list' ) ? 'title="낚시명예감시원 선택됨"' : 'title="낚시명예감시원"'}>낚시명예감시원</a></li>
+								<li class="<c:if test="${urlmethodsubname eq 'promotion' and urlpagename eq 'auditor_list'}">on</c:if>"><a href="/promotion/auditor/list.do" ${urlmethodsubname eq '' and ( urlpagename eq 'auditor_list' ) ? 'title="선택됨"' : 'title="낚시명예감시원"'}>낚시명예감시원</a></li>
 								<li class="<c:if test="${urlmethodsubname eq 'promotion' and ( urlpagename eq 'auditor_board_list' or urlpagename eq 'auditor_board_view')}">on</c:if>"><a href="/promotion/auditor/board_list.do">활동보고서 작성</a></li>
 							</ul>
 						</div>
