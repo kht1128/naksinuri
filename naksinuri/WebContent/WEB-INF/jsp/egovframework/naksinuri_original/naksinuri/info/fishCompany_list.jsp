@@ -91,16 +91,16 @@
 		<input type="hidden" name="rev_sn1" id="rev_sn1">
  --%>
 		
-		<section id="mapArea" style="margin-top: 0;">
-			<div id="map_wrap">
+		<section id="mapArea" style="margin-top: 0;" tabindex=0>
+			<div id="map_wrap"  tabindex=0>
 				<h3 id="map_title" class="blind" style="display: none;">오시는길</h3>
-				<div id="map" style="width:100%;height:calc(100% - 151px);position:relative;overflow:hidden;"></div>
+				<div id="map" style="width:100%;height:calc(100% - 151px);position:relative;overflow:hidden;"  tabindex=0></div>
 				<!-- <div id="menu_wrap" class="bg_white" style="display:none">
 					<ul id="placesList">
 					</ul>
 				</div> -->
 				
-				<div class="mapLeftMenu">
+				<div class="mapLeftMenu" tabindex=0>
 					<!-- 맵 상단 마커 목록 --> 
 					<div class="markerList">
 						<!-- 낚시터정보 -->
@@ -122,32 +122,32 @@
 					<a href="/info/fishjob/login.do" id="companyRegBtn" class="redBtnA" title="낚시터정보등록">정보<br>등록</a>
 					<a href="/info/industry/login.do" id="sanupRegBtn" class="redBtnA" title="낚시산업정보등록">정보<br>등록</a>
 			        
-			        <div class="info infoCon1">
-	        			<div class="mapComBox">
-			        		<div class="map_box">
-				                <span class="mapCom">
+			        <div class="info infoCon1" tabindex=0 >
+	        			<div class="mapComBox" >
+			        		<div class="map_box" tabindex=0>
+				                <span class="mapCom" >
 							                    지도에서 지역을 선택하시면<br>
 							                    해당 지역의 낚시터 정보를 확인 할 수 있습니다.
 				                </span>
 				                <img id="imgMap" src="/naksinuri_original/common_main/img/fishCompany/mapImg.png" alt="전국지도" usemap="#mapChange" >
-				                <map name="mapChange" id="mapChange" onclick="fnSelectInfs()">
-									<area shape="poly" coords="95,73,97,89,105,97,110,85,111,77,102,69" href="#" alt="인천" onclick='changSido("인천");'/>
-									<area shape="poly" coords="111,77,119,77,121,70,125,75,127,69,133,76,135,81,135,87,127,90,119,91,111,88" href="#" alt="서울특별시" onclick='changSido("서울");' />
-									<area shape="poly" coords="138,22,144,33,150,29,149,37,157,36,159,45,169,53,163,62,162,77,178,81,181,86,176,90,174,118,139,136,132,131,116,133,107,122,100,111,104,105,111,105,105,94,112,77,120,88,130,93,136,91,138,81,132,69,120,76,96,77,97,60,107,58,107,47,121,38" href="#" alt="경기도" onclick='changSido("경기");' />
-									<area shape="poly" coords="134,21,165,20,178,16,184,22,201,22,217,17,220,1,235,40,260,77,280,127,267,134,241,130,230,131,207,121,192,113,171,117,175,86,162,77,164,64,172,54" href="#" alt="강원도" onclick='changSido("강원");' />
-									<area shape="poly" coords="139,135,154,127,169,119,180,119,186,113,190,118,202,115,210,119,203,123,220,125,231,132,214,142,214,147,208,151,201,145,186,157,171,167,178,172,172,193,184,195,185,201,179,205,170,213,154,208,156,193,149,191,153,178,142,171,136,156,147,149" href="#" alt="충청북도" onclick='changSido("충북");' />
-									<area shape="poly" coords="131,149,137,154,141,165,143,172,135,177,133,166,128,159" href="#" alt="세종시" onclick='changSido("세종");' />
-									<area shape="poly" coords="135,177,134,177,143,169,150,173,152,179,148,189,151,191,143,194,136,194,132,186" href="#" alt="대전광역시" onclick='changSido("대전");' />
-									<area shape="poly" coords="111,136,131,130,143,136,149,150,138,155,130,150,130,160,136,170,136,178,135,185,140,195,152,192,156,197,159,208,148,215,140,209,135,201,121,206,118,199,108,198,103,205,93,210,82,196,86,179,83,153,74,151,77,171,69,170,67,149,61,139,75,125,88,118,101,123" href="#" alt="충청남도" onclick='changSido("충남");' />
-									<area shape="poly" coords="230,133,242,132,248,135,261,132,270,138,278,127,282,136,281,154,285,168,279,177,280,190,275,209,279,217,276,222,288,218,284,232,277,256,264,251,253,248,245,254,232,257,217,253,218,239,226,243,231,226,227,217,209,223,203,234,203,246,187,241,186,228,171,222,171,213,182,207,186,195,174,188,174,169,180,154,198,145,207,150,217,150,219,135" href="#" alt="경상북도" onclick='changSido("경북");' />
-									<area shape="poly" coords="205,228,216,219,230,218,231,228,223,242,215,244,205,247" href="#" alt="대구광역시" onclick='changSido("대구");' />
-									<area shape="poly" coords="246,252,253,244,264,246,272,249,277,255,273,264,267,274,263,279,256,266,244,260" href="#" alt="울산광역시" onclick='changSido("울산");' />
-									<area shape="poly" coords="171,222,179,229,184,229,190,237,188,243,200,246,214,247,229,253,245,250,244,259,260,270,229,290,226,298,221,318,210,326,179,326,163,317,161,300,153,285,147,271,154,258,150,249,159,230" href="#" alt="경상남도" onclick='changSido("경남");' />
-									<area shape="poly" coords="228,289,236,284,244,284,254,273,263,271,265,276,255,290,240,299,231,295" href="#" alt="부산광역시" onclick='changSido("부산");' />
-									<area shape="poly" coords="85,210,102,208,107,204,107,197,119,198,122,205,135,200,143,211,149,213,157,207,165,210,171,210,174,216,162,227,150,250,153,258,147,270,136,269,123,265,114,266,111,253,106,257,98,250,90,259,81,263,74,253,80,247,91,247,76,240,85,231,90,224,97,228,99,218,84,217" href="#" alt="전라북도" onclick='changSido("전북");' />
-									<area shape="poly" coords="87,259,96,252,108,257,113,254,115,266,128,265,137,268,143,264,151,270,152,282,161,297,147,301,150,309,159,306,148,322,139,307,131,316,137,328,126,336,112,328,120,315,104,320,100,333,93,346,83,346,71,343,66,326,57,319,61,293,66,283,63,270,73,252,87,274,94,288,108,284,107,272,94,269" href="#" alt="전라남도" onclick='changSido("전남");' />
-									<area shape="poly" coords="84,278,92,270,103,270,108,278,103,285,92,286" href="#" alt="광주광역시" onclick='changSido("광주");' />
-									<area shape="poly" coords="56,395,67,382,106,375,111,386,105,397,84,405,62,403" href="#" alt="제주도" onclick='changSido("제주");' />
+				                <map tabindex=0 name="mapChange" id="mapChange" onclick="fnSelectInfs()">
+									<area tabindex=0  shape="poly" coords="95,73,97,89,105,97,110,85,111,77,102,69" href="#" alt="인천" onclick='changSido("인천");'/>
+									<area tabindex=0  shape="poly" coords="111,77,119,77,121,70,125,75,127,69,133,76,135,81,135,87,127,90,119,91,111,88" href="#" alt="서울특별시" onclick='changSido("서울");' />
+									<area tabindex=0  shape="poly" coords="138,22,144,33,150,29,149,37,157,36,159,45,169,53,163,62,162,77,178,81,181,86,176,90,174,118,139,136,132,131,116,133,107,122,100,111,104,105,111,105,105,94,112,77,120,88,130,93,136,91,138,81,132,69,120,76,96,77,97,60,107,58,107,47,121,38" href="#" alt="경기도" onclick='changSido("경기");' />
+									<area tabindex=0  shape="poly" coords="134,21,165,20,178,16,184,22,201,22,217,17,220,1,235,40,260,77,280,127,267,134,241,130,230,131,207,121,192,113,171,117,175,86,162,77,164,64,172,54" href="#" alt="강원도" onclick='changSido("강원");' />
+									<area tabindex=0  shape="poly" coords="139,135,154,127,169,119,180,119,186,113,190,118,202,115,210,119,203,123,220,125,231,132,214,142,214,147,208,151,201,145,186,157,171,167,178,172,172,193,184,195,185,201,179,205,170,213,154,208,156,193,149,191,153,178,142,171,136,156,147,149" href="#" alt="충청북도" onclick='changSido("충북");' />
+									<area tabindex=0  shape="poly" coords="131,149,137,154,141,165,143,172,135,177,133,166,128,159" href="#" alt="세종시" onclick='changSido("세종");' />
+									<area tabindex=0  shape="poly" coords="135,177,134,177,143,169,150,173,152,179,148,189,151,191,143,194,136,194,132,186" href="#" alt="대전광역시" onclick='changSido("대전");' />
+									<area tabindex=0  shape="poly" coords="111,136,131,130,143,136,149,150,138,155,130,150,130,160,136,170,136,178,135,185,140,195,152,192,156,197,159,208,148,215,140,209,135,201,121,206,118,199,108,198,103,205,93,210,82,196,86,179,83,153,74,151,77,171,69,170,67,149,61,139,75,125,88,118,101,123" href="#" alt="충청남도" onclick='changSido("충남");' />
+									<area tabindex=0  shape="poly" coords="230,133,242,132,248,135,261,132,270,138,278,127,282,136,281,154,285,168,279,177,280,190,275,209,279,217,276,222,288,218,284,232,277,256,264,251,253,248,245,254,232,257,217,253,218,239,226,243,231,226,227,217,209,223,203,234,203,246,187,241,186,228,171,222,171,213,182,207,186,195,174,188,174,169,180,154,198,145,207,150,217,150,219,135" href="#" alt="경상북도" onclick='changSido("경북");' />
+									<area tabindex=0  shape="poly" coords="205,228,216,219,230,218,231,228,223,242,215,244,205,247" href="#" alt="대구광역시" onclick='changSido("대구");' />
+									<area tabindex=0  shape="poly" coords="246,252,253,244,264,246,272,249,277,255,273,264,267,274,263,279,256,266,244,260" href="#" alt="울산광역시" onclick='changSido("울산");' />
+									<area tabindex=0  shape="poly" coords="171,222,179,229,184,229,190,237,188,243,200,246,214,247,229,253,245,250,244,259,260,270,229,290,226,298,221,318,210,326,179,326,163,317,161,300,153,285,147,271,154,258,150,249,159,230" href="#" alt="경상남도" onclick='changSido("경남");' />
+									<area tabindex=0  shape="poly" coords="228,289,236,284,244,284,254,273,263,271,265,276,255,290,240,299,231,295" href="#" alt="부산광역시" onclick='changSido("부산");' />
+									<area tabindex=0  shape="poly" coords="85,210,102,208,107,204,107,197,119,198,122,205,135,200,143,211,149,213,157,207,165,210,171,210,174,216,162,227,150,250,153,258,147,270,136,269,123,265,114,266,111,253,106,257,98,250,90,259,81,263,74,253,80,247,91,247,76,240,85,231,90,224,97,228,99,218,84,217" href="#" alt="전라북도" onclick='changSido("전북");' />
+									<area tabindex=0  shape="poly" coords="87,259,96,252,108,257,113,254,115,266,128,265,137,268,143,264,151,270,152,282,161,297,147,301,150,309,159,306,148,322,139,307,131,316,137,328,126,336,112,328,120,315,104,320,100,333,93,346,83,346,71,343,66,326,57,319,61,293,66,283,63,270,73,252,87,274,94,288,108,284,107,272,94,269" href="#" alt="전라남도" onclick='changSido("전남");' />
+									<area tabindex=0  shape="poly" coords="84,278,92,270,103,270,108,278,103,285,92,286" href="#" alt="광주광역시" onclick='changSido("광주");' />
+									<area tabindex=0 shape="poly" coords="56,395,67,382,106,375,111,386,105,397,84,405,62,403" href="#" alt="제주도" onclick='changSido("제주");' />
 								</map>
 				            </div>
 				            
@@ -211,9 +211,9 @@
 				            </div>
 			            </div>
 			        </div>
-				    <div class="info infoCon2">
+				    <div class="info infoCon2" tabindex=0>
 				    </div>
-				    <div class="info infoCon3">
+				    <div class="info infoCon3" tabindex=0>
 				    </div>
 			    </div>
 			</div>
@@ -290,7 +290,7 @@ function fnSelectInfs() {
 		},		
 		success: function(data, status, xhr) {
 			$('#mask, #loadingImg').hide(); //로딩중 표시 제거
-			
+		
 			$("#fish_list").val(data.fish_list);
  			$("#req_sido").val(data.searchSido);
 			$("#req_gugun").val(data.searchGugun);
@@ -299,6 +299,7 @@ function fnSelectInfs() {
 			var fish_list = JSON.parse(data.fish_list);
 			for(var i=0; i<fish_list.length; i++) {
 				var obj = {};
+				
 	 			obj['co_nm'] = fish_list[i].co_nm;//상호명
 				obj['co_addr_2'] = fish_list[i].co_addr_2;//주소
 				obj['san_address2'] = fish_list[i].san_address2;//주소
@@ -308,8 +309,10 @@ function fnSelectInfs() {
 				obj['nak_id'] = fish_list[i].nak_id;//sn
 				obj['adres_la'] = null;//위도
 				obj['adres_lo'] = null;//경도
+				
 				if(fish_list[i].adres_la != null && fish_list[i].adres_la != '')
 					obj['adres_la'] = fish_list[i].adres_la;//위도
+			
 				if(fish_list[i].adres_lo != null && fish_list[i].adres_lo != '')	
 					obj['adres_lo'] = fish_list[i].adres_lo;//경도
 
@@ -407,6 +410,12 @@ window.onload = function() {
 </script>
 
 <script>
+
+
+		
+
+
+
 	kakao.maps.event.addListener(clusterer, 'clusterclick', function(cluster) {
 		var level = map.getLevel();
 		//console.log(" click clusterer " + level);
@@ -424,39 +433,82 @@ window.onload = function() {
 	    var level = map.getLevel();
 		//console.log(" level :: " + level);
 	});
+	
+	
 	function showMap(){
+		
+ 		 
+
+ 		
+ 		
+
 		var markers = [];
 		var customOverlays = [];
 		
  		if(key == 0){
 			clusterer.clear();
 		}
- 	
+
+
+ 		
 		for(var i=key; i<100+key;i++) {
 			var next = i;
 			if(next >= listRawData.length) continue;
 			var item = listRawData[next];
+			
+			
 			var addWebLink = $("#addWebLink").val();
 			//console.log("next ::::::: >> " + next);
 			// 주소로 좌표를 검색합니다
 			// 정상적으로 검색이 완료됐으면 
+
 			if(item.adres_la!=null && item.adres_la!='') {
 				
+			
 				if(addWebLink == 'fishCompany'){
 					if(item.fishing_type == 'boatfishing'){
 						iwContent = '<div class ="marker" id="customOverlay1" onclick="mapDetailList(' + item.nak_id + ',' + item.adres_lo + ',' + item.adres_la + ')"><span class="mkTxt">' + item.co_nm + '</span></div>';
 						image = '/naksinuri_original/common_main/img/fishCompany/ico_map_marker01.png';	
+						
+			 			
+/* 			 			$('#map').children('div').children('div').children('div').children('div').addClass('focus_add').attr('tabindex',0); 	
+			 	 		
+			 			$('.focus_add').keyup(function(e){
+			 				if(e.keyCode == 13) {
+			 					
+			 					mapList(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
+			 					mapDetailList(item.nak_id,item.adres_lo,item.adres_la);
+			 				
+			 						
+			 				
+
+
+			 				}
+			 			});		 
+						 */
+						
+						
 					} else if(item.fishing_type == 'seafishing'){
 						iwContent = '<div class ="marker" id="customOverlay2" onclick="mapDetailList(' + item.nak_id + ',' + item.adres_lo + ',' + item.adres_la + ')"><span class="mkTxt">' + item.co_nm + '</span></div>';
 						image = '/naksinuri_original/common_main/img/fishCompany/ico_map_marker02.png';	
+		
+					
+						
+
 					} else {
 						iwContent = '<div class ="marker" id="customOverlay3" onclick="mapDetailList(' + item.nak_id + ',' + item.adres_lo + ',' + item.adres_la + ')"><span class="mkTxt">' + item.co_nm + '</span></div>';
 						image = '/naksinuri_original/common_main/img/fishCompany/ico_map_marker03.png';	
+				
+		 
 					} 
 				} else {
 					iwContent = '<div class ="marker" id="customOverlay4" onclick="mapDetailList(' + item.san_sn + ',' + item.adres_lo + ',' + item.adres_la + ')"><span class="mkTxt">' + item.san_name + '</span></div>';
 					image = '/naksinuri_original/common_main/img/fishCompany/ico_map_marker04.png';	
+				
 				}
+				
+				
+
 				
 				var position = new kakao.maps.LatLng(item.adres_la, item.adres_lo);
 				//console.log(position);
@@ -469,9 +521,12 @@ window.onload = function() {
 					position: position,
 					image: markerImage
  	 			}); 
-				 
+		
+ 	 			
 
-				
+ 	 			
+
+ 	 	
 				var customOverlay = new kakao.maps.CustomOverlay({
 					content : iwContent,
 					marker : marker,
@@ -494,8 +549,17 @@ window.onload = function() {
 		}
 		clusterer.addMarkers(customOverlays);
 		
+
+		
+		
 		if(key < listRawData.length){
 			setTimeout(showMap, 10);
+			
+
+ 	 			
+ 	 						
+			
+			
 		} else {
 			toastr.info("로드가 완료되었습니다.","",{
 				tapToDismiss: true,
@@ -516,9 +580,52 @@ window.onload = function() {
 				allowHtml: true,
 			});
 			points=[];
+			
+			
+			
+			
+
+	 		var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
+	 	
+	 
+	  		for(var n=0; n<=length_total; n++){
+	 			
+	 			
+	 			$('#map').children('div').children('div').children('div').children('div').children('div').eq(n).parent().addClass('focus_add'+n).attr('tabindex',0); 	
+	 	 		
+	 			$('.focus_add'+n).keyup(function(e){
+	 				if(e.keyCode == 13) {
+	 					
+	 					
+	 					//alert($("#customOverlay1").html());
+	 					mapList2();
+	 				
+	 					//mapDetailList(item.nak_id,item.adres_lo,item.adres_la);
+	 					
+	 					//alert($("#req_sido").val()+" 지역을 검색합니다");
+	 					fnSelectInfs()
+	 					//mapDetailList(item.nak_id,item.adres_lo,item.adres_la);
+	 		
+	 				
+
+
+	 				}
+	 			});		 		 			
+	 		}			
+			
+			
+			
+			
+			
+			
 		}
 		key += 100;
 	}
+	
+	
+			  	
+
+	
 </script>
 
 
@@ -738,6 +845,10 @@ window.onload = function() {
 		
 	}
 	
+	
+	
+
+	
 	function mapDetailList(id, resultY, resultX){
 		var position = new kakao.maps.LatLng(resultY, resultX); 
 		// 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
@@ -845,6 +956,63 @@ window.onload = function() {
 			}
 		});
 	}
+	
+	
+	function mapList2(adresLo1, adresLo2, adresLa1, adresLa2){
+		var viewLinkUrl;
+		var formData;
+		var form = document.getElementById('mapListForm');
+		var form2 = document.getElementById('mapListForm2');
+		
+		if(selectClass.indexOf("mapTabCon1") != -1){ //포함되어 있을때 
+			viewLinkUrl = "/info/fishCompany/mapList.do";
+			form.adres_la1.value = adresLa1;
+			form.adres_la2.value = adresLa2;
+			form.adres_lo1.value = adresLo1;
+			form.adres_lo2.value = adresLo2;
+			formData = $('#mapListForm').serialize();
+		} else {
+			
+			/*  */
+			viewLinkUrl = "/info/fishSanup/mapList.do";
+			form2.adres_la1.value = adresLa1;
+			form2.adres_la2.value = adresLa2;
+			form2.adres_lo1.value = adresLo1;
+			form2.adres_lo2.value = adresLo2;
+			formData = $('#mapListForm2').serialize();
+		}
+		
+		$.ajax({
+			type:"POST",
+			url : viewLinkUrl,
+			data : formData,
+			dataType: "html",
+			contentType: "application/x-www-form-urlencoded;charset=UTF-8",//"application/json;charset=UTF-8",
+			async: true,
+			beforeSend: function() {
+				//$(".infoCon2").css("display","block");
+				$(".infoCon2").hide();
+			},
+			success: function(data, status, xhr) {	
+				$(".infoCon2").html(data);
+			},
+			complete : function() {
+				console.log('complete!');
+				//$(".infoCon2").css("display","none");
+				$(".infoCon2").show();
+				map.relayout();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log('error!');
+	 			console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown); 
+			}
+		});
+	}	
+	
+	
+	
 	
 	function closeListModal() {
 		$(".infoCon2").hide();
