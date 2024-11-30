@@ -430,7 +430,7 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<p class="comment">게시글을 수정합니다. 비밀번호를 입력해주세요.</p>
-				<input type="password" class="del_input" id="udt_bo_pass" placeholder="비밀번호를 입력해주세요." />
+				<input type="password" class="del_input" id="udt_bo_pass" title="비밀번호 입력" placeholder="비밀번호를 입력해주세요." />
 				<div class="btn_box">
 					<button class="cp_btn del_btn" onclick="update_travel_info(${info.bo_sn})" >확인</button>
 					<a href="#;" class="cp_btn remote_btn" data-dismiss="modal" aria-label="Close">취소</a>
