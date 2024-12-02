@@ -356,11 +356,27 @@ function allPublicModalMessage(msg) {
 					</c:when> --%>	
 					<c:when test="${depthName eq 'lesson'}">
 					<li <c:if test="${pageName eq 'dignity'}">class="select"</c:if>><a href="/lesson/dignity/list.do">낚시의 품격</a></li>
-					<li <c:if test="${pageName eq 'junior'}">class="select"</c:if>><a href="/lesson/junior/list.do">초보탈출하기</a></li>						
-					<li <c:if test="${pageName eq 'gosu'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기</a></li>
+					
+					<li <c:if test="${pageName eq 'junior'and bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/junior/list.do">초보탈출하기-민물(붕어)낚시</a></li>
+					<li <c:if test="${pageName eq 'junior'and info.bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/junior/list.do">초보탈출하기-민물(붕어)낚시</a></li>
+					<li <c:if test="${pageName eq 'junior'and bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/junior/list.do">초보탈출하기-바다낚시</a></li>
+					<li <c:if test="${pageName eq 'junior'and info.bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/junior/list.do">초보탈출하기-바다낚시</a></li>
+											
+					<li <c:if test="${pageName eq 'gosu'and bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-민물(붕어)낚시</a></li>
+					<li <c:if test="${pageName eq 'gosu'and info.bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-민물(붕어)낚시</a></li>
+					<li <c:if test="${pageName eq 'gosu'and bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-바다낚시</a></li>
+					<li <c:if test="${pageName eq 'gosu'and info.bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-바다낚시</a></li>
+					<li <c:if test="${pageName eq 'gosu'and bo_cate eq '루어'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-루어낚시</a></li>
+					<li <c:if test="${pageName eq 'gosu'and info.bo_cate eq '루어'}">class="select"</c:if>><a href="/lesson/gosu/list.do">낚시고수되기-루어낚시</a></li>
+					
 					<li <c:if test="${pageName eq 'sense'}">class="select"</c:if>><a href="/lesson/sense/list.do">낚시상식</a></li>
 					<li <c:if test="${pageName eq 'binding'}">class="select"</c:if>><a href="/lesson/binding/list.do">채비필수묶음법</a></li>
-					<li <c:if test="${pageName eq 'class'}">class="select"</c:if>><a href="/lesson/class/list.do">어종별 낚시교실</a></li>
+					
+					<li <c:if test="${pageName eq 'class'and bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/class/list.do">어종별 낚시교실-민물낚시</a></li>
+					<li <c:if test="${pageName eq 'class'and info.bo_cate eq '민물'}">class="select"</c:if>><a href="/lesson/class/list.do">어종별 낚시교실-민물낚시</a></li>
+					<li <c:if test="${pageName eq 'class'and bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/class/list.do">어종별 낚시교실-바다낚시</a></li>
+					<li <c:if test="${pageName eq 'class'and info.bo_cate eq '바다'}">class="select"</c:if>><a href="/lesson/class/list.do">어종별 낚시교실-바다낚시</a></li>
+					
 					</c:when>					
 					<c:when test="${depthName eq 'info'}">					
 					<li <c:if test="${pageName eq 'fishjob'}">class="select"</c:if>><a href="/info/fishjob/list.do">낚시터정보</a></li>
@@ -378,8 +394,11 @@ function allPublicModalMessage(msg) {
 					<li <c:if test="${pageName eq 'nuri'}">class="select"</c:if>><a href="/share/nuri/list.do">Q & A</a></li>
 					<li <c:if test="${pageName eq 'usage'}">class="select"</c:if>><a href="/share/usage/list.do">낚시용품 사용기</a></li>
 					<li <c:if test="${pageName eq 'column'}">class="select"</c:if>><a href="/share/column/list.do">낚시칼럼(자유게시판)</a></li>
-					<li <c:if test="${pageName eq 'survey'}">class="select"</c:if>><a href="/survey/survey/list.do">설문조사</a></li>
+					<li <c:if test="${pageName eq 'survey' and bo_cate eq 'survey'}">class="select"</c:if>><a href="/survey/survey/list.do">진행중인 설문조사</a></li>
+					<li <c:if test="${pageName eq 'survey' and bo_cate eq 'endsurvey'}">class="select"</c:if>><a href="/survey/survey/endlist.do">종료된 설문조사</a></li>
+					
 					<li <c:if test="${pageName eq 'event'}">class="select"</c:if>><a href="/sosig/event/list.do">이벤트</a></li>
+					<li <c:if test="${pageName eq 'event'and bo_cate eq 'ancevent'}">class="select"</c:if>><a href="/sosig/event/list.do">-당첨자 발표</a></li>
 					</c:when>
 					<c:when test="${depthName eq 'sosig'}">
 					<%-- <li <c:if test="${pageName eq 'news'}">class="select"</c:if>><a href="/sosig/news/list.do">낚시뉴스</a></li> --%>
@@ -394,9 +413,19 @@ function allPublicModalMessage(msg) {
 					<c:when test="${depthName eq 'promotion'}">
 					<li <c:if test="${pageName eq 'info'}">class="select"</c:if>><a href="/promotion/info/list.do">알림마당</a></li>
 					<li <c:if test="${pageName eq 'policy'}">class="select"</c:if>><a href="/promotion/policy/list.do">낚시정책</a></li>
+					
 					<li <c:if test="${pageName eq 'campaign'}">class="select"</c:if>><a href="/promotion/campaign/list.do">낚시캠페인</a></li>
+					<li <c:if test="${pageName eq 'campaign' and bo_cate eq 'campaign'}">class="select"</c:if>><a href="/promotion/campaign/list.do">-진행중인 캠페인</a></li>
+					<li <c:if test="${pageName eq 'campaign' and bo_cate eq 'endcampaign'}">class="select"</c:if>><a href="/promotion/campaign/list.do">-종료된 캠페인</a></li>
+					
 					<li <c:if test="${pageName eq 'plocation'}">class="select"</c:if>><a href="/promotion/plocation/list.do">낚시금지구역</a></li>
 					<li <c:if test="${pageName eq 'qna'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ</a></li>
+					<%-- <li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_management_system'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-낚시관리및제도일반</a></li>
+					<li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_hole'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-낚시터</a></li>
+					<li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_boats'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-낚시어선</a></li>
+					<li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_tackle_bait'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-낚시도구및미끼</a></li>
+					<li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_area'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-유어장</a></li>
+					<li <c:if test="${pageName eq 'qna'and category_type eq 'fishing_resources'}">class="select"</c:if>><a href="/promotion/qna/list.do">낚시 FAQ-참고자료</a></li> --%>
 					<li <c:if test="${pageName eq 'gosi'}">class="select"</c:if>><a href="/sosig/gosi/list.do">지역별 낚시준수사항</a></li>	
 					<li <c:if test="${pageName eq 'auditor'}">class="select"</c:if>><a href="/promotion/auditor/list.do">낚시명예감시원</a></li>
 					</c:when>

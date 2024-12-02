@@ -12,6 +12,7 @@
 <c:set var="pageMode" value="promotion"/>
 <c:set var="depthName" value="promotion" />
 <c:set var="pageName" value="campaign" />
+<c:set var="bo_cate" value="endcampaign" />
 
 
 <%@include file="../layout/newHead.jsp"%>
@@ -30,7 +31,7 @@
 		<div class="tabArea"> <!-- 탭이 3개면 class="tabArea tab3" 4개면 뭐겠냐 -->
 			<ul class="floats">
 				<li><a href="/promotion/campaign/list.do" title="진행중인 캠페인">진행중인 캠페인</a></li>
-				<li class="on"><a href="/promotion/campaign/endlist.do" title="종료된 캠페인 선택됨">종료된 캠페인</a></li>
+				<li class="on"><a href="/promotion/campaign/endlist.do" title="선택됨">종료된 캠페인</a></li>
 			</ul>
 		</div>
 

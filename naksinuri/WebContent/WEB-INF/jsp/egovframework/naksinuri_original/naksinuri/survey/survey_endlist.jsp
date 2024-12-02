@@ -7,12 +7,11 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
 
-
-
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="share" />
 <c:set var="pageName" value="survey" />
 <c:set var="urlPath" value="survey" />
+<c:set var="bo_cate" value="endsurvey" />
 
 
 

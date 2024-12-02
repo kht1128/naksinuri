@@ -7,13 +7,9 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
 
-
-
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="${column}" />
 <c:set var="pageName" value="${table}" />
-
-
 
 <%@include file="../layout/newHead.jsp"%>
 <form:form commandName="listform" id="listform" method="post" enctype="multipart/form-data" >
