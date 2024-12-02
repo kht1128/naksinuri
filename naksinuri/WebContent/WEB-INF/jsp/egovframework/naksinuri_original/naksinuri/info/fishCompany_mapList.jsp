@@ -39,7 +39,7 @@
 									<span style="color:#009d68;">바다낚시</span>
 								</c:when>
 								<c:otherwise>
-									<span style="color:#359ef3;">민물낚시</span>
+									<span style="color:#3591f3;">민물낚시</span><!-- 359ef3 -> 3591f3 -->
 								</c:otherwise>
 							</c:choose>
 						</div>

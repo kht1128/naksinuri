@@ -10,7 +10,8 @@
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="share" />
 <c:set var="pageName" value="survey" />
-<c:set var="urlPath" value="survey" />
+<c:set var="urlPath" value="endsurvey" />
+<c:set var="bo_cate" value="survey" />
 
 <%@include file="../layout/newHead.jsp"%>
 <form:form commandName="listform" id="listform" method="post" enctype="multipart/form-data" >
@@ -34,7 +35,7 @@
 			<div class="list_searchbox">
 			<!-- 토탈페이징  -->
 			  <fmt:parseNumber var = "i" integerOnly = "true" type = "number" value = "${pagesize+(1-(pagesize%1))%1}" />
-				<div class="total_num">전체 <b class="colorSky">${select_total}</b>건의 게시물이 있습니다.(<b class="colorSky">${pageIndex}</b>/${i})</div>
+				<div class="total_num">전체<b class="colorSky">${select_total}</b>건의 게시물이 있습니다.(<b class="colorSky">${pageIndex}</b>/${i})</div>
 				<select class="basic_select" name="searchType" style="display:none">
 					<option value="bo_subject" <c:if test="${searchType eq 'bo_subject'}">selected</c:if>>제목</option>					
 				</select>

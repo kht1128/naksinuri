@@ -49,6 +49,12 @@
 @media(max-width:1280px) {
 	#map {height: calc(100% - 110px) !important;}
 }
+#searchText1::placeholder {
+    color: #636363;
+}
+#cmpnm_nm::placeholder {
+    color: #636363;
+}
 </style>
 
 <%@include file="../layout/newHead.jsp"%>
@@ -162,6 +168,7 @@
 				            <div class="mapTabCon">
 				            	<!-- 낚시터정보 컨텐츠 -->
 				            	<div id="mapTabCon1">
+				            	<div id="menuContainer">
 					            	<div class="mapCate">
 						            	<span class="mapCateCom">중복 선택이 가능합니다.</span>
 						                <ul>
@@ -181,6 +188,7 @@
 						            </div>
 						
 						            <div class="searchCon">
+						            
 						            	<select class="search_select" name="sanupSelect" id="sanupSelect" onchange="" title="구분 옵션선택">
 						                    <option value="">구분</option>
 						                    <option value="san_aag">협회/기관/단체</option>
@@ -197,13 +205,14 @@
 						                   
 						                </select>
 						                <div class="mapSearch" id="mapSearchText1"> 
-						                    <input type="text" class="" placeholder="주요 어종을 입력 해주세요. 예) 붕어, 잉어" name="searchText1" id="searchText1" value="${searchText1}" title="주요 어종">
+						                    <input style="color: #757575;" type="text" class="" placeholder="주요 어종을 입력 해주세요. 예) 붕어, 잉어" name="searchText1" id="searchText1" value="${searchText1}" title="주요 어종">
 						                </div>
 						                <div class="mapSearch">
 						                    <input type="text" class="" placeholder="상호명을 입력해주세요." name="cmpnm_nm" id="cmpnm_nm" value="" title="상호명">
 						                </div>
 						                
 						                <input type="button" class="searchBtn" onclick="fnSelectInfs()" value="검색하기"/>
+						            </div>
 						            </div>
 					            </div>
 					            <!-- end 낚시터정보 컨텐츠 -->
@@ -324,6 +333,9 @@ function fnSelectInfs() {
 				$(".collapse").css({'visibility':'visible'});
 				$("#companyRegBtn").show();
 				$("#sanupRegBtn").hide();
+				
+				$("#menuContainer h4").remove();
+			    $("#menuContainer").prepend('<h4 style="display: none;">낚시터정보</h4>');
 			} else {
 				$("#sanupSelect").show();
 				$("#mapSearchText1").hide();
@@ -332,6 +344,9 @@ function fnSelectInfs() {
 				$(".collapse").css({'visibility':'collapse'});
 				$("#companyRegBtn").hide();
 				$("#sanupRegBtn").show();
+				
+				$("#menuContainer h4").remove();
+			    $("#menuContainer").prepend('<h4 style="display: none;">낚시산업정보</h4>');
 				
 			} 
 			

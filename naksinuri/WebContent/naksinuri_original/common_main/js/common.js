@@ -257,6 +257,7 @@ $(function(){
     	$(".login_submit").focus(); //낚시전문교육
     	$(".last_con a").focus(); //인트로
     });
+
     
     // ##2022.11.23 검색바 감싸는 태그 추가##
     $('.list_searchbox .basic_select, .list_searchbox .basic_input, .list_searchbox .searchBtn').wrapAll('<div class="search_group"></div>');
