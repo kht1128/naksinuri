@@ -12,6 +12,9 @@
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="share" />
 <c:set var="pageName" value="event" />
+<c:if test="${pageName eq 'event'}">
+	<c:set var="bo_cate" value="event" />
+</c:if>
 
 
 <%@include file="../layout/newHead.jsp"%>

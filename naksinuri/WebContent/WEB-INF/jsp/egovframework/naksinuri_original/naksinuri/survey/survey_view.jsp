@@ -12,7 +12,9 @@
 <c:set var="depthNum" value="0" />
 <c:set var="depthName" value="share" />
 <c:set var="pageName" value="survey" />
-
+<c:if test="${pageName eq 'survey'}">
+	<c:set var="bo_cate" value="endsurvey" />
+</c:if>
 
 <%@include file="../layout/newHead.jsp"%>
 

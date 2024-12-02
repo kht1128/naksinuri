@@ -10,6 +10,9 @@
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="${column}" />
 <c:set var="pageName" value="${table}" />
+<c:if test="${pageName eq 'campaign'}">
+	<c:set var="bo_cate" value="endcampaign" />
+</c:if>
 
 <%@include file="../layout/newHead.jsp"%>
 
@@ -236,6 +239,9 @@
 							<div class="writer_box">
 								<div class="pic">
 									<c:choose>
+										<c:when test="${pageName eq 'gosu'and info.bo_cate eq '루어'}">
+											<img alt="낚시누리 Naksi Nuri" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
+										</c:when>
 										<c:when test="${empty info.bo_sub_img}">
 											<img alt="낚시누리 Naksi Nuri" src="/naksinuri_original/common_main/img/noImage_writer.png">
 										</c:when>
@@ -244,7 +250,8 @@
 										</c:when>
 										<c:when test="${!empty info.bo_sub_img}">
 											<img alt="낚시누리 Naksi Nuri" src='<c:url value='/naksinuri_original/cmm/fms/getImage.do'/>?atchFileId=<c:out value="${info.bo_sub_img}"/>&fileSn=<c:out value="${info.file_sn}"/>' width="100%" height="100%" />
-										</c:when>										
+										</c:when>
+										
 										<c:otherwise>
 											<img alt="낚시누리 Naksi Nuri" src="/naksinuri_original/common_main/img/noImage_writer.png">
 										</c:otherwise>
