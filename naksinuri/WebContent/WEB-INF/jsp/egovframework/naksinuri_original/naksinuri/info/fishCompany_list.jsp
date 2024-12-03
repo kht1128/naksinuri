@@ -49,6 +49,12 @@
 @media(max-width:1280px) {
 	#map {height: calc(100% - 110px) !important;}
 }
+#searchText1::placeholder {
+    color: #636363;
+}
+#cmpnm_nm::placeholder {
+    color: #636363;
+}
 </style>
 
 <%@include file="../layout/newHead.jsp"%>
@@ -162,6 +168,7 @@
 				            <div class="mapTabCon">
 				            	<!-- 낚시터정보 컨텐츠 -->
 				            	<div id="mapTabCon1">
+				            	<div id="menuContainer">
 					            	<div class="mapCate">
 						            	<span class="mapCateCom">중복 선택이 가능합니다.</span>
 						                <ul>
@@ -208,6 +215,7 @@
 					            </div>
 					            <!-- end 낚시터정보 컨텐츠 -->
 
+				            </div>
 				            </div>
 			            </div>
 			        </div>
@@ -331,6 +339,9 @@ function fnSelectInfs() {
 				$(".collapse").css({'visibility':'visible'});
 				$("#companyRegBtn").show();
 				$("#sanupRegBtn").hide();
+				
+				$("#menuContainer h4").remove();
+			    $("#menuContainer").prepend('<h4 style="display: none;">낚시터정보</h4>');
 			} else {
 				$("#sanupSelect").show();
 				$("#mapSearchText1").hide();
@@ -340,6 +351,8 @@ function fnSelectInfs() {
 				$("#companyRegBtn").hide();
 				$("#sanupRegBtn").show();
 				
+				$("#menuContainer h4").remove();
+			    $("#menuContainer").prepend('<h4 style="display: none;">낚시산업정보</h4>');
 			} 
 			
 			number=fish_list.length;
