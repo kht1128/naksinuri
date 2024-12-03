@@ -493,30 +493,9 @@ var number_chk = 0;
  
 		for(var i=key; i<100+key;i++) {
 			
-			if(i==(100+key)-1){
-				
-				var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
-			 	
-		 		 
-		  		for(var n=length_total-1; n<=length_total; n++){
+		
 	
-		 			
-		 			$('#map').children('div').children('div').children('div').children('div').children('div').eq(n).parent().addClass('focus_add'+n).attr('tabindex',0); 	
-		 	 		
-		 			$('.focus_add'+n).keyup(function(e){
-		 				if(e.keyCode == 13) {
-		 					var searchSido = $("#req_sido").val()
-		 					alert(searchSido + "지역(모든지역)의 낚시터 정보를 조회합니다.");
-		 			
-		 					mapList2(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
-
-
-		 				}
-		 			});		 		 			
-		 		}							
-				
-				
-			}
+		
 
 			var next = i;
 			if(next >= listRawData.length) continue;
@@ -674,6 +653,35 @@ var number_chk = 0;
 			
 			
 			 */
+			 
+			 
+			 
+			
+			var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
+		 	
+	 		 
+	  	/* 	for(var n=length_total-1; n<=length_total; n++){ */
+
+	 			
+	 			$('#map').children('div').children('div').children('div').children('div').children('div').parent().addClass('focus_add').attr('tabindex',0); 	
+	 	 		
+	 			$('.focus_add').keyup(function(e){
+	 				if(e.keyCode == 13) {
+	 					var searchSido = $("#req_sido").val()
+	 					alert(searchSido + "지역(모든지역)의 낚시터 정보를 조회합니다.");
+	 			
+	 					mapList2(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
+
+
+	 				}
+	 			});		 		 			
+	 /* 		}	 */						
+			
+						 
+			 
+			 
+			 
+			 
 			
 			
 			
