@@ -237,8 +237,12 @@ var key = 0;
 var linkUrl;
 var checkFish;
 var selectClass;
-
+var number =0;
 function fnSelectInfs() {
+	
+	closeListModal();
+	closeInfoModal();
+	clusterer.clear();
 	//linkUrl = "/info/"+ checkFish +"/listAjax.do";
 	
 	if(selectClass.indexOf("mapTabCon1") != -1){
@@ -338,7 +342,38 @@ function fnSelectInfs() {
 				
 			} 
 			
+			number=fish_list.length;
 			showMap();
+			
+		/* 	alert(fish_list.length);
+				
+
+		 		var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
+			 	
+		 		 
+		  		for(var n=0; n<=length_total; n++){
+		 			
+		 			
+		 			$('#map').children('div').children('div').children('div').children('div').children('div').eq(n).parent().addClass('focus_add'+n).attr('tabindex',0); 	
+		 	 		
+		 			$('.focus_add'+n).keyup(function(e){
+		 				if(e.keyCode == 13) {
+		 					var searchSido = $("#req_sido").val()
+		 					alert(searchSido + "지역의 낚시터 정보를 조회합니다.");
+		 
+		 					mapList2(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
+
+		 				
+
+
+		 				}
+		 			});		 		 			
+		 		}							
+			
+		 */
+			
+			
+	
 			
 			/* listRawData.forEach(function(item, index) {
 				var addrSearch = '충북 단양군';
@@ -411,7 +446,7 @@ window.onload = function() {
 
 <script>
 
-
+var number_chk = 0;
 		
 
 
@@ -436,11 +471,15 @@ window.onload = function() {
 	
 	
 	function showMap(){
-		
- 		 
+	
 
- 		
- 		
+	
+	  		
+	  		
+	  		
+	  		
+
+	 					
 
 		var markers = [];
 		var customOverlays = [];
@@ -448,10 +487,37 @@ window.onload = function() {
  		if(key == 0){
 			clusterer.clear();
 		}
-
-
  		
+ 	
+
+ 
 		for(var i=key; i<100+key;i++) {
+			
+			if(i==(100+key)-1){
+				
+				var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
+			 	
+		 		 
+		  		for(var n=length_total-1; n<=length_total; n++){
+	
+		 			
+		 			$('#map').children('div').children('div').children('div').children('div').children('div').eq(n).parent().addClass('focus_add'+n).attr('tabindex',0); 	
+		 	 		
+		 			$('.focus_add'+n).keyup(function(e){
+		 				if(e.keyCode == 13) {
+		 					var searchSido = $("#req_sido").val()
+		 					alert(searchSido + "지역(모든지역)의 낚시터 정보를 조회합니다.");
+		 			
+		 					mapList2(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
+
+
+		 				}
+		 			});		 		 			
+		 		}							
+				
+				
+			}
+
 			var next = i;
 			if(next >= listRawData.length) continue;
 			var item = listRawData[next];
@@ -583,7 +649,7 @@ window.onload = function() {
 			
 			
 			
-			
+/* 			
 
 	 		var length_total =	$('#map').children('div').children('div').children('div').children('div').children('div').length;
 	 	
@@ -595,18 +661,11 @@ window.onload = function() {
 	 	 		
 	 			$('.focus_add'+n).keyup(function(e){
 	 				if(e.keyCode == 13) {
-	 					
-	 					
-	 					//alert($("#customOverlay1").html());
-	 					mapList2();
-	 				
-	 					//mapDetailList(item.nak_id,item.adres_lo,item.adres_la);
-	 					
-	 					//alert($("#req_sido").val()+" 지역을 검색합니다");
-	 					fnSelectInfs()
-	 					//mapDetailList(item.nak_id,item.adres_lo,item.adres_la);
-	 		
-	 				
+	 					var searchSido = $("#req_sido").val()
+	 					alert(searchSido + "지역의 낚시터 정보를 조회합니다.");
+	 			
+	 					mapList2(map.getBounds().ha, map.getBounds().oa, map.getBounds().qa, map.getBounds().pa);
+	 
 
 
 	 				}
@@ -614,7 +673,7 @@ window.onload = function() {
 	 		}			
 			
 			
-			
+			 */
 			
 			
 			
@@ -919,6 +978,8 @@ window.onload = function() {
 			form.adres_lo1.value = adresLo1;
 			form.adres_lo2.value = adresLo2;
 			formData = $('#mapListForm').serialize();
+			
+			
 		} else {
 			viewLinkUrl = "/info/fishSanup/mapList.do";
 			form2.adres_la1.value = adresLa1;
@@ -926,6 +987,8 @@ window.onload = function() {
 			form2.adres_lo1.value = adresLo1;
 			form2.adres_lo2.value = adresLo2;
 			formData = $('#mapListForm2').serialize();
+			
+		
 		}
 		
 		$.ajax({
@@ -973,7 +1036,7 @@ window.onload = function() {
 			formData = $('#mapListForm').serialize();
 		} else {
 			
-			/*  */
+
 			viewLinkUrl = "/info/fishSanup/mapList.do";
 			form2.adres_la1.value = adresLa1;
 			form2.adres_la2.value = adresLa2;
