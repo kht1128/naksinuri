@@ -57,7 +57,16 @@
 
 <!-- 전역 알림 메세지 출력 { -->
 <script>
+
 $(document).ready(function(){
+	
+/* 	
+    $("#close_1_btn").on("click", function() {
+        alert("test");
+    });	
+	 */
+	
+	
 	setTimeout(function(){
 		var alert_data_type = '${alert_data.type}';
 		var message = '${alert_data.message}';
@@ -102,9 +111,18 @@ $(document).ready(function(){
 });
 function allPublicModalMessage(msg) {
 	$("#allPublicModalMessage .modal-message").html(msg);
+	
+	var html = '<button class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick()" >닫기</button>';
+	$("#allPublicModalMessage .modal-message").append(html);
 	$("#allPublicModalMessage").modal('show');
 }
 
+
+
+function afterBtnClick(){
+	
+	$("#allPublicModalMessage").modal('hide');
+}
 
 
 </script>	
