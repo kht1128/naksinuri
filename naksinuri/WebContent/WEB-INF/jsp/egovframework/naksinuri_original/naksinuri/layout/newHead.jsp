@@ -101,8 +101,18 @@ $(document).ready(function(){
 	},500);
 });
 function allPublicModalMessage(msg) {
-	$("#allPublicModalMessage .modal-message").html(msg);
-	$("#allPublicModalMessage").modal('show');
+	   $("#allPublicModalMessage .modal-message").html(msg);
+	   
+	   var html = '<button class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick()" >닫기</button>';
+	   $("#allPublicModalMessage .modal-message").append(html);
+	   $("#allPublicModalMessage").modal('show');
+	}
+
+
+
+function afterBtnClick(){
+   
+   $("#allPublicModalMessage").modal('hide');
 }
 
 
