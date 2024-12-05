@@ -55,6 +55,11 @@
 #cmpnm_nm::placeholder {
     color: #636363;
 }
+#companyRegBtn:focus,
+#sanupRegBtn:focus {
+        outline: 2px solid black; /* 파란색 포커스 링 */
+        outline-offset: 2px; /* 포커스 링과 요소 간 간격 */
+}
 </style>
 
 <%@include file="../layout/newHead.jsp"%>
@@ -97,16 +102,16 @@
 		<input type="hidden" name="rev_sn1" id="rev_sn1">
  --%>
 		
-		<section id="mapArea" style="margin-top: 0;" tabindex=0>
-			<div id="map_wrap"  tabindex=0>
+		<section id="mapArea" style="margin-top: 0;">
+			<div id="map_wrap">
 				<h3 id="map_title" class="blind" style="display: none;">오시는길</h3>
-				<div id="map" style="width:100%;height:calc(100% - 151px);position:relative;overflow:hidden;"  tabindex=0></div>
+				<div id="map" style="width:100%;height:calc(100% - 151px);position:relative;overflow:hidden;"  tabindex=1></div>
 				<!-- <div id="menu_wrap" class="bg_white" style="display:none">
 					<ul id="placesList">
 					</ul>
 				</div> -->
 				
-				<div class="mapLeftMenu" tabindex=0>
+				<div class="mapLeftMenu">
 					<!-- 맵 상단 마커 목록 --> 
 					<div class="markerList">
 						<!-- 낚시터정보 -->
@@ -122,46 +127,46 @@
 					</div>
 					<!-- end 맵 상단 마커 목록 --> 
 					
-			        <button type="button" class="btn_fold">정보창 접기</button>
+			        <button tabindex=1 type="button" class="btn_fold">정보창 접기</button>
 			        
-			        <!-- 정보등록신청 버튼 추가 -->
-					<a href="/info/fishjob/login.do" id="companyRegBtn" class="redBtnA" title="낚시터정보등록">정보<br>등록</a>
-					<a href="/info/industry/login.do" id="sanupRegBtn" class="redBtnA" title="낚시산업정보등록">정보<br>등록</a>
+			        <!-- 정보등록신청 버튼 추가 -->	
+					<a tabindex=1 href="/info/fishjob/login.do" id="companyRegBtn" class="redBtnA" title="낚시터정보등록">정보<br>등록</a>
+					<a tabindex=1 href="/info/industry/login.do" id="sanupRegBtn" class="redBtnA" title="낚시산업정보등록">정보<br>등록</a>
 			        
-			        <div class="info infoCon1" tabindex=0 >
-	        			<div class="mapComBox" >
-			        		<div class="map_box" tabindex=0>
+			        <div class="info infoCon1" >
+	        			<div class="mapComBox">
+			        		<div class="map_box">
 				                <span class="mapCom" >
 							                    지도에서 지역을 선택하시면<br>
 							                    해당 지역의 낚시터 정보를 확인 할 수 있습니다.
 				                </span>
 				                <img id="imgMap" src="/naksinuri_original/common_main/img/fishCompany/mapImg.png" alt="전국지도" usemap="#mapChange" >
-				                <map tabindex=0 name="mapChange" id="mapChange" onclick="fnSelectInfs()">
-									<area tabindex=0  shape="poly" coords="95,73,97,89,105,97,110,85,111,77,102,69" href="#" alt="인천" onclick='changSido("인천");'/>
-									<area tabindex=0  shape="poly" coords="111,77,119,77,121,70,125,75,127,69,133,76,135,81,135,87,127,90,119,91,111,88" href="#" alt="서울특별시" onclick='changSido("서울");' />
-									<area tabindex=0  shape="poly" coords="138,22,144,33,150,29,149,37,157,36,159,45,169,53,163,62,162,77,178,81,181,86,176,90,174,118,139,136,132,131,116,133,107,122,100,111,104,105,111,105,105,94,112,77,120,88,130,93,136,91,138,81,132,69,120,76,96,77,97,60,107,58,107,47,121,38" href="#" alt="경기도" onclick='changSido("경기");' />
-									<area tabindex=0  shape="poly" coords="134,21,165,20,178,16,184,22,201,22,217,17,220,1,235,40,260,77,280,127,267,134,241,130,230,131,207,121,192,113,171,117,175,86,162,77,164,64,172,54" href="#" alt="강원도" onclick='changSido("강원");' />
-									<area tabindex=0  shape="poly" coords="139,135,154,127,169,119,180,119,186,113,190,118,202,115,210,119,203,123,220,125,231,132,214,142,214,147,208,151,201,145,186,157,171,167,178,172,172,193,184,195,185,201,179,205,170,213,154,208,156,193,149,191,153,178,142,171,136,156,147,149" href="#" alt="충청북도" onclick='changSido("충북");' />
-									<area tabindex=0  shape="poly" coords="131,149,137,154,141,165,143,172,135,177,133,166,128,159" href="#" alt="세종시" onclick='changSido("세종");' />
-									<area tabindex=0  shape="poly" coords="135,177,134,177,143,169,150,173,152,179,148,189,151,191,143,194,136,194,132,186" href="#" alt="대전광역시" onclick='changSido("대전");' />
-									<area tabindex=0  shape="poly" coords="111,136,131,130,143,136,149,150,138,155,130,150,130,160,136,170,136,178,135,185,140,195,152,192,156,197,159,208,148,215,140,209,135,201,121,206,118,199,108,198,103,205,93,210,82,196,86,179,83,153,74,151,77,171,69,170,67,149,61,139,75,125,88,118,101,123" href="#" alt="충청남도" onclick='changSido("충남");' />
-									<area tabindex=0  shape="poly" coords="230,133,242,132,248,135,261,132,270,138,278,127,282,136,281,154,285,168,279,177,280,190,275,209,279,217,276,222,288,218,284,232,277,256,264,251,253,248,245,254,232,257,217,253,218,239,226,243,231,226,227,217,209,223,203,234,203,246,187,241,186,228,171,222,171,213,182,207,186,195,174,188,174,169,180,154,198,145,207,150,217,150,219,135" href="#" alt="경상북도" onclick='changSido("경북");' />
-									<area tabindex=0  shape="poly" coords="205,228,216,219,230,218,231,228,223,242,215,244,205,247" href="#" alt="대구광역시" onclick='changSido("대구");' />
-									<area tabindex=0  shape="poly" coords="246,252,253,244,264,246,272,249,277,255,273,264,267,274,263,279,256,266,244,260" href="#" alt="울산광역시" onclick='changSido("울산");' />
-									<area tabindex=0  shape="poly" coords="171,222,179,229,184,229,190,237,188,243,200,246,214,247,229,253,245,250,244,259,260,270,229,290,226,298,221,318,210,326,179,326,163,317,161,300,153,285,147,271,154,258,150,249,159,230" href="#" alt="경상남도" onclick='changSido("경남");' />
-									<area tabindex=0  shape="poly" coords="228,289,236,284,244,284,254,273,263,271,265,276,255,290,240,299,231,295" href="#" alt="부산광역시" onclick='changSido("부산");' />
-									<area tabindex=0  shape="poly" coords="85,210,102,208,107,204,107,197,119,198,122,205,135,200,143,211,149,213,157,207,165,210,171,210,174,216,162,227,150,250,153,258,147,270,136,269,123,265,114,266,111,253,106,257,98,250,90,259,81,263,74,253,80,247,91,247,76,240,85,231,90,224,97,228,99,218,84,217" href="#" alt="전라북도" onclick='changSido("전북");' />
-									<area tabindex=0  shape="poly" coords="87,259,96,252,108,257,113,254,115,266,128,265,137,268,143,264,151,270,152,282,161,297,147,301,150,309,159,306,148,322,139,307,131,316,137,328,126,336,112,328,120,315,104,320,100,333,93,346,83,346,71,343,66,326,57,319,61,293,66,283,63,270,73,252,87,274,94,288,108,284,107,272,94,269" href="#" alt="전라남도" onclick='changSido("전남");' />
-									<area tabindex=0  shape="poly" coords="84,278,92,270,103,270,108,278,103,285,92,286" href="#" alt="광주광역시" onclick='changSido("광주");' />
-									<area tabindex=0 shape="poly" coords="56,395,67,382,106,375,111,386,105,397,84,405,62,403" href="#" alt="제주도" onclick='changSido("제주");' />
+				                <map name="mapChange" id="mapChange" onclick="fnSelectInfs()">
+									<area tabindex=1  shape="poly" coords="95,73,97,89,105,97,110,85,111,77,102,69" href="#" alt="인천" onclick='changSido("인천");'/>
+									<area tabindex=1  shape="poly" coords="111,77,119,77,121,70,125,75,127,69,133,76,135,81,135,87,127,90,119,91,111,88" href="#" alt="서울특별시" onclick='changSido("서울");' />
+									<area tabindex=1  shape="poly" coords="138,22,144,33,150,29,149,37,157,36,159,45,169,53,163,62,162,77,178,81,181,86,176,90,174,118,139,136,132,131,116,133,107,122,100,111,104,105,111,105,105,94,112,77,120,88,130,93,136,91,138,81,132,69,120,76,96,77,97,60,107,58,107,47,121,38" href="#" alt="경기도" onclick='changSido("경기");' />
+									<area tabindex=1  shape="poly" coords="134,21,165,20,178,16,184,22,201,22,217,17,220,1,235,40,260,77,280,127,267,134,241,130,230,131,207,121,192,113,171,117,175,86,162,77,164,64,172,54" href="#" alt="강원도" onclick='changSido("강원");' />
+									<area tabindex=1  shape="poly" coords="139,135,154,127,169,119,180,119,186,113,190,118,202,115,210,119,203,123,220,125,231,132,214,142,214,147,208,151,201,145,186,157,171,167,178,172,172,193,184,195,185,201,179,205,170,213,154,208,156,193,149,191,153,178,142,171,136,156,147,149" href="#" alt="충청북도" onclick='changSido("충북");' />
+									<area tabindex=1  shape="poly" coords="131,149,137,154,141,165,143,172,135,177,133,166,128,159" href="#" alt="세종시" onclick='changSido("세종");' />
+									<area tabindex=1  shape="poly" coords="135,177,134,177,143,169,150,173,152,179,148,189,151,191,143,194,136,194,132,186" href="#" alt="대전광역시" onclick='changSido("대전");' />
+									<area tabindex=1  shape="poly" coords="111,136,131,130,143,136,149,150,138,155,130,150,130,160,136,170,136,178,135,185,140,195,152,192,156,197,159,208,148,215,140,209,135,201,121,206,118,199,108,198,103,205,93,210,82,196,86,179,83,153,74,151,77,171,69,170,67,149,61,139,75,125,88,118,101,123" href="#" alt="충청남도" onclick='changSido("충남");' />
+									<area tabindex=1  shape="poly" coords="230,133,242,132,248,135,261,132,270,138,278,127,282,136,281,154,285,168,279,177,280,190,275,209,279,217,276,222,288,218,284,232,277,256,264,251,253,248,245,254,232,257,217,253,218,239,226,243,231,226,227,217,209,223,203,234,203,246,187,241,186,228,171,222,171,213,182,207,186,195,174,188,174,169,180,154,198,145,207,150,217,150,219,135" href="#" alt="경상북도" onclick='changSido("경북");' />
+									<area tabindex=1  shape="poly" coords="205,228,216,219,230,218,231,228,223,242,215,244,205,247" href="#" alt="대구광역시" onclick='changSido("대구");' />
+									<area tabindex=1  shape="poly" coords="246,252,253,244,264,246,272,249,277,255,273,264,267,274,263,279,256,266,244,260" href="#" alt="울산광역시" onclick='changSido("울산");' />
+									<area tabindex=1  shape="poly" coords="171,222,179,229,184,229,190,237,188,243,200,246,214,247,229,253,245,250,244,259,260,270,229,290,226,298,221,318,210,326,179,326,163,317,161,300,153,285,147,271,154,258,150,249,159,230" href="#" alt="경상남도" onclick='changSido("경남");' />
+									<area tabindex=1  shape="poly" coords="228,289,236,284,244,284,254,273,263,271,265,276,255,290,240,299,231,295" href="#" alt="부산광역시" onclick='changSido("부산");' />
+									<area tabindex=1  shape="poly" coords="85,210,102,208,107,204,107,197,119,198,122,205,135,200,143,211,149,213,157,207,165,210,171,210,174,216,162,227,150,250,153,258,147,270,136,269,123,265,114,266,111,253,106,257,98,250,90,259,81,263,74,253,80,247,91,247,76,240,85,231,90,224,97,228,99,218,84,217" href="#" alt="전라북도" onclick='changSido("전북");' />
+									<area tabindex=1  shape="poly" coords="87,259,96,252,108,257,113,254,115,266,128,265,137,268,143,264,151,270,152,282,161,297,147,301,150,309,159,306,148,322,139,307,131,316,137,328,126,336,112,328,120,315,104,320,100,333,93,346,83,346,71,343,66,326,57,319,61,293,66,283,63,270,73,252,87,274,94,288,108,284,107,272,94,269" href="#" alt="전라남도" onclick='changSido("전남");' />
+									<area tabindex=1  shape="poly" coords="84,278,92,270,103,270,108,278,103,285,92,286" href="#" alt="광주광역시" onclick='changSido("광주");' />
+									<area tabindex=1  shape="poly" coords="56,395,67,382,106,375,111,386,105,397,84,405,62,403" href="#" alt="제주도" onclick='changSido("제주");' />
 								</map>
 				            </div>
 				            
 							<!-- 낚시터정보, 낚시산업정보 탭 메뉴 -->
 				            <div class="mapTabMenu">
 				            	<ul>
-				            		<li class="mapTabMenu1" ><a href="#" class="mapTabCon1" title="낚시터 정보">낚시터 정보</a></li>
-				            		<li class="mapTabMenu2" ><a href="#" class="mapTabCon2" title="낚시 산업 정보">낚시 산업 정보</a></li>
+				            		<li class="mapTabMenu1"><a tabindex=1 href="#" class="mapTabCon1" title="낚시터 정보">낚시터 정보</a></li>
+				            		<li class="mapTabMenu2"><a tabindex=1 href="#" class="mapTabCon2" title="낚시 산업 정보">낚시 산업 정보</a></li>
 				            	</ul>
 				            </div>
 				            <!-- end 낚시터정보, 낚시산업정보 탭 메뉴 -->
@@ -173,22 +178,22 @@
 						            	<span class="mapCateCom">중복 선택이 가능합니다.</span>
 						                <ul>
 						                    <li>
-						                    	<input type='checkbox' name='searchBoat' id="searchBoat" <c:if test="${not empty searchBoat}"> checked</c:if> tabindex="-1" />
-						                		<label for="searchBoat" tabindex="0" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchBoat').click();}">선상낚시</label>
+						                    	<input tabindex=-1 type='checkbox' name='searchBoat' id="searchBoat" <c:if test="${not empty searchBoat}"> checked</c:if> />
+						                		<label tabindex=1 for="searchBoat" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchBoat').click();}">선상낚시</label>
 						                    </li>
 						                    <li>
-						                    	<input type='checkbox' name='searchSea' id="searchSea" <c:if test="${not empty searchSea}"> checked</c:if> tabindex="-1" /> 
-												<label for="searchSea" tabindex="0" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchSea').click();}">바다낚시</label>
+						                    	<input tabindex=-1 type='checkbox' name='searchSea' id="searchSea" <c:if test="${not empty searchSea}"> checked</c:if> /> 
+												<label tabindex=1 for="searchSea" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchSea').click();}">바다낚시</label>
 						                    </li>
 						                    <li>
-						                    	<input type='checkbox' name='searchRiver' id="searchRiver" <c:if test="${not empty searchRiver}"> checked</c:if> tabindex="-1" />
-												<label for="searchRiver" tabindex="0" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchRiver').click();}">민물낚시</label>
+						                    	<input tabindex=-1 type='checkbox' name='searchRiver' id="searchRiver" <c:if test="${not empty searchRiver}"> checked</c:if> />
+												<label tabindex=1 for="searchRiver" onkeypress="if (event.keyCode==13 || event.keyCode==32){ $('#searchRiver').click();}">민물낚시</label>
 						                    </li>
 						                </ul>
 						            </div>
 						
 						            <div class="searchCon">
-						            	<select class="search_select" name="sanupSelect" id="sanupSelect" onchange="" title="구분 옵션선택">
+						            	<select tabindex=1 class="search_select" name="sanupSelect" id="sanupSelect" onchange="" title="구분 옵션선택">
 						                    <option value="">구분</option>
 						                    <option value="san_aag">협회/기관/단체</option>
 						                    <option value="san_zogu">조구업체</option>
@@ -197,20 +202,20 @@
 						                    <option value="san_chool">출조점</option>
 						                    <option value="san_inprov">낚시정보제공</option>
 						                </select>
-						                <select class="search_select" name="searchSido" id="searchSido" onchange="selectChange(this)" title="시,도 옵션선택">
+						                <select tabindex=1 class="search_select" name="searchSido" id="searchSido" onchange="selectChange(this)" title="시,도 옵션선택">
 						                    
 						                </select>
-						                <select class="search_select" name="searchGugun" id="searchGugun" title="구,군 옵션선택">
+						                <select tabindex=1 class="search_select" name="searchGugun" id="searchGugun" title="구,군 옵션선택">
 						                   
 						                </select>
 						                <div class="mapSearch" id="mapSearchText1"> 
-						                    <input type="text" class="" placeholder="주요 어종을 입력 해주세요. 예) 붕어, 잉어" name="searchText1" id="searchText1" value="${searchText1}" title="주요 어종">
+						                    <input tabindex=1 type="text" class="" placeholder="주요 어종을 입력 해주세요. 예) 붕어, 잉어" name="searchText1" id="searchText1" value="${searchText1}" title="주요 어종">
 						                </div>
 						                <div class="mapSearch">
-						                    <input type="text" class="" placeholder="상호명을 입력해주세요." name="cmpnm_nm" id="cmpnm_nm" value="" title="상호명">
+						                    <input tabindex=1 type="text" class="" placeholder="상호명을 입력해주세요." name="cmpnm_nm" id="cmpnm_nm" value="" title="상호명">
 						                </div>
 						                
-						                <input type="button" class="searchBtn" onclick="fnSelectInfs()" value="검색하기"/>
+						                <input tabindex=1 type="button" class="searchBtn" onclick="fnSelectInfs()" value="검색하기"/>
 						            </div>
 					            </div>
 					            <!-- end 낚시터정보 컨텐츠 -->
@@ -219,9 +224,9 @@
 				            </div>
 			            </div>
 			        </div>
-				    <div class="info infoCon2" tabindex=0>
+				    <div class="info infoCon2" tabindex=1>
 				    </div>
-				    <div class="info infoCon3" tabindex=0>
+				    <div class="info infoCon3" tabindex=1>
 				    </div>
 			    </div>
 			</div>
@@ -676,7 +681,7 @@ var number_chk = 0;
 	  	/* 	for(var n=length_total-1; n<=length_total; n++){ */
 
 	 			
-	 			$('#map').children('div').children('div').children('div').children('div').children('div').parent().addClass('focus_add').attr('tabindex',0); 	
+	 			$('#map').children('div').children('div').children('div').children('div').children('div').parent().addClass('focus_add').attr('tabindex',2); 	
 	 	 		
 	 			$('.focus_add').keyup(function(e){
 	 				if(e.keyCode == 13) {
