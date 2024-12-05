@@ -15,7 +15,7 @@
 			
 			<c:set var="total_page" value="${(paginationInfo.totalRecordCount/paginationInfo.recordCountPerPage)}"/>
 			<fmt:parseNumber var="total_page" integerOnly = "true" type = "number" value = "${total_page+(1-(total_page%1))%1}" />
-			<div class="total_num">전체 <b class="colorSky">${paginationInfo.totalRecordCount}</b>건의 게시물이 있습니다.(<b class="colorSky">${paginationInfo.currentPageNo}</b>/${total_page})</div>
+			<div class="total_num">전체 <b class="colorSky">${paginationInfo.totalRecordCount}</b>건의 게시물이 있습니다.123(<b class="colorSky">${paginationInfo.currentPageNo}</b>/${total_page})</div>
 			
 			<select class="basic_select" title="검색조건선택">
 				<option>전체</option>
@@ -47,7 +47,11 @@
 					<c:forEach var="item" items="${list}" varStatus="status">
 						<tr class="noti posibtn">
 							
-							<td class="subject"><a href="javascript:void(0)" onclick="javascript:fnView('${item.BD_SN}',this); return false;"><c:out value="${item.BD_TITLE}"/></a></td>
+							<td class="subject">
+								<a href="javascript:void(0)" onclick="javascript:fnView('${item.BD_SN}',this); return false;" title="${item.BD_TITLE} 상세보기">
+									<c:out value="${item.BD_TITLE}"/>
+								</a>
+							</td>
 							<%--
 							<fmt:parseDate var="parse_date_dt" value="${fn:replace(item.BD_REG_DT, '.0', '')}" pattern="yyyy-MM-dd HH:mm:ss" />
 	           				<fmt:formatDate var="daystring" value="${parse_date_dt}" pattern="dd" />
@@ -78,16 +82,42 @@
 
 
 <script>
-function fnView(bdsn,obj) {
+/* function fnView(bdsn,obj) {
 	if($('#thisInfo_'+bdsn).hasClass('close')) {//닫힌상태
 		$(".posibtn").removeClass('opener');
 	    $(".thisInfo").addClass('close');
 	    $(obj).parent().parent().addClass('opener');
 		$('#thisInfo_'+bdsn).removeClass('close').slideDown(500);
+		$(this).attr('title', titleValue.replace('상세보기 닫기', '상세보기'));
 	} else {//열린상태
 		$(".posibtn").removeClass('opener');
-		$('#thisInfo_'+bdsn).addClass('close').slideUp(200);		
+		$('#thisInfo_'+bdsn).addClass('close').slideUp(200);
+		$(this).attr('title', titleValue.replace('상세보기', '상세보기 닫기'));
 	}
+} */
+
+function fnView(bdsn, obj) {
+    const $row = $('#thisInfo_' + bdsn);
+    const $trigger = $(obj);
+    const isClosed = $row.hasClass('close');
+    const currentTitle = $trigger.attr('title');
+    let newTitle;
+
+    if (isClosed) {
+        $(".posibtn").removeClass('opener');
+        $(".thisInfo").addClass('close');
+        $trigger.closest('.noti').addClass('opener');
+        $row.removeClass('close').slideDown(500);
+
+        newTitle = currentTitle.replace('상세보기', '상세보기 닫기');
+    } else {
+        $(".posibtn").removeClass('opener');
+        $row.addClass('close').slideUp(200);
+
+        newTitle = currentTitle.replace('상세보기 닫기', '상세보기');
+    }
+
+    $trigger.attr('title', newTitle);
 }
 
 function fnLinkPage(pageNo){

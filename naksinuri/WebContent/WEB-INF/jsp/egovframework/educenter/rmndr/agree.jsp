@@ -219,13 +219,13 @@
 				<li class="fr">
 					<div class="agree_yesorno mt-30">
 						<span class="mr-10">(필수) 개인정보 수집 및 이용에</span>
-						<input type="radio" name="approval1" id="approval1Y" value="Y" ><label for="approval1Y"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval1Y').click();}"></span>동의함</label>
-						<input type="radio" name="approval1" id="approval1N" value="N" ><label for="approval1N"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval1N').click();}"></span>동의하지 않음</label>
+						<input type="radio" name="approval1" id="approval1Y" value="Y" ><label for="approval1Y"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval1Y').click();}"></span>동의함</label>
+						<input type="radio" name="approval1" id="approval1N" value="N" ><label for="approval1N"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval1N').click();}"></span>동의하지 않음</label>
 					</div>
 					<div class="agree_yesorno mt-10">
 						<span class="mr-10">(선택) 개인정보 수집 및 이용에</span>
-						<input type="radio" name="approval2" id="approval2Y" value="Y" ><label for="approval2Y"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval2Y').click();}"></span>동의함</label>
-						<input type="radio" name="approval2" id="approval2N" value="N" ><label for="approval2N"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval2N').click();}"></span>동의하지 않음</label>
+						<input type="radio" name="approval2" id="approval2Y" value="Y" ><label for="approval2Y"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval2Y').click();}"></span>동의함</label>
+						<input type="radio" name="approval2" id="approval2N" value="N" ><label for="approval2N"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#approval2N').click();}"></span>동의하지 않음</label>
 					</div>
 				</li>	
 			</ul>

@@ -127,7 +127,7 @@ pageContext.setAttribute("crlf", "\r\n");
 					</c:if>
 				</c:if>
 				<c:if test="${error eq 99}">
-					<input title="로그인 페이지 이동" type="button" class="btn btn-primary btn-outline moveLogin" value="로그인페이지 이동111"/>
+					<input title="로그인 페이지 이동" type="button" class="btn btn-primary btn-outline moveLogin" value="로그인페이지 이동"/>
 				</c:if>
 	            <button type="button" class="btn btn-default btn-outline" data-dismiss="modal">취소(닫기)</button>
 	        </div>
