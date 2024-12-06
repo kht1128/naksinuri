@@ -695,9 +695,45 @@ var number_chk = 0;
 	 			});		 		 			
 	 /* 		}	 */						
 			
-						 
-			 
-			 
+	 			
+	 
+	 			var total = document.getElementsByClassName('focus_add').length;
+	 		
+	 
+	 		   var rows = $('.focus_add');
+	 			for(var i=0; i<total; i++){
+	 			//$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"</span>");
+	 			 var str = $(rows[i]).children('div').css("background");
+	 		
+	 			 var chk = str.includes('90px');
+	 			 
+	 			 if(chk){
+
+	 				//$(rows[i]).append("<span style='font-weight:bold;'>좌표B</span>");
+	 				
+	 				$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"B</span>");
+	 			 }else{
+	 				 
+	 				 
+	 				var chk = str.includes('180px');
+	 				 
+	 				if(chk){
+	 					$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"A</span>");
+	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:A</span>");
+	 					
+	 				}else{
+	 					
+	 					$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"C</span>");
+	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:C</span>");
+	 					
+	 				}
+	 				 
+	 				
+	 			 
+	 			 }
+	
+	 			}
+
 			 
 			 
 			
