@@ -27,7 +27,7 @@
 				</h1>
 			</div>
 			<c:forEach var="item" items="${companyMapList}">
-				<div class="form-group row">
+				<div class="form-group row" id="detail${item.adres_la}">
 					<a href="#;"onclick="mapDetailList(${item.nak_id},${item.adres_lo}, ${item.adres_la})">
 						<label class="col-md-8 form-control-label">${item.co_nm}</label>
 						<div class="col-md-4">
