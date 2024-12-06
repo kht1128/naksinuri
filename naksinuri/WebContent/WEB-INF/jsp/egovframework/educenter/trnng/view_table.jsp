@@ -39,7 +39,7 @@
 		<li>
 			<div class="grpedu_Pn">
 				<div class="tag">낚시어선업자 및 선원</div>
-				<div class="clk_modal_eduinfo" data-crs-sn="${item.CRS_SN}" data-linkurl="/educenter/trnng/view.do" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('.clk_modal_eduinfo').click();}" title="${item.CRS_PLACE} 상세보기">
+				<div class="clk_modal_eduinfo" data-crs-sn="${item.CRS_SN}" data-linkurl="/educenter/trnng/view.do" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('.clk_modal_eduinfo').click();}" title="${item.CRS_PLACE} 상세보기" tabindex=1>
 					<p class="dates">${CRS_STR_DT}&nbsp;~&nbsp;${CRS_END_DT}</p>
 					<a href="javascript:void(0);" class="sbj" title="${item.CRS_PLACE}" data-crs-sn="${item.CRS_SN}"
 	          		data-linkurl="/educenter/trnng/view.do">${item.CRS_PLACE}</a>

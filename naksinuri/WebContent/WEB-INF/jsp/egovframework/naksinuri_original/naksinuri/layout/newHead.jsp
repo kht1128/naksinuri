@@ -100,19 +100,24 @@ $(document).ready(function(){
 		}
 	},500);
 });
-function allPublicModalMessage(msg) {
+function allPublicModalMessage(msg,index) {
 	   $("#allPublicModalMessage .modal-message").html(msg);
+	
+
 	   
-	   var html = '<button class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick()" >닫기</button>';
+	   var html = '<button class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick('+index+')" >닫기</button>';
 	   $("#allPublicModalMessage .modal-message").append(html);
 	   $("#allPublicModalMessage").modal('show');
 	}
 
 
 
-function afterBtnClick(){
-   
+function afterBtnClick(index){
+
    $("#allPublicModalMessage").modal('hide');
+
+   $("#focusLine"+index).focus();
+   
 }
 
 

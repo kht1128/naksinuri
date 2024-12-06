@@ -711,19 +711,19 @@ var number_chk = 0;
 
 	 				//$(rows[i]).append("<span style='font-weight:bold;'>좌표B</span>");
 	 				
-	 				$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"B</span>");
+	 				$(rows[i]).append("<span style='font-weight:bold;'>밀집도(중)</span>");
 	 			 }else{
 	 				 
 	 				 
 	 				var chk = str.includes('180px');
 	 				 
 	 				if(chk){
-	 					$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"A</span>");
+	 					$(rows[i]).append("<span style='font-weight:bold;'>밀집도(상)</span>");
 	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:A</span>");
 	 					
 	 				}else{
 	 					
-	 					$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"C</span>");
+	 					$(rows[i]).append("<span style='font-weight:bold;'>밀집도(하)</span>");
 	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:C</span>");
 	 					
 	 				}
@@ -1126,6 +1126,8 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon2").show();
 				map.relayout();
+				$(".info infoCon2").focus();
+				
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				console.log('error!');
@@ -1144,8 +1146,10 @@ var number_chk = 0;
 	}
 	function closeInfoModal(nakId) {
 		$(".infoCon3").hide();
-	}
-	
+		
+		var txt_id = $("#adres_la").val();
+		$("#detail"+txt_id).focus();
+
 	function selectChange(item) {
 		if(item.value == '') {
 			$("#imgMap").attr("src", "/naksinuri_original/common_main/img/fishCompany/mapImg.png");
