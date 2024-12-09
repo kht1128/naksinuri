@@ -224,9 +224,9 @@
 				            </div>
 			            </div>
 			        </div>
-				    <div class="info infoCon2" tabindex=1>
+				    <div class="info infoCon2">
 				    </div>
-				    <div class="info infoCon3" tabindex=1>
+				    <div class="info infoCon3">
 				    </div>
 			    </div>
 			</div>
@@ -744,9 +744,6 @@ var number_chk = 0;
 	}
 	
 	
-			  	
-
-	
 </script>
 
 
@@ -1009,6 +1006,15 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon3").show();
 				map.relayout();
+				setTimeout(() => {
+
+				$("#close_id").focus();
+					resultX
+		
+				}, "200");
+
+
+
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				console.log('error!');
@@ -1072,6 +1078,8 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon2").show();
 				map.relayout();
+				$(".info infoCon2").focus();
+
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				console.log('error!');
@@ -1126,7 +1134,15 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon2").show();
 				map.relayout();
-				$(".info infoCon2").focus();
+
+
+				setTimeout(() => {
+
+					$("#map_id").first().focus();
+
+				}, "200");
+
+
 				
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -1136,6 +1152,13 @@ var number_chk = 0;
 				console.log(errorThrown); 
 			}
 		});
+
+			
+		$("#map_id").first().focus();
+
+
+
+
 	}	
 	
 	
@@ -1144,12 +1167,25 @@ var number_chk = 0;
 	function closeListModal() {
 		$(".infoCon2").hide();
 	}
-	function closeInfoModal(nakId) {
-		$(".infoCon3").hide();
-		
-		var txt_id = $("#adres_la").val();
-		$("#detail"+txt_id).focus();
 
+
+
+	function closeInfoModal(nakId) {
+			
+
+			var txt_id ="detail"+$("#adres_la").val();
+	
+
+				
+			$(".infoCon3").hide();
+
+					
+
+
+
+
+	}
+	
 	function selectChange(item) {
 		if(item.value == '') {
 			$("#imgMap").attr("src", "/naksinuri_original/common_main/img/fishCompany/mapImg.png");
