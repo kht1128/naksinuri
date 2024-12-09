@@ -97,7 +97,7 @@
 								<td class="text-center">
 									<c:choose>
 										<c:when test="${item.eventClassName eq 'lock'}">
-											<a href="javascript:allPublicModalMessage('해당 교육은 모집이 마감되었습니다.');" class="a-lock btn btn-xs btn-warning" title="모집마감">모집<br>마감</a>
+											<a href="javascript:allPublicModalMessage('해당 교육은 모집이 마감되었습니다.','${status.index}');" id="focusLine${status.index}" class="a-lock btn btn-xs btn-warning" title="모집마감">모집<br>마감</a>
 										</c:when>
 										<c:when test="${item.eventClassName eq 'unlock'}">
 											<a href="javascript:checkEdu('${item.CRS_SN}')" class="a-unlock btn btn-xs btn-default" title="신청하기">신청<br>하기</a>

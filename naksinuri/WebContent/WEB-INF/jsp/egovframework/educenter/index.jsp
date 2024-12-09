@@ -161,7 +161,7 @@
 						
 							</style>
 							<div class="selectbox">
-								<select id="sel_crs_grp_cd" title="교육그룹 옵션선택(<c:forEach var="item" items="${list_edu_grp_cd}">${item.CD_NM},</c:forEach>)" class="local_seletor" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#sel_crs_grp_cd').click();}">
+								<select id="sel_crs_grp_cd" title="교육그룹 옵션선택<%-- (<c:forEach var="item" items="${list_edu_grp_cd}">${item.CD_NM},</c:forEach>) --%>" class="local_seletor" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#sel_crs_grp_cd').click();}">
 									<option value="">교육그룹선택(전체보기)</option>
 									<c:forEach var="item" items="${list_edu_grp_cd}">
 										<option value="${item.CD_ID}">${item.CD_NM}</option>
