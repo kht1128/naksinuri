@@ -182,7 +182,7 @@
 									
 										<li>
 											<input type="checkbox" id="chart_0" name="atch_file_0" />
-											<label for="chart_0"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#chart_0').click();}" title="체크박스_0"></span></label> 
+											<label for="chart_0"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#chart_0').click();}"></span></label> 
 											<input type="file" size="50" id="chart_0" name="bo_file_0" class="write_file" title="파일선택_0"/>
 										</li>								
 								
@@ -271,8 +271,8 @@ function insertinput(){
 	$("#file_input").append('<ul id="file_'+(j+1)+'">\
 			<li style="padding-top:2px;">\
 			<li><input type="checkbox" id="chart_'+(j+1)+'" name="atch_file_'+(j+1)+'" title="파일선택_'+(j+1)+'"/>\
-			<label for="chart_'+(j+1)+'"><span title="체크박스_'+(j+1)+'"></span></label>\
-						<input type="file" size="30" id="chart_'+(j+1)+'" name="bo_file_'+(j+1)+'"  style="width:290px" class="write_file"  title="파일선택_'+(j+1)+'"/></li></li></ul>');
+			<label for="chart_'+(j+1)+'"><span></span></label>\
+						<input type="file" size="30" id="chart_'+(j+1)+'" name="bo_file_'+(j+1)+'"  style="width:290px" class="write_file" /></li></li></ul>');
 	j++;
 	}
 }

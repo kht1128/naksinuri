@@ -351,7 +351,7 @@ pageContext.setAttribute("crlf", "\r\n");
 						<%-- <c:if test="${isOpened eq true and info.LOCK_ST eq '0'}">
 							<button type="button" class="btn btn-primary btn-outline clk_btn_act">신청하기</button>
 						</c:if> --%>
-			            <button type="button" class="btn btn-default btn-outline" data-dismiss="modal">취소(닫기)</button>
+			            <button type="button" class="btn btn-default btn-outline" id="modal_add" data-dismiss="modal">취소(닫기)</button>
 			        </div>
 			  	</div>
 			</form>
@@ -364,6 +364,18 @@ pageContext.setAttribute("crlf", "\r\n");
 			});
 			
 			</script>
+			
+			
+			<script>
+			$("#modal_add").click(function() {
+				
+
+				$("#bx-wrapper").focus();
+
+			});
+			
+			</script>			
+			
 				
 			</div><!-- /.modal-dialog -->
 		

@@ -172,7 +172,7 @@
 					</div><!--//one_calendar//-->
 				</div><!--//calendar_bx//-->
 	
-				<div class="eduinfo_Bx" id="table_wrap">
+				<div class="eduinfo_Bx" id="table_wrap" tabindex=1>
 					<!-- 
 					<ul class="grpedu_ul">
 						<li>

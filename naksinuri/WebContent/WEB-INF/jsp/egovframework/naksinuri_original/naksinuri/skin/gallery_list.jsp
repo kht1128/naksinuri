@@ -113,9 +113,6 @@
 				<c:if test="${pageName eq 'dignity' }">
 				<caption>낚시의 품격 리스트</caption>
 				</c:if>
-				<c:if test="${pageName eq 'column' }">	
-				<caption>낚시칼럼(자유게시판) 리스트</caption>
-				</c:if>
 				<c:if test="${pageName eq 'travel' }">
 				<caption>낚시여행기 리스트</caption>
 				</c:if>

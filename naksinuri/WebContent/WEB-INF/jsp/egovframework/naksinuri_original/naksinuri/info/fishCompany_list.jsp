@@ -11,6 +11,7 @@
 <c:set var="depthName" value="info" />
 <c:set var="pageName" value="fishCompany" />
 
+
 <style>
 #map_wrap {position:relative;/*width:100%;height:500px;*/}
 #menu_wrap {position:absolute;top:0;left:0;bottom:0;width:320px;margin:10px 0px 30px 10px;padding:5px;overflow-y:auto;background:rgba(255, 255, 255, 0.7);z-index: 1;font-size:12px;border-radius: 10px;}
@@ -694,9 +695,45 @@ var number_chk = 0;
 	 			});		 		 			
 	 /* 		}	 */						
 			
-						 
-			 
-			 
+	 			
+	 
+	 			var total = document.getElementsByClassName('focus_add').length;
+	 		
+	 
+	 		   var rows = $('.focus_add');
+	 			for(var i=0; i<total; i++){
+	 			//$(rows[i]).append("<span style='font-weight:bold;'>"+$("#req_sido").val()+"</span>");
+	 			 var str = $(rows[i]).children('div').css("background");
+	 		
+	 			 var chk = str.includes('90px');
+	 			 
+	 			 if(chk){
+
+	 				//$(rows[i]).append("<span style='font-weight:bold;'>좌표B</span>");
+	 				
+	 				$(rows[i]).append("<span style='font-weight:bold;'>밀집도(중)</span>");
+	 			 }else{
+	 				 
+	 				 
+	 				var chk = str.includes('180px');
+	 				 
+	 				if(chk){
+	 					$(rows[i]).append("<span style='font-weight:bold;'>밀집도(상)</span>");
+	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:A</span>");
+	 					
+	 				}else{
+	 					
+	 					$(rows[i]).append("<span style='font-weight:bold;'>밀집도(하)</span>");
+	 					//$(rows[i]).append("<span style='font-weight:bold;'>좌표:C</span>");
+	 					
+	 				}
+	 				 
+	 				
+	 			 
+	 			 }
+	
+	 			}
+
 			 
 			 
 			
@@ -1089,6 +1126,8 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon2").show();
 				map.relayout();
+				$(".info infoCon2").focus();
+				
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				console.log('error!');
@@ -1107,8 +1146,10 @@ var number_chk = 0;
 	}
 	function closeInfoModal(nakId) {
 		$(".infoCon3").hide();
-	}
-	
+		
+		var txt_id = $("#adres_la").val();
+		$("#detail"+txt_id).focus();
+
 	function selectChange(item) {
 		if(item.value == '') {
 			$("#imgMap").attr("src", "/naksinuri_original/common_main/img/fishCompany/mapImg.png");

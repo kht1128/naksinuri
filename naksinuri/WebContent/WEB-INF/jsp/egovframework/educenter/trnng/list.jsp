@@ -185,7 +185,7 @@
 									<c:if test="${item.CRS_YEAR eq loginVO.TRGT_YEAR or loginVO eq null}">
 										<c:choose>
 											<c:when test="${item.eventClassName eq 'lock'}">
-												<a href="javascript:allPublicModalMessage('해당 교육은 모집이 마감되었습니다.');" class="deadline" title="모집마감">모집마감</a>
+												<a href="javascript:allPublicModalMessage('해당 교육은 모집이 마감되었습니다.','${status.index}');" class="deadline" id="focusLine${status.index}" title="모집마감">모집마감</a>
 											</c:when>
 											<c:when test="${item.eventClassName eq 'unlock'}">
 												<a class="registerButton" href="javascript:void(0);" onclick="javascript:checkEdu('${item.CRS_SN}')" title="신청하기">
