@@ -35,7 +35,7 @@
 							${UPD_DATE}
 						</c:otherwise>
 					</c:choose>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeInfoModal('${item.nak_id}')">
+					<button tabindex=0 type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeInfoModal('${item.nak_id}')">
 					<span aria-hidden="true">×</span>
 					</button>
 				</h1>

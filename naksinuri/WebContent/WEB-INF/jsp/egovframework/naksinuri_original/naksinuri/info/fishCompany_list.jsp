@@ -11,7 +11,6 @@
 <c:set var="depthName" value="info" />
 <c:set var="pageName" value="fishCompany" />
 
-
 <style>
 #map_wrap {position:relative;/*width:100%;height:500px;*/}
 #menu_wrap {position:absolute;top:0;left:0;bottom:0;width:320px;margin:10px 0px 30px 10px;padding:5px;overflow-y:auto;background:rgba(255, 255, 255, 0.7);z-index: 1;font-size:12px;border-radius: 10px;}

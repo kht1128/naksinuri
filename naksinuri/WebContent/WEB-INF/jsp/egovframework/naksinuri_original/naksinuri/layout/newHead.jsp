@@ -103,7 +103,8 @@ $(document).ready(function(){
 function allPublicModalMessage(msg) {
 	   $("#allPublicModalMessage .modal-message").html(msg);
 	   
-	   var html = '<button class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick()" >닫기</button>';
+	   var html = '<button style="display: flex; justify-content: center; align-items: center; margin: 0 auto; margin-top:10px;" class="btn btn-danger" id="close_1_btn"  onclick="afterBtnClick()" >닫기</button>';
+	   
 	   $("#allPublicModalMessage .modal-message").append(html);
 	   $("#allPublicModalMessage").modal('show');
 	}
