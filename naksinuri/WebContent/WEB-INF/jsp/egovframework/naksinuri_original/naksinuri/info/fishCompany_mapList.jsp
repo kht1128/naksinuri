@@ -26,9 +26,9 @@
 					</button>
 				</h1>
 			</div>
-			<c:forEach var="item" items="${companyMapList}">
-				<div class="form-group row" >
-					<a href="#;"onclick="mapDetailList(${item.nak_id},${item.adres_lo}, ${item.adres_la})" id="map_id" tabindex=1 class="detail${item.adres_la}">
+			<c:forEach var="item" items="${companyMapList}" varStatus="numchk">
+				<div class="form-group row" id="detail${item.adres_la}">
+					<a href="#;"onclick="mapDetailList(${item.nak_id},${item.adres_lo}, ${item.adres_la})" id="map_id${numchk.index}" class="map_point" tabindex=1 >
 						<label class="col-md-8 form-control-label">${item.co_nm}</label>
 						<div class="col-md-4">
 							<c:choose>
@@ -120,4 +120,16 @@ var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니
 		    }
 		});
 	}); */
+	
+	
+	
+	$('.map_point').click(function(){
+		var id_check = $(this).attr("id");
+		
+		$('#map_point_val').val(id_check);
+		
+
+		
+	});	
+	
 </script>

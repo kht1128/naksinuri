@@ -65,6 +65,7 @@
 
 <form:form commandName="naksinuriVO" id="viewform" name="viewform" method="post" >
 <input type="hidden" id="nak_id" name="nak_id" value="" />
+<input type="hidden" id="focus_num" name="focus_num" value="" />
 </form:form>
 <form:form commandName="naksinuriVO" id="mapListForm" name="mapListForm" method="post" >
 	<input type="hidden" id="adres_la1" name="adres_la1" value="" />
@@ -74,6 +75,7 @@
 </form:form>
 <form:form commandName="SanupVO" id="viewform2" name="viewform2" method="post" >
 <input type="hidden" id="san_sn" name="san_sn" value="" />
+<input type="hidden" id="map_point_val" name="map_point_val" value="" />
 </form:form>
 <form:form commandName="SanupVO" id="mapListForm2" name="mapListForm2" method="post" >
 	<input type="hidden" id="adres_la1" name="adres_la1" value="" />
@@ -748,7 +750,13 @@ var number_chk = 0;
 
 <script type="text/javascript">
 
+
+
+
+
 	$('document').ready(function()	{
+		
+
 		var area0 = ["시/도 선택","서울","세종","인천","대전","광주","대구","울산","부산","경기","강원","충북","충남","전북","전남","경북","경남","제주"];
 		var area1 = ["구/군 선택","강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구","노원구","도봉구","동대문구","동작구","마포구","서대문구","서초구","성동구","성북구","송파구","양천구","영등포구","용산구","은평구","종로구","중구","중랑구"];
 		var area2 = ["구/군 선택","조치원읍","연기면","연동면","부강면","금남면","장군면","연서면","전의면","전동면","소정면","한솔동","도담동","아름동","종촌동","고운동","보람동"]
@@ -967,6 +975,8 @@ var number_chk = 0;
 
 	
 	function mapDetailList(id, resultY, resultX){
+		
+		
 		var position = new kakao.maps.LatLng(resultY, resultX); 
 		// 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
 		//console.log(position);
@@ -1005,12 +1015,15 @@ var number_chk = 0;
 				//$(".infoCon2").css("display","none");
 				$(".infoCon3").show();
 				map.relayout();
-				setTimeout(() => {
+			
+					
 
+					
 				$("#close_id").focus();
-					resultX
+					
+					
 		
-				}, "200");
+
 
 
 
@@ -1135,11 +1148,10 @@ var number_chk = 0;
 				map.relayout();
 
 
-				setTimeout(() => {
 
-					$("#map_id").first().focus();
+				$("#map_id0").focus();
 
-				}, "200");
+		
 
 
 				
@@ -1153,7 +1165,7 @@ var number_chk = 0;
 		});
 
 			
-		$("#map_id").first().focus();
+		
 
 
 
@@ -1164,6 +1176,8 @@ var number_chk = 0;
 	
 	
 	function closeListModal() {
+		
+		
 		$(".infoCon2").hide();
 	}
 
@@ -1172,14 +1186,19 @@ var number_chk = 0;
 	function closeInfoModal(nakId) {
 			
 
-			var txt_id ="detail"+$("#adres_la").val();
+			//var txt_id ="detail"+$("#adres_la").val();
+			
+			var txt_id = $('#map_point_val').val();
 	
-
-				
+			
+			$('#'+txt_id).focus();
+			
+		
+	
+		
 			$(".infoCon3").hide();
-
-					
-
+	
+			
 
 
 
@@ -1192,7 +1211,12 @@ var number_chk = 0;
 	}
 	
 	
-
+	$('.map_point').click(function(){
+		alert("test");
+	});
+	
+	
+	
 	
 
 </script>
