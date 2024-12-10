@@ -370,7 +370,6 @@ pageContext.setAttribute("crlf", "\r\n");
 			<script>
 			$("#modal_add").click(function() {
 				//alert($("#focusLine"));
-				$("#focusLine").focus();
 				$(".eduinfo_Bx").focus();
 
 			});
