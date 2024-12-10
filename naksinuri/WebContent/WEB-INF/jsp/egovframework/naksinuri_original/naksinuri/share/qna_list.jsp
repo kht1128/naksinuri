@@ -81,7 +81,7 @@
 				<dl>
 					<dt>
 						<span class="num">${select_total-item.rn+1}</span><span class="type"></span>
-						<a href="#;" title="${item.qna_ques} 상세보기">${item.qna_ques}</a>
+						<a href="#;" title="<%-- ${item.qna_ques}  --%>상세보기">${item.qna_ques}</a>
 					</dt>
 					<dd>
 						<div style="width:100%;" >${item.qna_answ}</div>

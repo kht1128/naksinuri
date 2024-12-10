@@ -50,7 +50,7 @@
 				<dl>
 					<dt>
 						<span class="num">${zazu_gun+1-status.count}</span><span class="type"></span>
-						<a href="#;" title="${item.zazu_ques} 상세보기">${item.zazu_ques}</a>
+						<a href="#;" title="<%-- ${item.zazu_ques}  --%>상세보기">${item.zazu_ques}</a>
 					</dt>
 					<dd>
 						<div style="width:100%;" >${item.zazu_answ}</div>

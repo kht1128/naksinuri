@@ -81,6 +81,7 @@
 					</div>
 					
 					<script>
+					
 					$(document).ready(function(){
 						var notice_slider = $('#mainSearch ul').bxSlider({
 							auto: true,
@@ -172,7 +173,7 @@
 					</div><!--//one_calendar//-->
 				</div><!--//calendar_bx//-->
 	
-				<div class="eduinfo_Bx" id="table_wrap" tabindex=1>
+				<div class="eduinfo_Bx" id="table_wrap">
 					<!-- 
 					<ul class="grpedu_ul">
 						<li>
@@ -632,6 +633,9 @@ $('.sponsor-slide .sponsor_autoplay-control').click(function(){
 		$(this).attr('title', '스폰서 슬라이드 재생중');
 	}
 });
+
+
+
 </script>
 
 <%-- 공통 로그인 팝업 --%>

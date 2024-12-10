@@ -7,7 +7,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 	<!-- Global site tag (gtag.js) - Google Analytics -->

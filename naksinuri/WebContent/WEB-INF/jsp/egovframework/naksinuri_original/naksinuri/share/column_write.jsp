@@ -12,6 +12,9 @@
 <c:set var="pageMode" value="info"/>
 <c:set var="depthName" value="${column}" />
 <c:set var="pageName" value="${table}" />
+<c:if test="${pageName eq 'column'}">
+	<c:set var="bo_cate" value="columnwrite" />
+</c:if>
 <%@include file="../layout/newHead.jsp"%>
 
 <style>
@@ -68,8 +71,8 @@
 				</div><br/>
 				<div class="agree_yesorno">
 					<span class="txt">게시물 작성시 유의사항에 </span>
-					<input type="radio" id="agreeingy" name="agreeing" value="동의"/><label for="agreeingy"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#agreeingy').click();}"></span>동의합니다.</label>
-					<input type="radio" id="agreeingn" name="agreeing" value="비동의"/><label for="agreeingn"><span tabindex="0" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#agreeingn').click();}"></span>동의하지 않습니다.</label>
+					<input type="radio" id="agreeingy" name="agreeing" value="동의"/><label for="agreeingy"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#agreeingy').click();}"></span>동의합니다.</label>
+					<input type="radio" id="agreeingn" name="agreeing" value="비동의"/><label for="agreeingn"><span onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('#agreeingn').click();}"></span>동의하지 않습니다.</label>
 				</div>
 			</div>
 			

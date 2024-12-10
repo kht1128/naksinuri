@@ -409,6 +409,7 @@ function afterBtnClick(index){
 					<li <c:if test="${pageName eq 'nuri'}">class="select"</c:if>><a href="/share/nuri/list.do">Q & A</a></li>
 					<li <c:if test="${pageName eq 'usage'}">class="select"</c:if>><a href="/share/usage/list.do">낚시용품 사용기</a></li>
 					<li <c:if test="${pageName eq 'column'}">class="select"</c:if>><a href="/share/column/list.do">낚시칼럼(자유게시판)</a></li>
+					<li <c:if test="${pageName eq 'column' and bo_cate eq 'columnwrite'}">class="select"</c:if>><a href="/share/column/list.do">-글쓰기</a></li>
 					<li <c:if test="${pageName eq 'survey' and bo_cate eq 'survey'}">class="select"</c:if>><a href="/survey/survey/list.do">진행중인 설문조사</a></li>
 					<li <c:if test="${pageName eq 'survey' and bo_cate eq 'endsurvey'}">class="select"</c:if>><a href="/survey/survey/endlist.do">종료된 설문조사</a></li>
 					

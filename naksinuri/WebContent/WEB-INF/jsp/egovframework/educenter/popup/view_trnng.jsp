@@ -48,6 +48,7 @@ pageContext.setAttribute("crlf", "\r\n");
 	<input type="hidden" name="CRS_END_DT" value="${CRS_END_DT}"/>
 </form:form> --%>
 <input type="hidden" name="crsEndDt" value="${CRS_END_DT}"/>
+
 <c:choose>
 	<c:when test="${empty info}">
 		<c:if test="${not empty IS_TABLE_TR and IS_TABLE_TR eq 'Y'}"><%-- 모달이 아닌 경우 --%>
@@ -368,9 +369,9 @@ pageContext.setAttribute("crlf", "\r\n");
 			
 			<script>
 			$("#modal_add").click(function() {
-				
-
-				$("#bx-wrapper").focus();
+				//alert($("#focusLine"));
+				$("#focusLine").focus();
+				$(".eduinfo_Bx").focus();
 
 			});
 			

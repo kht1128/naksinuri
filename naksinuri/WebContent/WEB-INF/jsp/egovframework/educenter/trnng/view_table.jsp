@@ -39,10 +39,10 @@
 		<li>
 			<div class="grpedu_Pn">
 				<div class="tag">낚시어선업자 및 선원</div>
-				<div class="clk_modal_eduinfo" data-crs-sn="${item.CRS_SN}" data-linkurl="/educenter/trnng/view.do" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('.clk_modal_eduinfo').click();}" title="${item.CRS_PLACE} 상세보기" tabindex=1>
+				<div class="clk_modal_eduinfo" data-crs-sn="${item.CRS_SN}" data-linkurl="/educenter/trnng/view.do" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('.clk_modal_eduinfo').click();}" title="${item.CRS_PLACE} 상세보기">
 					<p class="dates">${CRS_STR_DT}&nbsp;~&nbsp;${CRS_END_DT}</p>
 					<a href="javascript:void(0);" class="sbj" title="${item.CRS_PLACE}" data-crs-sn="${item.CRS_SN}"
-	          		data-linkurl="/educenter/trnng/view.do">${item.CRS_PLACE}</a>
+	          		data-linkurl="/educenter/trnng/view.do" id="focusLine${status.index}">${item.CRS_PLACE}</a>
 					<div class="cont">
 						${item.CRS_ADDR}
 					</div>
@@ -78,8 +78,8 @@
 				<div class="tag">낚시터업자</div>
 				<div class="clk_modal_eduinfo" data-crs-sn="${item.CRS_SN}" data-linkurl="/educenter/trnng/view.do" onkeyPress="if (event.keyCode==13 || event.keyCode==32){$('.clk_modal_eduinfo').click();}" title="${item.CRS_PLACE} 상세보기">
 					<p class="dates">${CRS_STR_DT}&nbsp;~&nbsp;${CRS_END_DT}</p>
-					<a href="javascript:void(0);" title="${item.CRS_PLACE}" class="sbj" data-crs-sn="${item.CRS_SN}"
-	          		data-linkurl="/educenter/trnng/view.do">${item.CRS_PLACE}</a>
+					<a href="javascript:void(0)" title="${item.CRS_PLACE}" class="sbj" data-crs-sn="${item.CRS_SN}"
+	          		data-linkurl="/educenter/trnng/view.do" id="focusLine${status.index}">${item.CRS_PLACE}</a>
 					<div class="cont">
 						${item.CRS_ADDR}
 					</div>
@@ -189,7 +189,7 @@ var mainSlider1 = $('.grpedu_ul_1').bxSlider({
 	controls: false,
 	pause: 3000,
 	autoHover: true,
-	stopAutoOnClick: true/* ,
+	stopAutoOnClick: true ,
 	onSliderLoad: function(){
 
 		$(".bx-clone").find("a").prop("tabIndex","-1");
@@ -204,7 +204,7 @@ var mainSlider1 = $('.grpedu_ul_1').bxSlider({
 				$(this).find("a").attr("tabIndex","-1");
 			}
 		});
-	} */
+	}
 });
 
 var mainSlider2 = $('.grpedu_ul_2').bxSlider({
@@ -212,7 +212,7 @@ var mainSlider2 = $('.grpedu_ul_2').bxSlider({
 	controls: false,
 	pause: 3000,
 	autoHover: true,
-	stopAutoOnClick: true/* ,
+	stopAutoOnClick: true ,
 	onSliderLoad: function(){
 
 		$(".bx-clone").find("a").prop("tabIndex","-1");
@@ -227,7 +227,7 @@ var mainSlider2 = $('.grpedu_ul_2').bxSlider({
 				$(this).find("a").attr("tabIndex","-1");
 			}
 		});
-	} */
+	}
 });
 
 $('.grpedu_ul_1 a').focusin(function () {
@@ -260,6 +260,7 @@ $(".clk_modal_eduinfo").click(function() {
 		},
 		complete : function() {
 			//console.log('complete!');
+			$("#focusLine").focus();
 	    },
 		error: function(jqXHR, textStatus, errorThrown) {
 			//console.log('error!');
